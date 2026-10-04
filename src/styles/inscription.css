@@ -1,0 +1,30 @@
+.table-toolbar1 {
+    background-color: #28645f;
+    border-radius: 50px;
+    padding: 8px 15px;
+    border: none;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 500px;
+    margin: 0 auto;
+
+}
+
+.search-input1 {
+    background-color: #28645f;
+    border: 1px solid #ddd;
+    border-radius: 50px;
+    padding: 10px 15px;
+    outline: none;
+    border: none;
+    color: #ffffff;
+    text-align: center;
+}
+
+.f1 {
+    color: #114b46;
+    font-weight: bold;
+    font-size: 12px;
+}

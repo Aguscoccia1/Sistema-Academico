@@ -7,7 +7,7 @@
 
    How to run it:
      - SQL Server Management Studio: open this file and press F5.
-     - Command line:  sqlcmd -S localhost\SQLEXPRESS -E -C -f 65001 -i AcademicSystem.sql
+     - Command line:  sqlcmd -S ALAN -E -C -f 65001 -i AcademicSystem.sql
 
    It is safe to run more than once: it only creates what is missing.
 
