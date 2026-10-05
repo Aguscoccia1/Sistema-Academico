@@ -9,408 +9,717 @@ import "../../../../styles/modificarEst.css";
 
 function ModificarEstudiante() {
 
-  // ID que viene desde la URL
-  const { id } = useParams();
+    const { id } = useParams();
 
-  // Para volver a la lista
-  const navigate = useNavigate();
+    const navigate = useNavigate();
 
-  const [editingStudent, setEditingStudent] = useState(null);
+    const [editingStudent, setEditingStudent] = useState(null);
 
-  const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
 
-  const [notice, setNotice] = useState('');
+    const [notice, setNotice] = useState('');
 
-  const [error, setError] = useState('');
+    const [error, setError] = useState('');
+
+    const [hover, setHover] = useState(false);
 
 
-  // ==========================================
-  // BUSCAR ESTUDIANTE
-  // ==========================================
 
-  useEffect(() => {
 
-    const loadStudent = async () => {
+    useEffect(() => {
 
-      try {
+        const loadStudent = async () => {
 
-        setIsLoading(true);
+            try {
 
-        const students =
-          await studentsApi.obtenerEstudiantes();
+                setIsLoading(true);
 
-        const student =
-          students.find(
-            (student) =>
-              String(student.id) === String(id)
-          );
+                const students =
+                    await studentsApi.obtenerEstudiantes();
 
-        if (!student) {
+                const student =
+                    students.find(
+                        (student) =>
+                            String(student.id) === String(id)
+                    );
 
-          setError('No se encontró el estudiante.');
+                if (!student) {
 
-          return;
+                    setError('No se encontró el estudiante.');
 
-        }
+                    return;
 
-        setEditingStudent({
-          ...student,
+                }
 
-          // Si existe comision la usamos.
-          // Si no, usamos estado.
-          comision:
-            student.comision ??
-            student.estado ??
-            ''
-        });
+                setEditingStudent({
+                    ...student,
 
-        setError('');
 
-      } catch (error) {
+                    comision:
+                        student.comision ??
+                        student.estado ??
+                        ''
+                });
 
-        setError(
-          'No fue posible cargar el estudiante.'
-        );
+                setError('');
 
-      } finally {
+            } catch (error) {
 
-        setIsLoading(false);
+                setError(
+                    'No fue posible cargar el estudiante.'
+                );
 
-      }
+            } finally {
+
+                setIsLoading(false);
+
+            }
+
+        };
+
+        loadStudent();
+
+    }, [id]);
+
+
+
+    const handleChange = (event) => {
+
+        const { name, value } = event.target;
+
+        setEditingStudent((current) => ({
+
+            ...current,
+
+            [name]: value
+
+        }));
 
     };
 
-    loadStudent();
-
-  }, [id]);
 
 
-  // ==========================================
-  // CAMBIAR DATOS
-  // ==========================================
+    const handleSave = async () => {
 
-  const handleChange = (event) => {
+        if (!editingStudent) {
+            return;
+        }
 
-    const { name, value } = event.target;
+        try {
 
-    setEditingStudent((current) => ({
+            const updatedStudent =
+                await studentsApi.actualizarEstudiante(
 
-      ...current,
+                    editingStudent.id,
 
-      [name]: value
+                    {
+                        nombreCompleto:
+                            editingStudent.nombreCompleto,
 
-    }));
+                        dni:
+                            editingStudent.dni,
 
-  };
+                        correo:
+                            editingStudent.correo,
+
+                        comision:
+                            editingStudent.comision
+                    }
+
+                );
+
+            setEditingStudent(updatedStudent);
+
+            setNotice(
+                'Estudiante modificado correctamente.'
+            );
+
+            setError('');
+
+        } catch (error) {
+
+            setError(
+                'No fue posible modificar el estudiante.'
+            );
+
+        }
+
+    };
 
 
-  // ==========================================
-  // GUARDAR
-  // ==========================================
 
-  const handleSave = async () => {
+    const handleCancel = () => {
 
-    if (!editingStudent) {
-      return;
-    }
+        navigate('/secretario/manage-slots');
 
-    try {
+    };
 
-      const updatedStudent =
-        await studentsApi.actualizarEstudiante(
 
-          editingStudent.id,
 
-          {
-            nombreCompleto:
-              editingStudent.nombreCompleto,
+    if (isLoading) {
 
-            dni:
-              editingStudent.dni,
+        return (
 
-            correo:
-              editingStudent.correo,
+            <section className="contenedor">
 
-            comision:
-              editingStudent.comision
-          }
+                <p>
+                    Cargando estudiante...
+                </p>
+
+            </section>
 
         );
 
-      setEditingStudent(updatedStudent);
+    }
 
-      setNotice(
-        'Estudiante modificado correctamente.'
-      );
 
-      setError('');
+    if (error && !editingStudent) {
 
-    } catch (error) {
+        return (
 
-      setError(
-        'No fue posible modificar el estudiante.'
-      );
+            <section className="contenedor">
+
+                <p role="alert">
+                    {error}
+                </p>
+
+                <button
+                    type="button"
+                    onClick={handleCancel}
+                >
+                    Volver
+                </button>
+
+            </section>
+
+        );
 
     }
 
-  };
-
-
-  // ==========================================
-  // CANCELAR
-  // ==========================================
-
-  const handleCancel = () => {
-
-    navigate('/secretario/manage-slots');
-
-  };
-
-
-  // ==========================================
-  // CARGANDO
-  // ==========================================
-
-  if (isLoading) {
 
     return (
 
-      <section className="contenedor">
+        <section>
 
-        <p>
-          Cargando estudiante...
-        </p>
+            <div className="contenedor">
 
-      </section>
+                <h1>
+                    Alumnos de 1er Año
+                </h1>
 
-    );
 
-  }
+                <div className="contenido">
 
+                    <div className="ladoIzq">
 
-  // ==========================================
-  // ERROR
-  // ==========================================
+                        <div className="student-edit-form">
 
-  if (error && !editingStudent) {
+                            <h2>
+                                Datos del estudiante
+                            </h2>
 
-    return (
 
-      <section className="contenedor">
+                            <label>
 
-        <p role="alert">
-          {error}
-        </p>
+                                Nombre y apellido
+                                <br />
 
-        <button
-          type="button"
-          onClick={handleCancel}
-        >
-          Volver
-        </button>
+                                <input
+                                    className='date'
+                                    type="text"
+                                    name="nombreCompleto"
+                                    value={
+                                        editingStudent?.nombreCompleto ?? ''
+                                    }
+                                    onChange={handleChange}
+                                />
 
-      </section>
+                            </label>
+                            <br />
 
-    );
 
-  }
+                            <label>
 
+                                DNI
+                                <br />
 
-  return (
+                                <input
+                                    className='date'
+                                    type="text"
+                                    name="dni"
+                                    value={
+                                        editingStudent?.dni ?? ''
+                                    }
+                                    onChange={handleChange}
+                                />
 
-    <section>
+                            </label>
+                            <br />
 
-      <div className="contenedor">
 
-        <h1>
-          Modificar estudiante
-        </h1>
+                            <label>
 
+                                Correo electrónico
 
-        <div className="contenido">
+                                <br />
 
+                                <input
+                                    className='date'
+                                    type="email"
+                                    name="correo"
+                                    value={
+                                        editingStudent?.correo ?? ''
+                                    }
+                                    onChange={handleChange}
+                                />
 
-          {/* =================================
-              LADO IZQUIERDO
-          ================================= */}
+                            </label>
+                            <br />
 
-          <div className="ladoIzq">
 
-            <div className="student-edit-form">
+                            <label>
 
-              <h2>
-                Datos del estudiante
-              </h2>
+                                Comisión
 
+                                <br />
 
-              {/* NOMBRE */}
+                                <select
+                                    className='date'
+                                    name="comision"
+                                    value={
+                                        editingStudent?.comision ?? ''
+                                    }
+                                    onChange={handleChange}
+                                >
 
-              <label>
+                                    <option value="">
+                                        Seleccionar
+                                    </option>
 
-                Nombre y apellido
+                                    <option value="A">
+                                        Comisión A
+                                    </option>
 
-                <input
-                  type="text"
-                  name="nombreCompleto"
-                  value={
-                    editingStudent?.nombreCompleto ?? ''
-                  }
-                  onChange={handleChange}
-                />
+                                    <option value="B">
+                                        Comisión B
+                                    </option>
 
-              </label>
+                                </select>
 
+                            </label>
 
-              {/* DNI */}
 
-              <label>
+                        </div>
 
-                DNI
+                    </div>
 
-                <input
-                  type="text"
-                  name="dni"
-                  value={
-                    editingStudent?.dni ?? ''
-                  }
-                  onChange={handleChange}
-                />
+                    <div className="ladoDer">
 
-              </label>
+                        <h2>
+                            Materias
+                        </h2>
 
+                        <div className="student-edit-form1">
 
-              {/* CORREO */}
 
-              <label>
+                            <div className='contV'>
+                                <label>
 
-                Correo electrónico
+                                    Programacion I
 
-                <input
-                  type="email"
-                  name="correo"
-                  value={
-                    editingStudent?.correo ?? ''
-                  }
-                  onChange={handleChange}
-                />
+                                    <select
+                                        className='date1'
+                                        name="comision"
+                                        value={
+                                            editingStudent?.comision ?? ''
+                                        }
+                                        onChange={handleChange}
+                                    >
 
-              </label>
+                                        <option value="">
+                                            Seleccionar
+                                        </option>
 
+                                        <option value="A">
+                                            Lunes 14:00 hs a 16:00 hs y Miercoles 16:20 hs a 17:30 hs
+                                        </option>
 
-              {/* COMISIÓN */}
+                                        <option value="B">
+                                            Comisión B
+                                        </option>
 
-              <label>
+                                    </select>
 
-                Comisión
+                                </label>
+                            </div>
+                            
 
-                <select
-                  name="comision"
-                  value={
-                    editingStudent?.comision ?? ''
-                  }
-                  onChange={handleChange}
-                >
 
-                  <option value="">
-                    Seleccionar
-                  </option>
+                            <div className='contB'>
+                                <label>
 
-                  <option value="A">
-                    Comisión A
-                  </option>
+                                    Sistemas y Organizaciones
 
-                  <option value="B">
-                    Comisión B
-                  </option>
+                                    <select
+                                        className='date1'
+                                        name="comision"
+                                        value={
+                                            editingStudent?.comision ?? ''
+                                        }
+                                        onChange={handleChange}
+                                    >
 
-                </select>
+                                        <option value="">
+                                            Seleccionar
+                                        </option>
 
-              </label>
+                                        <option value="A">
+                                            Lunes 16:10 hs a 18:50 hs
+                                        </option>
 
+                                        <option value="B">
+                                            Comisión B
+                                        </option>
 
-              {/* BOTONES */}
+                                    </select>
 
-              <div className="student-edit-actions">
+                                </label>
+                            </div>
+                            
 
-                <button
-                  type="button"
-                  onClick={handleSave}
-                >
 
-                  <Save size={16} />
+                            <div className='contV'>
+                                <label>
 
-                  Guardar
+                                    Competencias Comunicacionales I
 
-                </button>
+                                    <select
+                                        className='date1'
+                                        name="comision"
+                                        value={
+                                            editingStudent?.comision ?? ''
+                                        }
+                                        onChange={handleChange}
+                                    >
 
+                                        <option value="">
+                                            Seleccionar
+                                        </option>
 
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                >
+                                        <option value="A">
+                                            Miercoles 14:00 hs a 16:00 hs
+                                        </option>
 
-                  <X size={16} />
+                                        <option value="B">
+                                            Comisión B
+                                        </option>
 
-                  Cancelar
+                                    </select>
 
-                </button>
+                                </label>
+                            </div>
+                            
 
-              </div>
 
+                            <div className='contB'>
+                                <label>
 
-              {/* MENSAJE */}
+                                    Base de Datos
 
-              {notice && (
+                                    <select
+                                        className='date1'
+                                        name="comision"
+                                        value={
+                                            editingStudent?.comision ?? ''
+                                        }
+                                        onChange={handleChange}
+                                    >
 
-                <p className="crud-notice">
+                                        <option value="">
+                                            Seleccionar
+                                        </option>
 
-                  {notice}
+                                        <option value="A">
+                                            Jueves 14:00 hs a 16:40 hs
+                                        </option>
 
-                </p>
+                                        <option value="B">
+                                            Comisión B
+                                        </option>
 
-              )}
+                                    </select>
 
+                                </label>
+                            </div>
 
-              {error && (
+                            <div className='contV'>
+                                <label>
 
-                <p role="alert">
+                                    Aproximaciones al Mundo del Trabajo
 
-                  {error}
+                                    <select
+                                        className='date1'
+                                        name="comision"
+                                        value={
+                                            editingStudent?.comision ?? ''
+                                        }
+                                        onChange={handleChange}
+                                    >
 
-                </p>
+                                        <option value="">
+                                            Seleccionar
+                                        </option>
 
-              )}
+                                        <option value="A">
+                                            Martes 16:10 hs a 18:10 hs
+                                        </option>
 
+                                        <option value="B">
+                                            Comisión B
+                                        </option>
+
+                                    </select>
+
+                                </label>
+                            </div>
+                            
+
+
+                            <div className='contB'>
+                                <label>
+
+                                    Ingles
+
+                                    <select
+                                        className='date1'
+                                        name="comision"
+                                        value={
+                                            editingStudent?.comision ?? ''
+                                        }
+                                        onChange={handleChange}
+                                    >
+
+                                        <option value="">
+                                            Seleccionar
+                                        </option>
+
+                                        <option value="A">
+                                            Jueves 17:00 hs a 18:20 hs
+                                        </option>
+
+                                        <option value="B">
+                                            Comisión B
+                                        </option>
+
+                                    </select>
+
+                                </label>
+                            </div>
+
+                            <div className='contV'>
+                                <label>
+
+                                   Elementos de Matematica y Logica
+
+                                    <select
+                                        className='date1'
+                                        name="comision"
+                                        value={
+                                            editingStudent?.comision ?? ''
+                                        }
+                                        onChange={handleChange}
+                                    >
+
+                                        <option value="">
+                                            Seleccionar
+                                        </option>
+
+                                        <option value="A">
+                                            Martes 14:00 hs a 16:00 hs
+                                        </option>
+
+                                        <option value="B">
+                                            Comisión B
+                                        </option>
+
+                                    </select>
+
+                                </label>
+                            </div>
+                            
+
+
+                            <div className='contB'>
+                                <label>
+
+                                    Arquitectura de las Computadoras
+
+                                    <select
+                                        className='date1'
+                                        name="comision"
+                                        value={
+                                            editingStudent?.comision ?? ''
+                                        }
+                                        onChange={handleChange}
+                                    >
+
+                                        <option value="">
+                                            Seleccionar
+                                        </option>
+
+                                        <option value="A">
+                                            Martes 16:10 hs a 18:10 hs
+                                        </option>
+
+                                        <option value="B">
+                                            Comisión B
+                                        </option>
+
+                                    </select>
+
+                                </label>
+                            </div>
+
+                            <div className='contV'>
+                                <label>
+
+                                   Competencias Comunicacionales II
+
+                                    <select
+                                        className='date1'
+                                        name="comision"
+                                        value={
+                                            editingStudent?.comision ?? ''
+                                        }
+                                        onChange={handleChange}
+                                    >
+
+                                        <option value="">
+                                            Seleccionar
+                                        </option>
+
+                                        <option value="A">
+                                            Miercoles 14:00 hs a 16:00 hs
+                                        </option>
+
+                                        <option value="B">
+                                            Comisión B
+                                        </option>
+
+                                    </select>
+
+                                </label>
+                            </div>
+                            
+
+
+                            <div className='contB'>
+                                <label>
+
+                                    Etica y Deontologia Profesional
+
+                                    <select
+                                        className='date1'
+                                        name="comision"
+                                        value={
+                                            editingStudent?.comision ?? ''
+                                        }
+                                        onChange={handleChange}
+                                    >
+
+                                        <option value="">
+                                            Seleccionar
+                                        </option>
+
+                                        <option value="A">
+                                            Miercoles 17:40 hs a 19:40 hs
+                                        </option>
+
+                                        <option value="B">
+                                            Comisión B
+                                        </option>
+
+                                    </select>
+
+                                </label>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+
+                </div>
+                <br />
+                <br />
+
+                <div className="student-edit-actions">
+
+                    <button
+                        className='save'
+                        type="button"
+                        onClick={handleSave}
+                        onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+
+                    >
+
+                        <Save size={16} />
+
+                        Confirmar Inscripcion
+
+                    </button>
+
+                    <div className='space'></div>
+
+                    <button
+                        className='cancel'
+                        type="button"
+                        onClick={handleCancel}
+                        onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+
+                    >
+
+                        <X size={16} />
+
+                        Cancelar
+
+                    </button>
+
+                </div>
+
+                <br />
+                <br />
+
+
+                {/* MENSAJE */}
+
+                {notice && (
+
+                    <p className="crud-notice">
+
+                        {notice}
+
+                    </p>
+
+                )}
+
+
+                {error && (
+
+                    <p role="alert">
+
+                        {error}
+
+                    </p>
+
+                )}
             </div>
 
-          </div>
+        </section>
 
-
-          {/* =================================
-              LADO DERECHO
-          ================================= */}
-
-          <div className="ladoDer">
-
-            <h3>
-              Materias
-            </h3>
-
-            <p>
-              Acá podés agregar posteriormente
-              las materias del estudiante.
-            </p>
-
-          </div>
-
-
-        </div>
-
-      </div>
-
-    </section>
-
-  );
+    );
 
 }
 
