@@ -8,236 +8,255 @@ import "../../../../styles/modificarEst.css";
 
 function VisualizarEstudiante() {
 
-  const { id } = useParams();
+    const { id } = useParams();
 
-  const navigate = useNavigate();
+    const navigate = useNavigate();
 
-  const [student, setStudent] = useState(null);
+    const [student, setStudent] = useState(null);
 
-  const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
 
-  const [error, setError] = useState('');
+    const [error, setError] = useState('');
 
 
-  // ==========================================
-  // BUSCAR ESTUDIANTE
-  // ==========================================
 
-  useEffect(() => {
+    useEffect(() => {
 
-    const loadStudent = async () => {
+        const loadStudent = async () => {
 
-      try {
+            try {
 
-        setIsLoading(true);
+                setIsLoading(true);
 
-        const students =
-          await studentsApi.obtenerEstudiantes();
+                const students =
+                    await studentsApi.obtenerEstudiantes();
 
-        const selectedStudent =
-          students.find(
-            (student) =>
-              String(student.id) === String(id)
-          );
+                const selectedStudent =
+                    students.find(
+                        (student) =>
+                            String(student.id) === String(id)
+                    );
 
-        if (!selectedStudent) {
+                if (!selectedStudent) {
 
-          setError(
-            'No se encontró el estudiante.'
-          );
+                    setError(
+                        'No se encontró el estudiante.'
+                    );
 
-          return;
+                    return;
 
-        }
+                }
 
-        setStudent(selectedStudent);
+                setStudent(selectedStudent);
 
-        setError('');
+                setError('');
 
-      } catch (error) {
+            } catch (error) {
 
-        setError(
-          'No fue posible cargar el estudiante.'
+                setError(
+                    'No fue posible cargar el estudiante.'
+                );
+
+            } finally {
+
+                setIsLoading(false);
+
+            }
+
+        };
+
+        loadStudent();
+
+    }, [id]);
+
+
+    if (isLoading) {
+
+        return (
+
+            <section className="contenedor">
+
+                <p>
+                    Cargando estudiante...
+                </p>
+
+            </section>
+
         );
 
-      } finally {
-
-        setIsLoading(false);
-
-      }
-
-    };
-
-    loadStudent();
-
-  }, [id]);
+    }
 
 
-  if (isLoading) {
+    if (error) {
+
+        return (
+
+            <section className="contenedor">
+
+                <p role="alert">
+                    {error}
+                </p>
+
+                <button
+                    type="button"
+                    onClick={() =>
+                        navigate('/secretario/manage-slots')
+                    }
+                >
+                    Volver
+                </button>
+
+            </section>
+
+        );
+
+    }
+
 
     return (
 
-      <section className="contenedor">
+        <section>
 
-        <p>
-          Cargando estudiante...
-        </p>
+            <div className="contenedor">
 
-      </section>
-
-    );
-
-  }
+                <h1>
+                    Alumnos de 1er Año
+                </h1>
 
 
-  if (error) {
-
-    return (
-
-      <section className="contenedor">
-
-        <p role="alert">
-          {error}
-        </p>
-
-        <button
-          type="button"
-          onClick={() =>
-            navigate('/secretario/manage-slots')
-          }
-        >
-          Volver
-        </button>
-
-      </section>
-
-    );
-
-  }
+                <div className="contenido">
 
 
-  return (
 
-    <section>
+                    <div className="ladoIzq">
 
-      <div className="contenedor">
+                        <div className="student-edit-form">
 
-        <h1>
-          Visualizar estudiante
-        </h1>
-
-
-        <div className="contenido">
+                            <h2>
+                                Datos personales
+                            </h2>
 
 
-          {/* LADO IZQUIERDO */}
+                            <label>
 
-          <div className="ladoIzq">
+                                Nombre y apellido
+                                <br />
 
-            <div className="student-edit-form">
+                                <input
+                                    className='date'
+                                    type="text"
+                                    value={
+                                        student?.nombreCompleto ?? ''
+                                    }
+                                    readOnly
+                                />
 
-              <h2>
-                Datos personales
-              </h2>
-
-
-              <label>
-
-                Nombre y apellido
-
-                <input
-                  type="text"
-                  value={
-                    student?.nombreCompleto ?? ''
-                  }
-                  readOnly
-                />
-
-              </label>
+                            </label>
 
 
-              <label>
+                            <label>
 
-                DNI
+                                DNI
+                                <br />
 
-                <input
-                  type="text"
-                  value={
-                    student?.dni ?? ''
-                  }
-                  readOnly
-                />
+                                <input
+                                    className='date'
+                                    type="text"
+                                    value={
+                                        student?.dni ?? ''
+                                    }
+                                    readOnly
+                                />
 
-              </label>
-
-
-              <label>
-
-                Correo electrónico
-
-                <input
-                  type="email"
-                  value={
-                    student?.correo ?? ''
-                  }
-                  readOnly
-                />
-
-              </label>
+                            </label>
 
 
-              <label>
+                            <label>
 
-                Estado
+                                Correo electrónico
+                                <br />
 
-                <input
-                  type="text"
-                  value={
-                    student?.estado ?? ''
-                  }
-                  readOnly
-                />
+                                <input
+                                    className='date'
+                                    type="email"
+                                    value={
+                                        student?.correo ?? ''
+                                    }
+                                    readOnly
+                                />
 
-              </label>
+                            </label>
 
 
-              <button
-                type="button"
-                onClick={() =>
-                  navigate('/secretario/manage-slots')
-                }
-              >
-                Volver
-              </button>
+                            <label>
+
+                                Comision
+                                <br />
+
+                                <input
+                                    className='date'
+                                    type="text"
+                                    value={
+                                        student?.estado ?? ''
+                                    }
+                                    readOnly
+                                />
+
+                            </label>
+
+
+
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div className="ladoDer">
+
+                        <h2>
+                            Materias
+                        </h2>
+
+                        <label>
+
+                            Programacion
+                            <br />
+
+                            <input
+                                className='date'
+                                type="text"
+                                value={
+                                    student?.estado ?? ''
+                                }
+                                readOnly
+                            />
+
+                        </label>
+
+                    </div>
+
+
+                </div>
+                <br />
+                <div className="student-edit-actions">
+                    <button
+                        className='cancel'
+                        type="button"
+                        onClick={() =>
+                            navigate('/secretario/manage-slots')
+                        }
+                    >
+                        Volver
+                    </button>
+                </div>
 
             </div>
 
-          </div>
+        </section>
 
-
-          {/* LADO DERECHO */}
-
-          <div className="ladoDer">
-
-            <h3>
-              Materias
-            </h3>
-
-            <p>
-              Acá podés mostrar las materias
-              correspondientes al estudiante.
-            </p>
-
-          </div>
-
-
-        </div>
-
-      </div>
-
-    </section>
-
-  );
+    );
 
 }
 
