@@ -15,7 +15,10 @@ function ManageSlots() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Cargar estudiantes
+  // =========================
+  // CARGAR ESTUDIANTES
+  // =========================
+
   useEffect(() => {
 
     const loadStudents = async () => {
@@ -24,18 +27,14 @@ function ManageSlots() {
 
         setIsLoading(true);
 
-        const data =
-          await studentsApi.obtenerEstudiantes();
+        const data = await studentsApi.obtenerEstudiantes();
 
         setStudents(data);
-
         setError('');
 
       } catch (error) {
 
-        setError(
-          'No fue posible cargar los estudiantes.'
-        );
+        setError('No fue posible cargar los estudiantes.');
 
       } finally {
 
@@ -49,7 +48,10 @@ function ManageSlots() {
 
   }, []);
 
-  // Filtrar estudiantes
+  // =========================
+  // BUSCADOR
+  // =========================
+
   const filteredStudents = useMemo(() => {
 
     const text = search.toLowerCase().trim();
@@ -68,21 +70,23 @@ function ManageSlots() {
 
   }, [students, search]);
 
-  // Ir a modificar estudiante
+  // =========================
+  // MODIFICAR
+  // =========================
+
   const handleEdit = (id) => {
 
-    navigate(
-      `/secretario/estudiantes/${id}/modificar`
-    );
+    navigate(`/secretario/estudiantes/${id}/modificar`);
 
   };
 
-  // Ir a visualizar estudiante
+  // =========================
+  // VISUALIZAR
+  // =========================
+
   const handleView = (id) => {
 
-    navigate(
-      `/secretario/estudiantes/${id}/visualizar`
-    );
+    navigate(`/secretario/estudiantes/${id}/visualizar`);
 
   };
 
@@ -90,42 +94,30 @@ function ManageSlots() {
 
     <section className="management-page">
 
-      {/* Encabezado */}
       <div className="management-heading">
 
         <div>
 
-          <div>
+          <h1>
+            Alumnos de 1er Año
+          </h1>
 
-            <h1>
-              Alumnos de 1er Año
-            </h1>
-
-            <p>
-              Administrá los estudiantes inscriptos.
-            </p>
-
-          </div>
+          <p>
+            Administrá los estudiantes inscriptos.
+          </p>
 
         </div>
 
       </div>
 
-
-      {/* Error */}
       {error && (
-
         <p role="alert">
           {error}
         </p>
-
       )}
 
-
-      {/* Tabla */}
       <div className="management-table">
 
-        {/* Cargando */}
         {isLoading ? (
 
           <p>
@@ -163,7 +155,6 @@ function ManageSlots() {
               </tr>
 
             </thead>
-
 
             <tbody>
 
@@ -206,26 +197,17 @@ function ManageSlots() {
                         {/* MODIFICAR */}
                         <button
                           type="button"
-                          onClick={() =>
-                            handleEdit(student.id)
-                          }
-                          aria-label={
-                            `Modificar ${student.nombreCompleto}`
-                          }
+                          onClick={() => handleEdit(student.id)}
+                          aria-label={`Modificar ${student.nombreCompleto}`}
                         >
                           <Edit size={16} />
                         </button>
 
-
                         {/* VISUALIZAR */}
                         <button
                           type="button"
-                          onClick={() =>
-                            handleView(student.id)
-                          }
-                          aria-label={
-                            `Visualizar ${student.nombreCompleto}`
-                          }
+                          onClick={() => handleView(student.id)}
+                          aria-label={`Visualizar ${student.nombreCompleto}`}
                         >
                           <Eye size={16} />
                         </button>
@@ -246,8 +228,6 @@ function ManageSlots() {
 
         )}
 
-
-        {/* Buscador */}
         <br />
         <br />
 
@@ -257,9 +237,7 @@ function ManageSlots() {
             type="text"
             placeholder="Buscar Alumno"
             value={search}
-            onChange={(event) =>
-              setSearch(event.target.value)
-            }
+            onChange={(event) => setSearch(event.target.value)}
             className="search-input1"
             aria-label="Buscar estudiante"
           />

@@ -1,0 +1,22 @@
+.contenedor {
+    width: 90%;
+    margin: 0 auto;
+}
+
+.contenedor h1 {
+    text-align: center;
+}
+
+.contenido {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.ladoIzq {
+    width: 45%;
+}
+
+.ladoDer {
+    width: 45%;
+}
