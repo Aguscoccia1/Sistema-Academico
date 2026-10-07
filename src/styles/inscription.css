@@ -1,6 +1,6 @@
 .table-toolbar1 {
-    background-color: #28645f;
-    border-radius: 50px;
+    background-color: #3F746B;
+    border-radius: 8px;
     padding: 8px 15px;
     border: none;
     color: #ffffff;
@@ -11,11 +11,28 @@
     margin: 0 auto;
 
 }
+.table-toolbar1:hover{
+    background-color: #1F4C48;
+    border-radius: 8px;
+    padding: 8px 15px;
+    border: none;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 500px;
+    margin: 0 auto;
+    transform: translate(0, -5%);
+}
+.search-input1::placeholder {
+    color: white;
+    font-family: DM Sans;
+    font-size: 13px;
+    font-weight: bold;
+}
 
 .search-input1 {
-    background-color: #28645f;
-    border: 1px solid #ddd;
-    border-radius: 50px;
+    background-color: #3f746b00;
     padding: 10px 15px;
     outline: none;
     border: none;
@@ -27,4 +44,30 @@
     color: #114b46;
     font-weight: bold;
     font-size: 12px;
+    font-family: DM Sans;
+}
+td{
+    font-family: DM Sans;
+    color: #183B38;
+    font-size: 12px;
+    
+}
+.mod{
+    background-color: #114b4600;
+    border: none;
+    color: #3F746B;
+}
+.mod:hover{
+    transform: translate(0, -5%);
+    color: #1F4C48;
+}
+.vis{
+    background-color: #114b4600;
+    border: none;
+    color: #3F746B;
+}
+.vis:hover{
+    transform: translate(0, -5%);
+    color: #1F4C48;
+    
 }

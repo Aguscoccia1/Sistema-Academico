@@ -119,9 +119,16 @@ function VisualizarEstudiante() {
 
             <div className="contenedor">
 
-                <h1>
-                    Alumnos de 1er Año
-                </h1>
+                <div className='cab'>
+                    <div className='logo'></div>
+                    <div className='space'></div>
+                    <h1>
+                        Alumnos de 1er Año
+                    </h1>
+                </div>
+
+
+                <hr />
 
 
                 <div className="contenido">
@@ -219,21 +226,159 @@ function VisualizarEstudiante() {
                             Materias
                         </h2>
 
-                        <label>
 
-                            Programacion
-                            <br />
+                        <div className='student-edit-form1'>
+                            <label>
 
-                            <input
-                                className='date'
-                                type="text"
-                                value={
-                                    student?.estado ?? ''
-                                }
-                                readOnly
-                            />
+                                Programacion
+                                <br />
 
-                        </label>
+                                <input
+                                    className='date'
+                                    type="text"
+                                    value={
+                                        student?.estado ?? ''
+                                    }
+                                    readOnly
+                                />
+
+                            </label>
+                            <label>
+
+                                Programacion
+                                <br />
+
+                                <input
+                                    className='date'
+                                    type="text"
+                                    value={
+                                        student?.estado ?? ''
+                                    }
+                                    readOnly
+                                />
+
+                            </label>
+                            <label>
+
+                                Sistenas y Organizaciones
+                                <br />
+
+                                <input
+                                    className='date'
+                                    type="text"
+                                    value={
+                                        student?.estado ?? ''
+                                    }
+                                    readOnly
+                                />
+
+                            </label>
+                            <label>
+
+                                Base de Datos
+                                <br />
+
+                                <input
+                                    className='date'
+                                    type="text"
+                                    value={
+                                        student?.estado ?? ''
+                                    }
+                                    readOnly
+                                />
+
+                            </label>
+                            <label>
+
+                                Aproximaciones al Mundo del Trabajo
+                                <br />
+
+                                <input
+                                    className='date'
+                                    type="text"
+                                    value={
+                                        student?.estado ?? ''
+                                    }
+                                    readOnly
+                                />
+
+                            </label>
+                            <label>
+
+                                Ingles
+                                <br />
+
+                                <input
+                                    className='date'
+                                    type="text"
+                                    value={
+                                        student?.estado ?? ''
+                                    }
+                                    readOnly
+                                />
+
+                            </label>
+                            <label>
+
+                                Elementos de Matematicas y Logica
+                                <br />
+
+                                <input
+                                    className='date'
+                                    type="text"
+                                    value={
+                                        student?.estado ?? ''
+                                    }
+                                    readOnly
+                                />
+
+                            </label>
+                            <label>
+
+                                Arquitectura de las Computadoras
+                                <br />
+
+                                <input
+                                    className='date'
+                                    type="text"
+                                    value={
+                                        student?.estado ?? ''
+                                    }
+                                    readOnly
+                                />
+
+                            </label>
+                            <label>
+
+                                Competencias Comunicacionales II
+                                <br />
+
+                                <input
+                                    className='date'
+                                    type="text"
+                                    value={
+                                        student?.estado ?? ''
+                                    }
+                                    readOnly
+                                />
+
+                            </label>
+                            <label>
+
+                                Etica y Deontologia Profesional
+                                <br />
+
+                                <input
+                                    className='date'
+                                    type="text"
+                                    value={
+                                        student?.estado ?? ''
+                                    }
+                                    readOnly
+                                />
+
+                            </label>
+                        </div>
 
                     </div>
 

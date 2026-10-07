@@ -101,10 +101,7 @@ function ManageSlots() {
           <h1>
             Alumnos de 1er Año
           </h1>
-
-          <p>
-            Administrá los estudiantes inscriptos.
-          </p>
+          
 
         </div>
 
@@ -196,6 +193,7 @@ function ManageSlots() {
 
                         {/* MODIFICAR */}
                         <button
+                          className='mod'
                           type="button"
                           onClick={() => handleEdit(student.id)}
                           aria-label={`Modificar ${student.nombreCompleto}`}
@@ -205,6 +203,7 @@ function ManageSlots() {
 
                         {/* VISUALIZAR */}
                         <button
+                        className='vis'
                           type="button"
                           onClick={() => handleView(student.id)}
                           aria-label={`Visualizar ${student.nombreCompleto}`}

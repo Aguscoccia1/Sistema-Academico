@@ -61,7 +61,6 @@ function InscripcionesContainer() {
         </div>
       )}
 
-      {/* Filtros */}
       <div
         className="enrollment-filters"
         aria-label="Filtros de inscripciones"

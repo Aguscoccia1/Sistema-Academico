@@ -202,10 +202,16 @@ function ModificarEstudiante() {
         <section>
 
             <div className="contenedor">
+                <div className='cab'>
+                    <div className='logo'></div>
+                    <div className='space'></div>
+                    <h1>
+                        Alumnos de 1er Año
+                    </h1>
+                </div>
 
-                <h1>
-                    Alumnos de 1er Año
-                </h1>
+
+                <hr />
 
 
                 <div className="contenido">
@@ -341,18 +347,18 @@ function ModificarEstudiante() {
                                         </option>
 
                                         <option value="A">
-                                            Lunes 14:00 hs a 16:00 hs y Miercoles 16:20 hs a 17:30 hs
+                                            Lunes 14:00 hs a 16:00 hs y Miercoles 16:10 hs a 17:30 hs
                                         </option>
 
                                         <option value="B">
-                                            Comisión B
+                                            Lunes 16:10 hs a 18:10 hs y Miercoles 14:00 hs a 15:20 hs 
                                         </option>
 
                                     </select>
 
                                 </label>
                             </div>
-                            
+
 
 
                             <div className='contB'>
@@ -378,14 +384,14 @@ function ModificarEstudiante() {
                                         </option>
 
                                         <option value="B">
-                                            Comisión B
+                                            Miercoles 15:30 hs a 16:10 hs
                                         </option>
 
                                     </select>
 
                                 </label>
                             </div>
-                            
+
 
 
                             <div className='contV'>
@@ -411,14 +417,14 @@ function ModificarEstudiante() {
                                         </option>
 
                                         <option value="B">
-                                            Comisión B
+                                            Martes 14:20 hs a 16:20 hs
                                         </option>
 
                                     </select>
 
                                 </label>
                             </div>
-                            
+
 
 
                             <div className='contB'>
@@ -444,7 +450,7 @@ function ModificarEstudiante() {
                                         </option>
 
                                         <option value="B">
-                                            Comisión B
+                                            Jueves 16:40 hs a 19:20 hs
                                         </option>
 
                                     </select>
@@ -482,7 +488,7 @@ function ModificarEstudiante() {
 
                                 </label>
                             </div>
-                            
+
 
 
                             <div className='contB'>
@@ -504,11 +510,11 @@ function ModificarEstudiante() {
                                         </option>
 
                                         <option value="A">
-                                            Jueves 17:00 hs a 18:20 hs
+                                            Jueves 16:50 hs a 18:10 hs
                                         </option>
 
                                         <option value="B">
-                                            Comisión B
+                                            Lunes 14:00 hs a 15:20 hs
                                         </option>
 
                                     </select>
@@ -519,7 +525,7 @@ function ModificarEstudiante() {
                             <div className='contV'>
                                 <label>
 
-                                   Elementos de Matematica y Logica
+                                    Elementos de Matematica y Logica
 
                                     <select
                                         className='date1'
@@ -535,18 +541,18 @@ function ModificarEstudiante() {
                                         </option>
 
                                         <option value="A">
-                                            Martes 14:00 hs a 16:00 hs
+                                            Martes 17:00 hs a 19:00 hs
                                         </option>
 
                                         <option value="B">
-                                            Comisión B
+                                            Jueves 14:00 hs a 16:00 hs
                                         </option>
 
                                     </select>
 
                                 </label>
                             </div>
-                            
+
 
 
                             <div className='contB'>
@@ -568,11 +574,11 @@ function ModificarEstudiante() {
                                         </option>
 
                                         <option value="A">
-                                            Martes 16:10 hs a 18:10 hs
+                                            Martes 14:00 hs a 16:40 hs
                                         </option>
 
                                         <option value="B">
-                                            Comisión B
+                                            Martes 16:40 hs a 19:20 hs
                                         </option>
 
                                     </select>
@@ -583,7 +589,7 @@ function ModificarEstudiante() {
                             <div className='contV'>
                                 <label>
 
-                                   Competencias Comunicacionales II
+                                    Competencias Comunicacionales II
 
                                     <select
                                         className='date1'
@@ -603,14 +609,14 @@ function ModificarEstudiante() {
                                         </option>
 
                                         <option value="B">
-                                            Comisión B
+                                            Martes 14:20 hs a 16:20 hs 
                                         </option>
 
                                     </select>
 
                                 </label>
                             </div>
-                            
+
 
 
                             <div className='contB'>
@@ -636,7 +642,7 @@ function ModificarEstudiante() {
                                         </option>
 
                                         <option value="B">
-                                            Comisión B
+                                            Lunes 18:20 hs a 20:20 hs
                                         </option>
 
                                     </select>
