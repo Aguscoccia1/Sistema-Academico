@@ -6,7 +6,12 @@ const initialStudents = [
     nombreCompleto: 'Juan Pérez',
     dni: '41.123.456',
     correo: 'juan.perez@gmail.com',
+
     estado: 'Pendiente',
+
+    comision: '',
+    
+    materias: {},
   },
 
   {
@@ -14,7 +19,23 @@ const initialStudents = [
     nombreCompleto: 'María García',
     dni: '42.234.567',
     correo: 'maria.garcia@gmail.com',
+
     estado: 'Completa',
+
+    comision: 'A',
+
+    materias: {
+      programacionI: 'A',
+      sistemasOrganizaciones: 'A',
+      competenciasComunicacionalesI: 'A',
+      baseDeDatos: 'A',
+      aproximacionesMundoTrabajo: 'A',
+      ingles: 'A',
+      elementosMatematicaLogica: 'A',
+      arquitecturaComputadoras: 'A',
+      competenciasComunicacionalesII: 'A',
+      eticaDeontologiaProfesional: 'A',
+    },
   },
 
   {
@@ -22,7 +43,23 @@ const initialStudents = [
     nombreCompleto: 'Carlos López',
     dni: '43.345.678',
     correo: 'carlos.lopez@gmail.com',
+
     estado: 'Completa',
+
+    comision: 'B',
+
+    materias: {
+      programacionI: 'B',
+      sistemasOrganizaciones: 'B',
+      competenciasComunicacionalesI: 'B',
+      baseDeDatos: 'B',
+      aproximacionesMundoTrabajo: 'B',
+      ingles: 'B',
+      elementosMatematicaLogica: 'B',
+      arquitecturaComputadoras: 'B',
+      competenciasComunicacionalesII: 'B',
+      eticaDeontologiaProfesional: 'B',
+    },
   },
 
   {
@@ -30,32 +67,27 @@ const initialStudents = [
     nombreCompleto: 'Ana Martínez',
     dni: '44.456.789',
     correo: 'ana.martinez@gmail.com',
+
     estado: 'Pendiente',
+
+    comision: '',
+
+    materias: {},
   },
 ];
 
-const mockRepository =
-  createMockRepository(initialStudents);
+const mockRepository = createMockRepository(initialStudents);
 
 export const studentsApi = {
-
-  // Obtener todos los estudiantes
   obtenerEstudiantes: async () => {
     return mockRepository.list();
   },
 
-  // Modificar estudiante
   actualizarEstudiante: async (id, estudiante) => {
-    return mockRepository.update(
-      id,
-      estudiante
-    );
+    return mockRepository.update(id, estudiante);
   },
 
-  // Eliminar estudiante
   eliminarEstudiante: async (id) => {
     return mockRepository.remove(id);
   },
-
-
 };

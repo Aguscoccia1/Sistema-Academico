@@ -1,13 +1,12 @@
+import "../../../../styles/inscription.css";
+
 import { useEffect, useMemo, useState } from 'react';
 import { Edit, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { studentsApi } from '../../components/students/studentApi';
 
-import "../../../../styles/inscription.css";
-
-function ManageSlots() {
-
+const ManageSlots = () => {
   const navigate = useNavigate();
 
   const [students, setStudents] = useState([]);
@@ -15,240 +14,214 @@ function ManageSlots() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // =========================
-  // CARGAR ESTUDIANTES
-  // =========================
+  const cargarEstudiantes = async () => {
+    try {
+      setIsLoading(true);
+      setError('');
+
+      const data =
+        await studentsApi.obtenerEstudiantes();
+
+      setStudents(data);
+
+    } catch (err) {
+      console.error(err);
+
+      setError(
+        'No se pudieron cargar los estudiantes.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-
-    const loadStudents = async () => {
-
-      try {
-
-        setIsLoading(true);
-
-        const data = await studentsApi.obtenerEstudiantes();
-
-        setStudents(data);
-        setError('');
-
-      } catch (error) {
-
-        setError('No fue posible cargar los estudiantes.');
-
-      } finally {
-
-        setIsLoading(false);
-
-      }
-
-    };
-
-    loadStudents();
-
+    cargarEstudiantes();
   }, []);
 
-  // =========================
-  // BUSCADOR
-  // =========================
+  const estudiantesFiltrados = useMemo(() => {
 
-  const filteredStudents = useMemo(() => {
+    const texto = search
+      .toLowerCase()
+      .trim();
 
-    const text = search.toLowerCase().trim();
-
-    if (!text) {
+    if (!texto) {
       return students;
     }
 
-    return students.filter((student) =>
-      Object.values(student).some((value) =>
-        String(value)
-          .toLowerCase()
-          .includes(text)
-      )
-    );
+    return students.filter((student) => {
+
+      return (
+        student.nombreCompleto
+          ?.toLowerCase()
+          .includes(texto) ||
+
+        student.dni
+          ?.toLowerCase()
+          .includes(texto) ||
+
+        student.correo
+          ?.toLowerCase()
+          .includes(texto)
+      );
+
+    });
 
   }, [students, search]);
 
-  // =========================
-  // MODIFICAR
-  // =========================
-
-  const handleEdit = (id) => {
-
-    navigate(`/secretario/estudiantes/${id}/modificar`);
-
-  };
-
-  // =========================
-  // VISUALIZAR
-  // =========================
-
-  const handleView = (id) => {
-
-    navigate(`/secretario/estudiantes/${id}/visualizar`);
-
-  };
+  if (isLoading) {
+    return (
+      <div>
+        <h2>
+          Cargando estudiantes...
+        </h2>
+      </div>
+    );
+  }
 
   return (
+    <div className="manage-slots-page">
 
-    <section className="management-page">
-
-      <div className="management-heading">
+      <div className="management-header">
 
         <div>
-
           <h1>
-            Alumnos de 1er Año
+            Gestionar estudiantes
           </h1>
-          
 
+          <p>
+            Modificá o visualizá la información de
+            los estudiantes.
+          </p>
         </div>
 
       </div>
 
+
       {error && (
-        <p role="alert">
+        <div className="error">
           {error}
-        </p>
+        </div>
       )}
 
-      <div className="management-table">
 
-        {isLoading ? (
 
-          <p>
-            Cargando estudiantes...
-          </p>
+      <div className="management-table-container">
 
-        ) : (
+        <table className="management-table">
 
-          <table aria-label="Tabla de estudiantes">
+          <thead>
 
-            <thead>
+            <tr>
 
-              <tr>
+              <th>
+                Nombre completo
+              </th>
 
-                <th className="f1">
-                  ESTUDIANTE
-                </th>
+              <th>
+                DNI
+              </th>
 
-                <th className="f1">
-                  DNI
-                </th>
+              <th>
+                Correo
+              </th>
 
-                <th className="f1">
-                  CORREO ELECTRÓNICO
-                </th>
+              <th>
+                Estado
+              </th>
 
-                <th className="f1">
-                  ESTADO
-                </th>
+              <th>
+                Acciones
+              </th>
 
-                <th className="f1">
-                  ACCIONES
-                </th>
+            </tr>
 
-              </tr>
+          </thead>
 
-            </thead>
 
-            <tbody>
+          <tbody>
 
-              {filteredStudents.length === 0 ? (
+            {estudiantesFiltrados.map(
+              (student) => (
 
-                <tr>
+                <tr key={student.id}>
 
-                  <td colSpan="5">
-                    No se encontraron estudiantes.
+                  <td>
+                    {student.nombreCompleto}
+                  </td>
+
+                  <td>
+                    {student.dni}
+                  </td>
+
+                  <td>
+                    {student.correo}
+                  </td>
+
+                  <td>
+                    {student.estado}
+                  </td>
+
+                  <td>
+
+                    <button
+                      type="button"
+                      title="Modificar estudiante"
+                      onClick={() =>
+                        navigate(
+                          `/secretario/estudiantes/${student.id}/modificar`
+                        )
+                      }
+                      className="mod"
+                    >
+                      <Edit size={18} />
+                    </button>
+
+
+                    <button
+                      type="button"
+                      title="Visualizar estudiante"
+                      onClick={() =>
+                        navigate(
+                          `/secretario/estudiantes/${student.id}/visualizar`
+                        )
+                      }
+                      className="vis"
+                    >
+                      <Eye size={18} />
+                    </button>
+
                   </td>
 
                 </tr>
 
-              ) : (
+              )
+            )}
 
-                filteredStudents.map((student) => (
+          </tbody>
 
-                  <tr key={student.id}>
-
-                    <td>
-                      {student.nombreCompleto}
-                    </td>
-
-                    <td>
-                      {student.dni}
-                    </td>
-
-                    <td>
-                      {student.correo}
-                    </td>
-
-                    <td>
-                      {student.estado}
-                    </td>
-
-                    <td>
-
-                      <div className="actions">
-
-                        {/* MODIFICAR */}
-                        <button
-                          className='mod'
-                          type="button"
-                          onClick={() => handleEdit(student.id)}
-                          aria-label={`Modificar ${student.nombreCompleto}`}
-                        >
-                          <Edit size={16} />
-                        </button>
-
-                        {/* VISUALIZAR */}
-                        <button
-                        className='vis'
-                          type="button"
-                          onClick={() => handleView(student.id)}
-                          aria-label={`Visualizar ${student.nombreCompleto}`}
-                        >
-                          <Eye size={16} />
-                        </button>
-
-                      </div>
-
-                    </td>
-
-                  </tr>
-
-                ))
-
-              )}
-
-            </tbody>
-
-          </table>
-
-        )}
-
-        <br />
-        <br />
-
-        <div className="table-toolbar1">
-
-          <input
-            type="text"
-            placeholder="Buscar Alumno"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            className="search-input1"
-            aria-label="Buscar estudiante"
-          />
-
-        </div>
+        </table>
 
       </div>
 
-    </section>
 
+
+      <div className="table-toolbar1">
+
+        <input
+          type="text"
+          placeholder="Buscar estudiante..."
+          value={search}
+          onChange={(event) =>
+            setSearch(event.target.value)
+          }
+          className="search-input1"
+        />
+
+      </div>
+
+    </div>
   );
-
-}
+};
 
 export default ManageSlots;
