@@ -354,7 +354,7 @@ const ModificarEstudiante = () => {
                         type="button"
                         onClick={() => navigate('/secretario/manage-slots')}
                     >
-                        Cancelar y Volver
+                        Cancelar
                     </button>
                     <br />
                     <br />

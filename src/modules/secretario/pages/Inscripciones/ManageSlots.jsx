@@ -5,6 +5,7 @@ import { Edit, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { studentsApi } from '../../components/students/studentApi';
+import GraduationCap from '../../../../assets/GraduationCap.svg';
 
 const ManageSlots = () => {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ const ManageSlots = () => {
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [commission, setCommission] = useState('');
 
   const cargarEstudiantes = async () => {
     try {
@@ -40,34 +42,33 @@ const ManageSlots = () => {
   }, []);
 
   const estudiantesFiltrados = useMemo(() => {
-
-    const texto = search
-      .toLowerCase()
-      .trim();
-
-    if (!texto) {
-      return students;
-    }
+    const texto = search.toLowerCase().trim();
 
     return students.filter((student) => {
 
-      return (
+      // FILTRO DEL BUSCADOR
+      const coincideBusqueda =
+        !texto ||
         student.nombreCompleto
           ?.toLowerCase()
           .includes(texto) ||
-
         student.dni
           ?.toLowerCase()
           .includes(texto) ||
-
         student.correo
           ?.toLowerCase()
-          .includes(texto)
-      );
+          .includes(texto);
 
+      // FILTRO DEL SELECT
+      const coincideComision =
+        !commission ||
+        student.comision === commission;
+
+      // Tiene que cumplir ambos filtros
+      return coincideBusqueda && coincideComision;
     });
 
-  }, [students, search]);
+  }, [students, search, commission]);
 
   if (isLoading) {
     return (
@@ -78,6 +79,8 @@ const ManageSlots = () => {
       </div>
     );
   }
+
+
 
   return (
     <div className="manage-slots-page">
@@ -93,6 +96,29 @@ const ManageSlots = () => {
             Modificá o visualizá la información de
             los estudiantes.
           </p>
+        </div>
+
+        <div className="ladoDer">
+
+          <select
+            className="filtro"
+            name="comision"
+            value={commission}
+            onChange={(event) => setCommission(event.target.value)}
+          >
+            <option value="">
+              Todas las comisiones
+            </option>
+
+            <option value="A">
+              Comisión A
+            </option>
+
+            <option value="B">
+              Comisión B
+            </option>
+          </select>
+
         </div>
 
       </div>
@@ -203,6 +229,7 @@ const ManageSlots = () => {
         </table>
 
       </div>
+      <br />
 
 
 

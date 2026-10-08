@@ -11,7 +11,8 @@
     margin: 0 auto;
 
 }
-.table-toolbar1:hover{
+
+.table-toolbar1:hover {
     background-color: #1F4C48;
     border-radius: 8px;
     padding: 8px 15px;
@@ -24,6 +25,7 @@
     margin: 0 auto;
     transform: translate(0, -5%);
 }
+
 .search-input1::placeholder {
     color: white;
     font-family: DM Sans;
@@ -40,34 +42,62 @@
     text-align: center;
 }
 
+.management-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.ladoDer {
+    width: 12%;
+}
+
+.filtro {
+    background-color: #ffffff;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #d6e3d6;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: DM Sans;
+    color: #183b38;
+}
+
+
 .f1 {
     color: #114b46;
     font-weight: bold;
     font-size: 12px;
     font-family: DM Sans;
 }
-td{
+
+td {
     font-family: DM Sans;
     color: #183B38;
     font-size: 12px;
-    
+
 }
-.mod{
+
+.mod {
     background-color: #114b4600;
     border: none;
     color: #3F746B;
 }
-.mod:hover{
+
+.mod:hover {
     transform: translate(0, -5%);
     color: #1F4C48;
 }
-.vis{
+
+.vis {
     background-color: #114b4600;
     border: none;
     color: #3F746B;
 }
-.vis:hover{
+
+.vis:hover {
     transform: translate(0, -5%);
     color: #1F4C48;
-    
+
 }
