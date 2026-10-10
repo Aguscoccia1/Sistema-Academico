@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import "../../../../styles/visualizarEst.css";
+import FileText from '../../../../assets/FileText.svg';
+
 
 
 import { studentsApi } from '../../components/students/studentApi';
@@ -104,7 +106,9 @@ const VisualizarEstudiante = () => {
 
 
             <div className='cab'>
-                <div className='logo'></div>
+                <div className='logo'>
+                    <img src={FileText} alt="" />
+                </div>
                 <div className='space'></div>
                 <h1>
                     Alumnos de 1er Año

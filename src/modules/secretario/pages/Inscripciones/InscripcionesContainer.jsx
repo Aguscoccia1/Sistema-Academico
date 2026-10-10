@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import YearCard from './components/YearCard';
 import { useEnrollments } from '../../components/enrollments/useEnrollments';
@@ -15,8 +16,12 @@ function InscripcionesContainer() {
     summaries
   } = useEnrollments(planId);
 
-  // Ir a gestionar cupos
+  // Ir a gestionar cupos solamente de 1er año.
   const handleManagePlaces = (id) => {
+    if (String(id) !== '1') {
+      return;
+    }
+
     navigate('/secretario/manage-slots');
   };
 
@@ -47,7 +52,6 @@ function InscripcionesContainer() {
           className="enrollments-notice"
           role="status"
         >
-
           {notice}
 
           <button
@@ -57,7 +61,6 @@ function InscripcionesContainer() {
           >
             ×
           </button>
-
         </div>
       )}
 
@@ -85,14 +88,12 @@ function InscripcionesContainer() {
             </option>
 
             {plans.map((plan) => (
-
               <option
                 key={plan.id}
                 value={plan.id}
               >
                 {plan.nombre}
               </option>
-
             ))}
 
           </select>
@@ -135,3 +136,4 @@ function InscripcionesContainer() {
 }
 
 export default InscripcionesContainer;
+

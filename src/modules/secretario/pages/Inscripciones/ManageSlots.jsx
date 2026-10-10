@@ -89,7 +89,7 @@ const ManageSlots = () => {
 
         <div>
           <h1>
-            Gestionar estudiantes
+            Gestionar estudiantes de 1er año
           </h1>
 
           <p>

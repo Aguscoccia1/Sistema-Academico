@@ -63,6 +63,19 @@
     font-family: DM Sans;
     color: #183b38;
 }
+.filtro:hover{
+    background-color: #ffffff;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #114b46;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: DM Sans;
+    color: #183b38;
+    transform: translate(0, -5%);
+
+}
 
 
 .f1 {
@@ -71,12 +84,24 @@
     font-size: 12px;
     font-family: DM Sans;
 }
-
+th{
+    font-family: DM Sans;
+    color: #183B38;
+    font-size: 12px;
+    background-color: #ffffff;
+    text-align: center;
+}
 td {
     font-family: DM Sans;
     color: #183B38;
     font-size: 12px;
-
+    background-color: #ffffff;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #d6e3d6;
+    border-right: none;
+    border-left: none;
+    text-align: center;
 }
 
 .mod {

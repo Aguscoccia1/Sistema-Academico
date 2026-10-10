@@ -4,6 +4,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { studentsApi } from '../../components/students/studentApi';
 
 import "../../../../styles/modificarEst.css";
+import FileText from '../../../../assets/FileText.svg';
+
 
 import {
     MATERIAS,
@@ -182,7 +184,9 @@ const ModificarEstudiante = () => {
         <div className='contenedor'>
 
             <div className='cab'>
-                <div className='logo'></div>
+                <div className='logo'>
+                    <img src={FileText} alt="" />
+                </div>
                 <div className='space'></div>
                 <h1>
                     Alumnos de 1er Año
