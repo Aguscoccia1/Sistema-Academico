@@ -1,48 +1,46 @@
-
+using AcademicSystem.Business.Services;
+using AcademicSystem.Entities.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
-namespace SistemaAcademico.API.Controllers
+namespace AcademicSystem.Api.Controllers;
+
+[ApiController]
+[Route("api/comisiones")]
+public class ComisionesController(IComisionesService comisionesService) : ControllerBase
 {
-    [ApiController]
-    [Route("api/comisiones")]
-    public class ComisionesController : ControllerBase
+    [HttpGet]
+    public async Task<ActionResult<IReadOnlyList<ComisionResponseDto>>> GetComisiones(
+        [FromQuery] int? materiaId,
+        CancellationToken cancellationToken)
     {
-        private readonly IComisionesService _comisionesService;
+        if (materiaId is <= 0)
+            return BadRequest("El ID de la materia debe ser válido.");
 
-        public ComisionesController(
-            IComisionesService comisionesService)
+        var comisiones = await comisionesService.ObtenerTodasAsync(
+            materiaId, cancellationToken);
+
+        return Ok(comisiones);
+    }
+
+    [HttpGet("{seccion}/estudiantes/{estudianteId:int}")]
+    public async Task<ActionResult<EstudianteResponseDto>> BuscarEstudiante(
+        string seccion,
+        int estudianteId,
+        [FromQuery] int materiaId,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(seccion) ||
+            estudianteId <= 0 ||
+            materiaId <= 0)
         {
-            _comisionesService = comisionesService;
+            return BadRequest("La comisión, la materia y el estudiante son obligatorios.");
         }
 
-        // GET: api/comisiones
-        [HttpGet]
-        public async Task<IActionResult> GetComisiones()
-        {
-            var comisiones =
-                await _comisionesService.ObtenerTodasAsync();
+        var estudiante = await comisionesService.BuscarEstudianteAsync(
+            materiaId, seccion, estudianteId, cancellationToken);
 
-            return Ok(comisiones);
-        }
-
-        // GET: api/comisiones/3/estudiantes/12
-        [HttpGet("{comisionId:int}/estudiantes/{estudianteId:int}")]
-        public async Task<IActionResult> BuscarEstudiante(
-            int comisionId,
-            int estudianteId)
-        {
-            if (comisionId <= 0 || estudianteId <= 0)
-                return BadRequest("Los IDs deben ser válidos.");
-
-            var estudiante =
-                await _comisionesService.BuscarEstudianteAsync(
-                    comisionId, estudianteId);
-
-            if (estudiante == null)
-                return NotFound(
-                    "El estudiante no pertenece a esa comisión.");
-
-            return Ok(estudiante);
-        }
+        return estudiante is null
+            ? NotFound("El estudiante no pertenece a esa comisión.")
+            : Ok(estudiante);
     }
 }

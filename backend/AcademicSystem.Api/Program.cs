@@ -16,6 +16,9 @@ builder.Services.AddDbContext<AcademicSystemContext>(options => options.UseSqlSe
 
 // Business: each team registers its services here, one line per service.
 builder.Services.AddScoped<IHealthService, HealthService>();
+builder.Services.AddScoped<IComisionesService, ComisionesService>();
+builder.Services.AddScoped<IInscripcionesService, InscripcionesService>();
+builder.Services.AddScoped<IStudentService, StudentService>();
 
 // Lets the React frontend (Vite, http://localhost:5173) call this API.
 const string FrontendCorsPolicy = "Frontend";

@@ -1,87 +1,66 @@
+using AcademicSystem.Business.Services;
+using AcademicSystem.Entities.DTOs;
 using Microsoft.AspNetCore.Mvc;
-using NuevaApi;
-using SistemaInscripcion;
 
-namespace ApiStudent.Controllers;
+namespace AcademicSystem.Api.Controllers;
 
 [ApiController]
-[Route("[Controller]")]
-public class ResgistrationController : ControllerBase
+[Route("api/inscripciones")]
+public class RegistrationController(IInscripcionesService inscripcionesService) : ControllerBase
 {
-
-    private readonly ILogger<ResgistrationController> _logger;
-
-    public ResgistrationController(ILogger<ResgistrationController> logger)
-    {
-        _logger = logger;
-    }
-
-    // GET: api/inscripciones/estudiantes
     [HttpGet("estudiantes")]
-    public async Task<IActionResult> GetEstudiantes()
+    public async Task<ActionResult<IReadOnlyList<EstudianteResponseDto>>> GetEstudiantes(
+        CancellationToken cancellationToken)
     {
-        var estudiantes = await _inscripcionesService.ObtenerEstudiantesAsync();
-
+        var estudiantes = await inscripcionesService.ObtenerEstudiantesAsync(cancellationToken);
         return Ok(estudiantes);
     }
 
-    // GET: api/inscripciones/materias?anio=1
     [HttpGet("materias")]
-    public async Task<IActionResult> GetMaterias([FromQuery] int anio = 1)
+    public async Task<ActionResult<IReadOnlyList<MateriaResponseDto>>> GetMaterias(
+        [FromQuery] int anio = 1,
+        CancellationToken cancellationToken = default)
     {
         if (anio < 1)
             return BadRequest("El año académico debe ser válido.");
 
-        var materias =
-            await _inscripcionesService.ObtenerMateriasPorAnioAsync(anio);
+        var materias = await inscripcionesService.ObtenerMateriasPorAnioAsync(
+            anio, cancellationToken);
 
         return Ok(materias);
     }
 
-    // POST: api/inscripciones
     [HttpPost]
-    public async Task<IActionResult> CrearInscripcion(
-        [FromBody] CrearInscripcionDto solicitud)
+    public async Task<ActionResult<ResultadoInscripcionDto>> CrearInscripcion(
+        [FromBody] CrearInscripcionDto solicitud,
+        CancellationToken cancellationToken)
     {
-        if (solicitud.EstudianteId <= 0 || solicitud.MateriaId <= 0)
-        {
-            return BadRequest(
-                "El estudiante y la materia son obligatorios.");
-        }
+        var resultado = await inscripcionesService.InscribirAsync(
+            solicitud, cancellationToken);
 
-        var resultado =
-            await _inscripcionesService.InscribirAsync(solicitud);
-
-        if (!resultado.Exito)
-            return BadRequest(resultado.Mensaje);
-
-        return Ok(resultado);
+        return resultado.Exito
+            ? Ok(resultado)
+            : BadRequest(resultado);
     }
 
-    // GET: api/inscripciones/estudiante/12
     [HttpGet("estudiante/{id:int}")]
-    public async Task<IActionResult> GetPorEstudiante(int id)
+    public async Task<ActionResult<IReadOnlyList<InscripcionResponseDto>>> GetPorEstudiante(
+        int id,
+        CancellationToken cancellationToken)
     {
         if (id <= 0)
             return BadRequest("El ID del estudiante no es válido.");
 
-        var inscripciones =
-            await _inscripcionesService
-                .ObtenerPorEstudianteAsync(id);
+        var inscripciones = await inscripcionesService.ObtenerPorEstudianteAsync(
+            id, cancellationToken);
 
         return Ok(inscripciones);
     }
-    // GET: api/inscripciones/cantidad
+
     [HttpGet("cantidad")]
-    public async Task<IActionResult> GetCantidadInscriptos()
+    public async Task<IActionResult> GetCantidadInscriptos(CancellationToken cancellationToken)
     {
-        var cantidad =
-            await _inscripcionesService.ObtenerCantidadAsync();
-
-        return Ok(new
-        {
-            totalInscriptos = cantidad
-        });
+        var cantidad = await inscripcionesService.ObtenerCantidadAsync(cancellationToken);
+        return Ok(new { totalInscriptos = cantidad });
     }
-
 }
