@@ -80,19 +80,22 @@ git branch -vv
 
 Ojo: por eso mismo, en los PR hacia `development` hay que **cambiar la base a mano**.
 
-## 5. Invitar a los integrantes
+## 5. Cómo trabajan los integrantes: forks
 
-**Settings > Collaborators > Add people >** usuario de GitHub o mail **> Role: Write > Add**.
+En este proyecto **no se invita a nadie como colaborador**. Cada integrante hace un **fork**, que es su propia copia del repositorio en GitHub. Sube su trabajo ahí y abre un Pull Request hacia `development`. El único que puede mergear es el dueño del repositorio, así que todo lo que entra pasa por el E1.
 
-| Rol | Qué permite | ¿A quién? |
-|---|---|---|
-| **Write** | Pushear a ramas no protegidas, abrir y aprobar PR. | **A todos los integrantes de E1, E2, E3 y E4.** |
-| Maintain | Write + parte de la configuración. | Opcional, para el resto del E1. |
-| Admin | Todo, incluido Settings. | Solo quien administra (E1) y la profesora. |
+Qué tiene que hacer cada integrante está en el README, en la sección "Primera vez". Lo que más traba:
 
-- **Write alcanza y sobra** para los equipos.
-- La invitación **hay que aceptarla**: hasta que no la aceptan, sus push se rechazan por permisos.
-- Anotá en el grupo quién quedó invitado para no olvidarse a nadie.
+- **Al crear el fork, hay que destildar "Copy the production branch only".** Si queda tildado, el fork no trae las ramas de los equipos.
+- **Se clona el repositorio del proyecto, no el fork.** En su computadora, `origin` apunta acá y `fork` apunta a su copia.
+- **Se sube con `git push fork eX`.** Un `git push origin` da error 403, porque no tienen permiso sobre este repositorio.
+
+Lo que le toca al E1 con cada Pull Request que llega desde un fork:
+
+1. La primera vez que alguien abre un PR desde su fork, GitHub no corre el CI solo. En el PR aparece **Approve and run workflows**: hay que tocarlo.
+2. Esperar a que los checks queden en verde, revisar los cambios y mergear con **Create a merge commit**.
+
+Para ver quién ya hizo su fork: pestaña **Insights > Forks** del repositorio.
 
 ## 6. Reglas de protección de rama
 
@@ -176,7 +179,7 @@ Qué hacer:
 | 2 | `git branch -a` | Las 7 ramas locales **y** las 7 `remotes/origin/...`. |
 | 3 | `git branch -vv` | Cada rama local con su `[origin/<rama>]` entre corchetes. |
 | 4 | Abrir el repositorio en GitHub | El desplegable muestra las 7 ramas, y arriba dice **production** con la etiqueta `default`. |
-| 5 | Settings > Collaborators | Todos los integrantes con rol **Write**. |
+| 5 | Insights > Forks | Un fork por cada integrante que ya empezó a trabajar. |
 | 6 | Settings > Rules > Rulesets | Tres rulesets en **Active**. Ninguno sobre `e1`..`e4`. |
 | 7 | Probar un push directo a `development` | Que **lo rechace**. Ver abajo. |
 
@@ -218,12 +221,11 @@ git remote set-url origin https://github.com/gonzaleztomi1978-design/Sistema-Aca
 
 ### `remote: Permission to ... denied` (error 403)
 
-Te falta permiso. Revisá, en este orden:
+Revisá a qué repositorio estabas subiendo:
 
-1. **¿Estás invitado?** El E1 tiene que haberte agregado en Settings > Collaborators con rol **Write**.
-2. **¿Aceptaste la invitación?** Fijate en el mail o en [github.com/notifications](https://github.com/notifications).
-3. **¿Estás autenticado con la cuenta que corresponde?** Mirá el punto del Administrador de credenciales, más abajo.
-4. **¿Pusheabas a una rama protegida?** Si el mensaje dice `protected branch`, no es un problema de permisos: es la regla funcionando.
+1. **Si dice `gonzaleztomi1978-design/Sistema-Academico`**, quisiste subir al repositorio del proyecto, y eso solo lo puede hacer el E1. Subí a tu fork con `git push fork eX`. Si `fork` no existe, conectalo como dice el README, en "Primera vez", paso 4.
+2. **Si dice tu propio usuario**, estás autenticado con otra cuenta. Mirá el punto del Administrador de credenciales, más abajo.
+3. **Si el mensaje dice `protected branch`**, no es un problema de permisos: es la regla de protección funcionando.
 
 ### `remote: Support for password authentication was removed`
 
@@ -257,7 +259,7 @@ El nombre de la rama está mal escrito o no existe en tu copia local. Verificá 
 - [ ] Repositorio creado y remoto configurado.
 - [ ] Las 7 ramas publicadas, empezando por `production`.
 - [ ] `production` confirmada como rama por defecto.
-- [ ] Todos los integrantes invitados con rol **Write**, y avisados de que tienen que aceptar.
+- [ ] Todos los integrantes avisados de que trabajan con fork, con el link al README.
 - [ ] Rulesets activos en `production`, `testing` y `development`; `e1`..`e4` sin protección.
 - [ ] El check del CI agregado como obligatorio, una vez que corrió la primera vez.
 - [ ] Push directo a `development` probado y **rechazado**.

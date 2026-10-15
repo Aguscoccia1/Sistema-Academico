@@ -87,7 +87,7 @@ No lo mergeo todavía, faltan dos cosas:
 2. El PR trae node_modules/. Sacalo con:
    git rm -r --cached node_modules
    git commit -m "E2: saca node_modules del control de versiones"
-   git push origin e2
+   git push fork e2
 
 Cuando lo pushees, este PR se actualiza solo y lo vuelvo a mirar.
 ```
@@ -100,13 +100,15 @@ La revisión en GitHub sirve para leer el diff. Para saber si **funciona**, hay 
 
 > Todos los comandos se corren **parados en la raíz del repositorio** (la carpeta `Sistema-Academico` que te quedó al clonar). Si no sabés dónde estás, corré `pwd`.
 
-```bash
-# 1. Traer todo lo que hay en GitHub
-git fetch origin
+Los PR llegan desde los forks de cada integrante. Para traer uno a tu computadora se usa su número, el que aparece en el título del PR (por ejemplo `#7`):
 
-# 2. Pasarte a la rama del equipo que abrió el PR
-git checkout e2
-git pull origin e2
+```bash
+# 1. Traer lo que hay en GitHub y el PR número 7 como una rama local
+git fetch origin
+git fetch origin pull/7/head:pr-7
+
+# 2. Pasarte a esa rama
+git checkout pr-7
 ```
 
 Si querés ver cómo quedaría `development` con ese PR adentro, probá el merge en una rama descartable:
@@ -114,8 +116,8 @@ Si querés ver cómo quedaría `development` con ese PR adentro, probá el merge
 ```bash
 git checkout development
 git pull origin development
-git checkout -b prueba/pr-e2     # rama temporal, no se sube nunca
-git merge e2
+git checkout -b prueba/pr-7      # rama temporal, no se sube nunca
+git merge pr-7
 ```
 
 ### Compilar y probar
@@ -138,7 +140,7 @@ Y ahí sí:
 
 ```bash
 git checkout development
-git branch -D prueba/pr-e2
+git branch -D prueba/pr-7 pr-7
 ```
 
 ---
@@ -317,17 +319,16 @@ git merge --abort
 git checkout development
 ```
 
-Después avisale al equipo que lo corra en su rama:
+Después avisale al equipo que lo corra en su rama y lo suba a su fork:
 
 ```bash
 git checkout e3
-git pull origin e3
 git fetch origin
 git merge origin/development
-git push origin e3
+git push fork e3
 ```
 
-Avisá siempre que lo hiciste: "Promoví a testing y bajé development a e1..e4, hagan `git pull` de su rama antes de seguir".
+Avisá siempre que lo hiciste: "Promoví a testing y bajé development a e1..e4. Antes de seguir, hagan `git fetch origin` y `git merge origin/development` en su rama".
 
 ---
 
@@ -480,9 +481,9 @@ Dos consejos que valen más que el calendario:
 
 | Acción | Origen | Destino | Quién | Cómo |
 |---|---|---|---|---|
-| Trabajo diario del equipo | — | `e1` a `e4` | Integrantes del equipo | `git push origin eX` (directo) |
-| Traer lo integrado antes de seguir | `development` | `eX` | Cada equipo | `git merge origin/development` y push |
-| Integrar una funcionalidad | `eX` | `development` | Lo abre el equipo, lo mergea el E1 | PR con merge commit |
+| Trabajo diario del equipo | — | `eX` en el fork de cada integrante | Cada integrante | `git push fork eX` |
+| Traer lo integrado antes de seguir | `development` | `eX` | Cada integrante | `git merge origin/development` y `git push fork eX` |
+| Integrar una funcionalidad | `eX` del fork | `development` | Lo abre el integrante, lo mergea el E1 | PR con merge commit |
 | Cortar versión candidata | `development` | `testing` | E1 | PR con merge commit + pruebas manuales |
 | Publicar versión estable | `testing` | `production` | E1 | PR con merge commit + tag + notas de versión |
 | Bajar lo integrado a los equipos | `development` | `e1` a `e4` | E1, o cada equipo | `git merge development` en cada rama y push |

@@ -14,12 +14,12 @@
 
 ## Rama origen y destino
 
-| | Rama |
-|---|---|
-| **compare** (de dónde vienen los cambios) | `e1` / `e2` / `e3` / `e4` |
-| **base** (a dónde van) | `development` |
+| | Repositorio | Rama |
+|---|---|---|
+| **head** (de dónde vienen los cambios) | tu fork, `TU-USUARIO/Sistema-Academico` | `e1` / `e2` / `e3` / `e4` |
+| **base** (a dónde van) | `gonzaleztomi1978-design/Sistema-Academico` | `development` |
 
-Ejemplo: **compare `e2`** → **base `development`**.
+Ejemplo: tu fork, rama **`e2`** → **`development`** del proyecto.
 
 > Los PR de equipo van **siempre** a `development`. Las promociones a `testing` y a `production` las abre el E1 con las otras plantillas (mirá la nota del final).
 
@@ -31,7 +31,8 @@ Ejemplo: **compare `e2`** → **base `development`**.
 
 - [ ] `npm run build` pasa sin errores
 - [ ] Probé la funcionalidad a mano en el navegador, con los dos roles si corresponde
-- [ ] No subí `node_modules/`, `dist/`, `.env` ni claves
+- [ ] No subí `node_modules/`, `dist/`, `bin/`, `obj/`, `.env` ni claves
+- [ ] No cambié `appsettings.json` con mi conexión (la mía va con `dotnet user-secrets`)
 - [ ] Mis cambios están en la carpeta de mi equipo; si toqué un archivo compartido, solo agregué lo mío
 - [ ] Mergeé `development` en mi rama y resolví los conflictos antes de abrir el PR
 - [ ] El PR apunta a `development` (nunca a `testing` ni a `production`)
@@ -41,13 +42,12 @@ Para el punto del merge (el ejemplo usa `e2`: cambiá la rama por la de tu equip
 
 ```bash
 git checkout e2               # tu rama: e1, e2, e3 o e4
-git pull origin e2            # traés lo que subieron tus compañeros de equipo
 git fetch origin              # actualizás la foto local de development (sin esto mergeás algo viejo)
 git merge origin/development  # traés lo ya integrado de los otros equipos
 # Si hay conflictos: resolvelos en el editor y después
 #   git add ARCHIVO-QUE-RESOLVISTE
 #   git commit
-git push origin e2
+git push fork e2              # se sube a tu fork; este PR se actualiza solo
 ```
 
 ## Capturas / evidencia

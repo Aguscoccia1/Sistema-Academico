@@ -20,15 +20,28 @@ Vale para los cuatro equipos. Los ejemplos usan la rama `e2`: si sos del E1, E3 
 
 El código viaja siempre en una sola dirección y **nunca salteando un escalón**.
 
-| Rama | Para qué sirve | Quién pushea |
+| Rama | Para qué sirve | Quién sube cambios |
 |---|---|---|
-| `e1` | Trabajo diario del E1 (login, usuarios, roles, permisos, integración). | Integrantes del E1, directo. |
-| `e2` | Trabajo diario del E2 (inscripción a 1.º, comisiones, docentes). | Integrantes del E2, directo. |
-| `e3` | Trabajo diario del E3 (planes de estudio, materias, correlatividades). | Integrantes del E3, directo. |
-| `e4` | Trabajo diario del E4 (consulta de materias, inscripciones a 2.º/3.º). | Integrantes del E4, directo. |
-| `development` | Integración diaria: acá se junta el trabajo de los cuatro equipos. | **Nadie directo.** Solo PR desde `e1`..`e4`. Lo mergea el E1. |
+| `e1` | Trabajo diario del E1 (login, usuarios, roles, permisos, integración). | Cada integrante del E1, a su fork. |
+| `e2` | Trabajo diario del E2 (inscripción a 1.º, comisiones, docentes). | Cada integrante del E2, a su fork. |
+| `e3` | Trabajo diario del E3 (planes de estudio, materias, correlatividades). | Cada integrante del E3, a su fork. |
+| `e4` | Trabajo diario del E4 (consulta de materias, inscripciones a 2.º/3.º). | Cada integrante del E4, a su fork. |
+| `development` | Integración diaria: acá se junta el trabajo de los cuatro equipos. | **Nadie directo.** Solo PR desde los forks. Lo mergea el E1. |
 | `testing` | Versión candidata: se prueba el sistema completo. | **Nadie directo.** Solo PR desde `development`. |
 | `production` | Versión estable y presentable. Rama por defecto del repositorio. | **Nadie directo.** Solo PR desde `testing`. |
+
+### Forks: dónde sube cada uno
+
+Nadie tiene permiso para subir directo al repositorio del proyecto. Cada integrante tiene **su propia copia en GitHub**, que se llama **fork**. Subís tu trabajo a tu fork, y desde ahí abrís un Pull Request hacia `development`. Cuando el E1 lo mergea, los demás lo traen con `git merge origin/development`.
+
+En tu computadora vas a tener dos remotos:
+
+| Remoto | Apunta a | Para qué |
+|---|---|---|
+| `origin` | `gonzaleztomi1978-design/Sistema-Academico`, el repositorio del proyecto | Traer lo integrado: `git fetch origin` |
+| `fork` | `TU-USUARIO/Sistema-Academico`, tu copia | Subir tu trabajo: `git push fork e2` |
+
+La regla para no confundirse: **traés de `origin`, subís a `fork`**.
 
 ---
 
@@ -36,16 +49,31 @@ El código viaja siempre en una sola dirección y **nunca salteando un escalón*
 
 Esto se hace **una sola vez por computadora**.
 
-### 2.1. Clonar el repositorio
+### 2.1. Hacer tu fork y clonar el repositorio
+
+1. En GitHub, con tu cuenta, entrá a https://github.com/gonzaleztomi1978-design/Sistema-Academico y tocá **Fork**. En el formulario, **destildá "Copy the production branch only"**. Si queda tildado, tu fork no trae las ramas de los equipos.
+2. Elegí una carpeta **fuera de OneDrive**, por ejemplo `C:\Proyectos`. OneDrive bloquea archivos de Git mientras sincroniza y produce el error "Deletion of directory failed".
+3. Cloná el repositorio **del proyecto**, no tu fork:
 
 ```bash
 git clone https://github.com/gonzaleztomi1978-design/Sistema-Academico.git
 cd Sistema-Academico
 ```
 
-Si te pide usuario y contraseña, la contraseña de GitHub **no sirve**: va un token personal. Está explicado en [configuracion-github.md, sección 9](configuracion-github.md#9-problemas-frecuentes). Si te rechaza por permisos, pedile al E1 que te invite como colaborador.
+4. Conectá tu fork, cambiando `TU-USUARIO` por tu usuario de GitHub:
+
+```bash
+git remote add fork https://github.com/TU-USUARIO/Sistema-Academico.git
+git remote -v
+```
+
+Tienen que aparecer cuatro líneas: dos de `origin` con `gonzaleztomi1978-design` y dos de `fork` con tu usuario. Si al crear el fork le cambiaste el nombre, usá la dirección exacta que muestra el botón verde **Code** de tu fork.
+
+Si Git te pide usuario y contraseña, la contraseña de GitHub **no sirve**: va un token personal. Está explicado en [configuracion-github.md, sección 9](configuracion-github.md#9-problemas-frecuentes).
 
 Al clonar quedás parado en `production`, que es la rama por defecto. **No trabajes ahí.**
+
+> **¿Ya tenías el proyecto clonado?** No lo clones de nuevo. Corré `git remote -v` y dejalo como arriba: `origin` con `gonzaleztomi1978-design` y `fork` con tu usuario. Si `origin` apunta a tu fork, se corrige con `git remote set-url origin https://github.com/gonzaleztomi1978-design/Sistema-Academico.git`. Si falta alguno de los dos, se agrega con `git remote add`. El README tiene una tabla con cada caso.
 
 ### 2.2. Configurar tu nombre, tu mail y el editor
 
@@ -67,23 +95,20 @@ Con eso, cuando Git pida un mensaje se abre una pestaña de VS Code: la guardás
 ### 2.3. Traer todas las ramas
 
 ```bash
-git fetch --all
+git fetch origin
 git branch -a
 ```
 
 Además de las locales tenés que ver las remotas: `remotes/origin/e1` a `remotes/origin/e4`, `remotes/origin/development`, `remotes/origin/testing` y `remotes/origin/production`.
 
-### 2.4. Pararte en la rama de tu equipo
-
-```bash
-git switch e2
-```
-
-Si te dice que esa rama no existe localmente, creála siguiendo a la remota:
+### 2.4. Crear la rama de tu equipo y subirla a tu fork
 
 ```bash
 git checkout -b e2 origin/e2
+git push fork e2
 ```
+
+Escribí `git checkout -b e2 origin/e2` completo. Si te dice que la rama ya existe, es porque ya la habías creado: alcanza con `git checkout e2`.
 
 Confirmá dónde estás parado. Tiene que decir `e2`:
 
@@ -108,11 +133,10 @@ Queda en http://localhost:5173. Para cambiar entre Secretario y Estudiante, usá
 
 Estos cinco pasos son el día entero. Hacelos en orden, todas las veces.
 
-### Paso 1 — Pararte en tu rama y traer lo de tus compañeros
+### Paso 1 — Pararte en tu rama
 
 ```bash
 git switch e2
-git pull origin e2
 ```
 
 ### Paso 2 — Traer lo último de development ANTES de empezar algo nuevo
@@ -128,13 +152,15 @@ git merge origin/development
 - Si te abre un editor pidiendo el mensaje de merge, dejá el que propone, guardá y cerrá.
 - Si aparecen conflictos, andá a la sección 6 y resolvelos ahora, antes de arrancar la tarea nueva.
 
-Después del merge, subí tu rama ya actualizada:
+Después del merge, subí tu rama ya actualizada a tu fork:
 
 ```bash
-git push origin e2
+git push fork e2
 ```
 
-> ¿Por qué el `git fetch`? Porque `git pull origin e2` actualiza **solo** `e2`. Sin el fetch, `origin/development` sigue siendo la foto que bajaste la última vez, y estarías mergeando código viejo sin que Git te avise.
+> ¿Por qué el `git fetch`? Porque `origin/development` es la foto de `development` que bajaste la última vez. Sin el fetch, estarías mergeando código viejo sin que Git te avise.
+>
+> Lo que hacen tus compañeros de equipo te llega por este mismo paso: cuando su Pull Request entra a `development`, lo traés con el merge.
 
 ### Paso 3 — Trabajar
 
@@ -193,14 +219,13 @@ cd ..
 Los dos tienen que terminar sin errores. Si alguno falla, arreglalo ahora: no sirve de nada subir algo que no compila.
 
 ```bash
-git push origin e2
+git push fork e2
 ```
 
 ### El ciclo completo, de corrido
 
 ```bash
 git switch e2
-git pull origin e2
 git fetch origin
 git merge origin/development
 # ... acá trabajás ...
@@ -208,7 +233,7 @@ git status
 git add .
 git commit -m "E2: agrega alta de docentes"
 npm run build
-git push origin e2
+git push fork e2
 ```
 
 ---
@@ -217,15 +242,23 @@ git push origin e2
 
 Cuando la funcionalidad está terminada, compila y la probaste a mano, se abre el PR. **Nunca** se pushea directo a `development`.
 
-1. Asegurate de haber hecho `git push origin e2`: lo que no está subido, no entra al PR.
-2. Entrá al repositorio en GitHub. Te va a aparecer el cartel *Compare & pull request*; si no aparece, andá a la pestaña **Pull requests** y después a **New pull request**.
-3. Elegí bien las dos ramas:
-   - **base:** `development`
-   - **compare:** `e2`
+1. Asegurate de haber hecho `git push fork e2`: lo que no está subido a tu fork, no entra al PR.
+2. Entrá a **tu fork** en GitHub. Te va a aparecer el cartel *Compare & pull request*; si no aparece, andá a la pestaña **Pull requests** y después a **New pull request**.
+3. Revisá el encabezado. Tiene que decir:
+   - **base repository:** `gonzaleztomi1978-design/Sistema-Academico` y **base:** `development`
+   - **head repository:** `TU-USUARIO/Sistema-Academico` y **compare:** `e2`
 4. Revisá la lista de archivos modificados. Si ves archivos que vos no tocaste, frená y avisale al E1.
 5. Completá la plantilla que aparece sola en la descripción. No tildes lo que no hiciste: el E1 lo verifica igual.
 6. Título del PR: mismo estilo que los commits, por ejemplo `E2: alta de docentes`.
 7. **Create pull request**.
+
+Atajo: este link abre el PR ya armado, cambiando `TU-USUARIO` y la rama:
+
+```
+https://github.com/gonzaleztomi1978-design/Sistema-Academico/compare/development...TU-USUARIO:e2?expand=1
+```
+
+Mientras el PR esté abierto, cada `git push fork e2` lo actualiza solo. **No abras un PR nuevo por cada cambio.**
 
 ### Los checks automáticos
 
@@ -239,7 +272,9 @@ Apenas abrís el PR, y también en cada push a tu rama, GitHub corre solo el wor
 | Frontend: compilar (`npm run build`) | Sí |
 | Backend: compilar la solución (`dotnet build`) | Sí |
 
-Si un check sale en rojo, el PR no se mergea: abrí **Details**, leé en qué paso falló, corregí en tu rama y volvé a pushear. El PR se actualiza solo.
+Si un check sale en rojo, el PR no se mergea: abrí **Details**, leé en qué paso falló, corregí en tu rama y volvé a hacer `git push fork e2`. El PR se actualiza solo.
+
+> En el primer PR que abrís desde tu fork, los checks pueden quedar en espera hasta que el E1 toque **Approve and run workflows**. Es normal: GitHub lo pide la primera vez por seguridad.
 
 ### Qué hace el E1 con ese PR
 
@@ -274,7 +309,6 @@ Un conflicto aparece cuando dos equipos tocaron el mismo archivo en las mismas l
 
 ```bash
 git switch e2
-git pull origin e2
 git fetch origin
 git merge origin/development
 ```
@@ -324,8 +358,8 @@ git commit          # se abre con un mensaje ya escrito: guardá y cerrá
 # 3. Verificar que sigue compilando
 npm run build
 
-# 4. Subir la rama ya resuelta
-git push origin e2
+# 4. Subir la rama ya resuelta a tu fork
+git push fork e2
 ```
 
 Con ese push, el Pull Request que tenías abierto se actualiza solo y deja de mostrar conflictos.
@@ -403,11 +437,11 @@ Cerrá siempre con `npm run build`.
 
 ## 8. Reglas de oro
 
-1. **Nunca** pushees directo a `development`, `testing` ni `production`. Todo entra por Pull Request.
-2. **Nunca** uses `git push --force`. Si el push te rebota, se arregla con `git pull`, no a la fuerza.
-3. **Nunca** commitees `node_modules/` ni `dist/`. Ya están en el `.gitignore`: si te aparecen en el `git status`, algo hiciste mal.
-4. **Nunca** subas claves ni archivos `.env`.
-5. **Nunca** toques archivos de otro equipo sin avisar. Los compartidos se tocan solo para agregar lo tuyo.
+1. **Traés de `origin`, subís a `fork`.** Al repositorio del proyecto no se sube nada directo: todo entra por Pull Request.
+2. **Nunca** uses `git push --force`. Si el push te rebota, se arregla trayendo lo que falta, no a la fuerza (sección 9). Si un error te lo sugiere, avisale al E1.
+3. **Nunca** commitees `node_modules/`, `dist/`, `bin/` ni `obj/`. Ya están en el `.gitignore`: si te aparecen en el `git status`, algo hiciste mal.
+4. **Nunca** subas claves, archivos `.env` ni tu conexión a la base. Si tu SQL Server tiene otro nombre, tu conexión va con `dotnet user-secrets`, no en `appsettings.json` (está en el README).
+5. **Nunca** toques archivos de otro equipo sin avisar. Los compartidos se tocan solo para agregar lo tuyo, sin cambiarles el formato.
 6. **Siempre** `git fetch origin` y `git merge origin/development` antes de arrancar algo nuevo.
 7. **Siempre** `npm run build` antes de abrir un PR, y `dotnet build` si tocaste el backend.
 8. Si algo no te cierra, preguntá antes de ejecutar. Un comando mal tirado le cuesta la tarde a los cuatro equipos.
@@ -416,20 +450,49 @@ Cerrá siempre con `npm run build`.
 
 ## 9. Si te pasa esto, hacé esto
 
-### Te rechaza el push por non-fast-forward
+### Te rechaza el push a tu fork
 
 ```
-! [rejected]        e2 -> e2 (non-fast-forward)
-hint: Updates were rejected because the tip of your current branch is behind
+! [rejected]        e2 -> e2 (fetch first)
+hint: Updates were rejected because the remote contains work that you do not have locally.
 ```
 
-Un compañero subió algo a `e2` después de tu último `pull`. No es un error tuyo y **no se arregla con `--force`**.
+Tu fork tiene commits que tu computadora no tiene. Pasa, por ejemplo, si subiste desde otra computadora. **No se arregla con `--force`**:
 
 ```bash
-git pull origin e2      # trae lo de tu compañero y lo mergea con lo tuyo
+git pull fork e2        # trae lo de tu fork y lo junta con lo tuyo
 # si aparecen conflictos, resolvelos como dice la sección 6
-git push origin e2
+git push fork e2
 ```
+
+Si no sabés de dónde salieron esos commits, frená y avisale al E1 antes de seguir.
+
+### Te rechaza el push con error 403
+
+```
+remote: Permission to gonzaleztomi1978-design/Sistema-Academico.git denied
+```
+
+Quisiste subir al repositorio del proyecto con `git push origin`. Nadie tiene permiso para eso: se sube a tu fork con `git push fork e2`. Si te dice que `fork` no existe, conectalo como en la sección 2.1.
+
+### `git checkout e2` dice que no encuentra la rama
+
+```
+error: pathspec 'e2' did not match any file(s) known to git
+```
+
+Tu computadora todavía no conoce la rama. Traela y creala así:
+
+```bash
+git fetch origin
+git checkout -b e2 origin/e2
+```
+
+Si sigue fallando, corré `git remote -v`: `origin` tiene que apuntar a `gonzaleztomi1978-design`, no a tu fork.
+
+### Git pregunta "Deletion of directory failed. Should I try again?"
+
+OneDrive tiene bloqueada la carpeta. Respondé `n`, pausá la sincronización de OneDrive y volvé a intentar. Cuando puedas, mové el proyecto a una carpeta fuera de OneDrive.
 
 ### Commiteaste en la rama equivocada
 
@@ -440,7 +503,7 @@ git log --oneline -3
 # 2. Pasate a tu rama y traelo
 git switch e2
 git cherry-pick HASH-DEL-COMMIT
-git push origin e2
+git push fork e2
 
 # 3. Volvé a la rama equivocada y dejala igual que en GitHub
 git switch development
@@ -448,7 +511,7 @@ git fetch origin
 git reset --hard origin/development
 ```
 
-> Ese `reset --hard` es seguro **solo** si no llegaste a pushear (y a esas ramas no tenés que poder pushear). Si ya pusheaste a una rama protegida, avisale al E1.
+> Ese `reset --hard` es seguro porque esas ramas no las subís nunca. Si llegaste a subir algo raro a tu fork, avisale al E1 antes de tocar nada.
 
 ### Querés descartar cambios locales
 
@@ -470,7 +533,7 @@ git commit -m "E2: guarda avance de docentes"
 git fetch origin
 git merge origin/development
 # resolvé los conflictos que aparezcan (secciones 6 y 7)
-git push origin e2
+git push fork e2
 ```
 
 ### El proyecto no levanta o tira errores raros de dependencias
@@ -497,15 +560,17 @@ git log --oneline --graph --all -15
 |---|---|
 | Ver en qué rama estás | `git branch --show-current` |
 | Ver todas las ramas | `git branch -a` |
-| Traer info del remoto sin tocar tus archivos | `git fetch origin` |
+| Ver tus remotos | `git remote -v` |
+| Conectar tu fork | `git remote add fork https://github.com/TU-USUARIO/Sistema-Academico.git` |
+| Traer info del proyecto sin tocar tus archivos | `git fetch origin` |
 | Pasarte a tu rama | `git switch e2` |
-| Crear tu rama local siguiendo a la remota | `git checkout -b e2 origin/e2` |
-| Bajar lo último de tu rama | `git pull origin e2` |
+| Crear tu rama local la primera vez | `git checkout -b e2 origin/e2` |
 | Traer lo integrado en development | `git merge origin/development` |
 | Ver qué cambiaste | `git status` / `git diff` |
 | Preparar todo para commitear | `git add .` |
 | Commitear con la convención | `git commit -m "E2: descripción corta en presente"` |
-| Subir tu rama | `git push origin e2` |
+| Subir tu rama a tu fork | `git push fork e2` |
+| Traer lo que hay en tu fork y no tenés | `git pull fork e2` |
 | Ver los archivos en conflicto | `git diff --name-only --diff-filter=U` |
 | Marcar un conflicto como resuelto | `git add <archivo>` |
 | Cerrar el merge | `git commit` |
