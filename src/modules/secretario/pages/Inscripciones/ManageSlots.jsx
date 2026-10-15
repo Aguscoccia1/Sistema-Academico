@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { studentsApi } from '../../components/students/studentApi';
 import GraduationCap from '../../../../assets/GraduationCap.svg';
 
+
 const ManageSlots = () => {
   const navigate = useNavigate();
 

@@ -1,6 +1,10 @@
+using AcademicSystem;
+
 using AcademicSystem.Business.Services;
 using AcademicSystem.Data.Context;
 using Microsoft.EntityFrameworkCore;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
