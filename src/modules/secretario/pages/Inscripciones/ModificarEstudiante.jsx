@@ -280,11 +280,7 @@ const ModificarEstudiante = () => {
                         <h2>Materias y horarios</h2>
 
                         <div className="student-edit-form1">
-
-
-
                             {CLAVES_MATERIAS.map((materia, index) => {
-
                                 const comisionSeleccionada =
                                     editingStudent.materias?.[materia] ?? '';
 
@@ -298,11 +294,9 @@ const ModificarEstudiante = () => {
                                         key={materia}
                                         className={index % 2 === 0 ? 'contV' : 'contB'}
                                     >
-
                                         <label>
                                             {MATERIAS[materia].nombre}
                                         </label>
-
 
                                         <select
                                             className='date1'
@@ -314,7 +308,6 @@ const ModificarEstudiante = () => {
                                                 )
                                             }
                                         >
-
                                             <option value="">
                                                 Seleccionar comisión
                                             </option>
@@ -326,16 +319,10 @@ const ModificarEstudiante = () => {
                                             <option value="B">
                                                 Comisión B - {MATERIAS[materia].horarios.B}
                                             </option>
-
                                         </select>
-
-
-
-
                                     </div>
                                 );
                             })}
-
                         </div>
                     </div>
                 </div>
@@ -343,6 +330,15 @@ const ModificarEstudiante = () => {
                 <br />
 
                 <div className="student-edit-actions">
+                    <button
+                        className='cancel'
+                        type="button"
+                        onClick={() => navigate('/secretario/manage-slots')}
+                    >
+                        Cancelar
+                    </button>
+
+                    <div className='space'></div>
 
                     <button
                         className='save'
@@ -351,53 +347,23 @@ const ModificarEstudiante = () => {
                         Guardar cambios
                     </button>
 
-                    <div className='space'></div>
-
-                    <button
-                        className='cancel'
-                        type="button"
-                        onClick={() => navigate('/secretario/manage-slots')}
-                    >
-                        Cancelar
-                    </button>
                     <br />
                     <br />
-
-                    {/* MENSAJE */}
 
                     {notice && (
-
                         <p className="crud-notice">
-
                             {notice}
-
                         </p>
-
                     )}
-
 
                     {error && (
-
                         <p role="alert">
-
                             {error}
-
                         </p>
-
                     )}
-
-
-
-
                 </div>
-
-
-
-
             </form>
-
         </div>
-
     );
 };
 

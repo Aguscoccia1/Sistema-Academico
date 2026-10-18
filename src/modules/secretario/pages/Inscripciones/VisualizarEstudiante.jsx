@@ -79,9 +79,7 @@ const VisualizarEstudiante = () => {
         );
     }
 
-
     const obtenerHorario = (materia) => {
-
         const comision =
             student.materias?.[materia];
 
@@ -101,10 +99,6 @@ const VisualizarEstudiante = () => {
 
     return (
         <div className="contenedor">
-
-
-
-
             <div className='cab'>
                 <div className='logo'>
                     <img src={FileText} alt="" />
@@ -115,18 +109,15 @@ const VisualizarEstudiante = () => {
                 </h1>
             </div>
 
-
             <hr />
 
             <div className='contenido'>
-
                 <div className='ladoIzq'>
                     <h2>
                         Datos personales
                     </h2>
 
                     <div className="student-edit-form">
-
                         <div>
                             <label>
                                 Nombre completo
@@ -139,7 +130,6 @@ const VisualizarEstudiante = () => {
                                 readOnly
                             />
                         </div>
-
 
                         <div>
                             <label>
@@ -154,7 +144,6 @@ const VisualizarEstudiante = () => {
                             />
                         </div>
 
-
                         <div>
                             <label>
                                 Correo
@@ -167,7 +156,6 @@ const VisualizarEstudiante = () => {
                                 readOnly
                             />
                         </div>
-
 
                         <div>
                             <label>
@@ -182,7 +170,6 @@ const VisualizarEstudiante = () => {
                             />
                         </div>
 
-
                         <div>
                             <label>
                                 Estado
@@ -195,57 +182,40 @@ const VisualizarEstudiante = () => {
                                 readOnly
                             />
                         </div>
-
                     </div>
                 </div>
-
-
-                {/* ========================= */}
-                {/* MATERIAS */}
-                {/* ========================= */}
 
                 <div className='ladoDer'>
                     <h2>
                         Materias y horarios
                     </h2>
 
-
                     <div className="student-edit-form1">
+                        {CLAVES_MATERIAS.map((materia, index) => (
+                            <div
+                                key={materia}
+                                className={
+                                    index % 2 === 0
+                                        ? 'contV'
+                                        : 'contB'
+                                }
+                            >
+                                <label>
+                                    {MATERIAS[materia].nombre}
+                                </label>
 
-                        {CLAVES_MATERIAS.map((materia, index) => {
-
-                            return (
-                                <div
-                                    key={materia}
-                                    className={
-                                        index % 2 === 0
-                                            ? 'contV'
-                                            : 'contB'
-                                    }
-                                >
-
-                                    <label>
-                                        {MATERIAS[materia].nombre}
-                                    </label>
-
-                                    <input
-                                        className='date'
-                                        type="text"
-                                        value={obtenerHorario(materia)}
-                                        readOnly
-                                    />
-
-                                </div>
-                            );
-
-                        })}
-
+                                <input
+                                    className='date'
+                                    type="text"
+                                    value={obtenerHorario(materia)}
+                                    readOnly
+                                />
+                            </div>
+                        ))}
                     </div>
                 </div>
-
-
-
             </div>
+
             <br />
             <div className="student-edit-actions">
                 <button
@@ -257,9 +227,7 @@ const VisualizarEstudiante = () => {
                 >
                     Volver
                 </button>
-
             </div>
-
         </div>
     );
 };

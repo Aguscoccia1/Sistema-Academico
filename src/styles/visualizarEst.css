@@ -104,26 +104,26 @@ label{
     border-width: 1px;
     border-style: solid;
     border-color: #C9DCCA;
-    background-color: #D80707;
+    background-color: #ffffff;
     padding: 15px;
     border-radius: 8px;
     font-weight: bold;
     font-family: DM Sans;
     font-size: 13px;
-    color: #ffffff;
+    color: #3F746B;
 
 }
 .cancel:hover{
     border-width: 1px;
     border-style: solid;
-    border-color: #C9DCCA;
-    background-color: #FBECEC;
+    border-color: #67968A;
+    background-color: #E4EEE1;
     padding: 15px;
     border-radius: 8px;
     font-weight: bold;
     font-family: DM Sans;
     font-size: 13px;
-    color: #B54747;
+    color: #1F4C48;
     transform: translate(0, -5%);
 
 }
