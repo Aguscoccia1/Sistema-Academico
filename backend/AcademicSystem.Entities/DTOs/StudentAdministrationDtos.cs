@@ -27,6 +27,22 @@ public sealed record ComisionResponseDto(
     string Seccion,
     int CantidadEstudiantes);
 
+public sealed record AsignacionAleatoriaMasivaRequestDto
+{
+    [Range(1, int.MaxValue)]
+    public int MateriaId { get; init; }
+}
+
+public sealed record DistribucionComisionDto(
+    string Seccion,
+    int CantidadAsignada);
+
+public sealed record AsignacionAleatoriaMasivaResponseDto(
+    bool Exito,
+    string Mensaje,
+    int TotalAsignado,
+    IReadOnlyList<DistribucionComisionDto> Distribucion);
+
 public sealed record ResultadoInscripcionDto(bool Exito, string Mensaje);
 
 public sealed record ModificarEstudianteDto

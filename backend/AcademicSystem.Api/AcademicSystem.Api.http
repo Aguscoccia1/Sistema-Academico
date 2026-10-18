@@ -4,4 +4,16 @@
 GET {{AcademicSystem_Api_HostAddress}}/api/health
 Accept: application/json
 
+### Count unique students with at least one enrollment
+GET {{AcademicSystem_Api_HostAddress}}/api/inscripciones/cantidad
+Accept: application/json
+
+### Randomly and evenly assign blank sections for a subject
+POST {{AcademicSystem_Api_HostAddress}}/api/comisiones/asignacion-aleatoria-masiva
+Content-Type: application/json
+
+{
+  "materiaId": 1
+}
+
 ###

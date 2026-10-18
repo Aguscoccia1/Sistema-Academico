@@ -43,4 +43,20 @@ public class ComisionesController(IComisionesService comisionesService) : Contro
             ? NotFound("El estudiante no pertenece a esa comisión.")
             : Ok(estudiante);
     }
+
+    [HttpPost("asignacion-aleatoria-masiva")]
+    public async Task<ActionResult<AsignacionAleatoriaMasivaResponseDto>> AsignarAleatoriamente(
+        [FromBody] AsignacionAleatoriaMasivaRequestDto solicitud,
+        CancellationToken cancellationToken)
+    {
+        var resultado = await comisionesService.AsignarAleatoriamenteAsync(
+            solicitud.MateriaId, cancellationToken);
+
+        if (resultado is null)
+            return NotFound("No se encontró la materia.");
+
+        return resultado.Exito
+            ? Ok(resultado)
+            : BadRequest(resultado);
+    }
 }
