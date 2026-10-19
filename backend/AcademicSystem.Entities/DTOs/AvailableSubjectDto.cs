@@ -2,6 +2,7 @@ namespace AcademicSystem.Entities.DTOs;
 
 /// <summary>Subject offered for enrollment in an active study plan.</summary>
 public sealed record AvailableSubjectDto(
+    int StudyPlanId,
     int Id,
     int Code,
     string Name,

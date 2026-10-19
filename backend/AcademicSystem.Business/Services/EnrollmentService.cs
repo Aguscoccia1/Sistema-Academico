@@ -22,6 +22,7 @@ public sealed class EnrollmentService(
                 planSubject.Subject.TeacherSubjects.Any())
             .Select(planSubject => new
             {
+                planSubject.StudyPlanId,
                 planSubject.Subject.Id,
                 planSubject.Subject.Name,
                 planSubject.CourseYear
@@ -32,7 +33,12 @@ public sealed class EnrollmentService(
             .ToListAsync(cancellationToken);
 
         var subjects = rows
-            .Select(row => new AvailableSubjectDto(row.Id, row.Id, row.Name, row.CourseYear))
+            .Select(row => new AvailableSubjectDto(
+                row.StudyPlanId,
+                row.Id,
+                row.Id,
+                row.Name,
+                row.CourseYear))
             .ToList();
 
         return new AvailableSubjectsResponseDto(
