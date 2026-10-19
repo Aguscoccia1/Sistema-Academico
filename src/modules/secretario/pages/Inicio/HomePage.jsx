@@ -1,11 +1,32 @@
-import { BookOpen, CalendarDays, ChevronDown, ChevronRight, ClipboardList, FileText, GraduationCap, MoreHorizontal, UserRound, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ChevronRight, ClipboardList, GraduationCap } from 'lucide-react';
+import { obtenerSesion } from '../../../../core/auth/session';
 
-function StatCard({ icon, value, label, color, trend }) { return <article className="stat"><span className={`stat-icon ${color}`}>{icon}</span><div><b>{value}</b><p>{label}</p><small>{trend}</small></div></article>; }
-function ActivityItem({ color, initials, title, detail, time, icon }) { return <article className="activity-item"><span className={`activity-icon ${color}`}>{initials || icon}</span><div><b>{title}</b><p>{detail}</p></div><time>{time}</time><button type="button" aria-label="Más opciones"><MoreHorizontal size={19} /></button></article>; }
-function PendingItem({ text, count, action }) { return <div className="pending-item"><span className="alert-dot">!</span><div><b>{text}</b><small>{count}</small></div><button type="button">{action}<ChevronRight size={15} /></button></div>; }
+const fechaDeHoy = () =>
+  new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
 
 function HomePage() {
-  return <><div className="welcome"><div><p className="eyebrow">LUNES, 24 DE AGOSTO DE 2026</p><h1>Hola, María <span>👋</span></h1><p>Te damos la bienvenida al panel de Secretaría Académica.</p></div><button className="period" type="button"><CalendarDays size={18} /><span>Período lectivo</span><b>2026</b><ChevronDown size={15} /></button></div><div className="stats"><StatCard icon={<Users />} value="486" label="Estudiantes activos" color="blue" trend="12 este mes" /><StatCard icon={<UserRound />} value="38" label="Docentes registrados" color="violet" trend="2 este mes" /><StatCard icon={<BookOpen />} value="26" label="Materias activas" color="orange" trend="Período 2026" /><StatCard icon={<GraduationCap />} value="18" label="Comisiones" color="green" trend="Período 2026" /></div><div className="dashboard-grid"><section className="panel activity"><div className="panel-title"><div><h2>Actividad reciente</h2><p>Últimos movimientos en el sistema</p></div><button type="button">Ver todo <ChevronRight size={16} /></button></div><div className="activity-list"><ActivityItem color="blue" initials="VG" title="Nueva inscripción de estudiante" detail="Valentina Gómez · Tecnicatura en Desarrollo de Software" time="Hace 10 min" /><ActivityItem color="purple" title="Docente actualizado" detail="Se asignaron materias a Prof. Juan Pérez" time="Hace 35 min" icon={<BookOpen size={17} />} /><ActivityItem color="orange" title="Comisión creada" detail="Programación II · Comisión 2B" time="Hace 2 h" icon={<Users size={17} />} /><ActivityItem color="green" title="Materia actualizada" detail="Se modificó el plan de estudios de Base de Datos" time="Ayer" icon={<FileText size={17} />} /></div></section><section className="panel shortcuts"><div className="panel-title"><div><h2>Accesos rápidos</h2><p>Gestiones frecuentes</p></div></div><button className="shortcut primary" type="button"><span><Users size={20} /></span><div><b>Nuevo estudiante</b><small>Registrar en el sistema</small></div><ChevronRight size={18} /></button><button className="shortcut" type="button"><span><UserRound size={20} /></span><div><b>Nuevo docente</b><small>Agregar al plantel</small></div><ChevronRight size={18} /></button><button className="shortcut" type="button"><span><ClipboardList size={20} /></span><div><b>Gestionar comisiones</b><small>Ver y administrar</small></div><ChevronRight size={18} /></button></section></div><section className="panel pending"><div className="panel-title"><div><h2>Pendientes de revisión <em>3</em></h2><p>Acciones que requieren tu atención</p></div><button type="button">Ver todos <ChevronRight size={16} /></button></div><div className="pending-list"><PendingItem text="Solicitudes de inscripción a 1.º año" count="3 solicitudes" action="Revisar" /><PendingItem text="Documentación de estudiantes" count="5 documentos pendientes" action="Ver documentos" /><PendingItem text="Cambios en asignaciones docentes" count="2 cambios propuestos" action="Revisar" /></div></section></>;
+  const sesion = obtenerSesion();
+
+  return (
+    <>
+      <div className="welcome">
+        <div>
+          <p className="eyebrow">{fechaDeHoy()}</p>
+          <h1>Hola, {sesion?.fullName ?? 'Secretaría'} <span>👋</span></h1>
+          <p>Te damos la bienvenida al panel de Secretaría Académica.</p>
+        </div>
+      </div>
+
+      <div className="dashboard-grid">
+        <section className="panel shortcuts">
+          <div className="panel-title"><div><h2>Accesos rápidos</h2><p>Gestiones frecuentes</p></div></div>
+          <Link className="shortcut primary" to="/secretario/planes-de-estudio"><span><GraduationCap size={20} /></span><div><b>Planes de estudio</b><small>Crear y organizar planes y materias</small></div><ChevronRight size={18} /></Link>
+          <Link className="shortcut" to="/secretario/inscripciones"><span><ClipboardList size={20} /></span><div><b>Inscripciones</b><small>Estado de las inscripciones por año</small></div><ChevronRight size={18} /></Link>
+        </section>
+      </div>
+    </>
+  );
 }
 
 export default HomePage;

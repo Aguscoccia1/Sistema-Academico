@@ -5,7 +5,6 @@ import { withSuspense } from '../../core/router/withSuspense';
 const HomePage = lazy(() => import('./pages/Inicio/HomePage'));
 const PlanesEstudio = lazy(() => import('./pages/PlanesEstudio/PlanesEstudio'));
 const InscripcionesContainer = lazy(() => import('./pages/Inscripciones/InscripcionesContainer'));
-const Docentes = lazy(() => import('./pages/Docentes/Docentes'));
 const AppLayout = lazy(() => import('../../core/layouts/AppLayout'));
 
 export const secretarioRoutes = (rolSimulado) => (
@@ -22,6 +21,5 @@ export const secretarioRoutes = (rolSimulado) => (
     <Route path="inicio" element={withSuspense(HomePage)} />
     <Route path="planes-de-estudio" element={withSuspense(PlanesEstudio)} />
     <Route path="inscripciones" element={withSuspense(InscripcionesContainer)} />
-    <Route path="docentes" element={withSuspense(Docentes)} />
   </Route>
 );

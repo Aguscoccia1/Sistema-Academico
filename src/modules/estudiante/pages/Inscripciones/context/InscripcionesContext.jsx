@@ -1,14 +1,9 @@
 import { createContext, useContext, useState } from 'react';
 
-export const PERIODO_TEXTO = '10 mar. - 28 mar. 2025';
+// el período de inscripción y las materias van a venir de la API
+export const PERIODO_TEXTO = 'Sin definir';
 
-const MATERIAS_INICIALES = [
-  { id: 1, nombre: 'Programación I', año: 1, regimen: 'Anual', estado: 'A', correlativas: [] },
-  { id: 2, nombre: 'Base de Datos', año: 1, regimen: '1er Cuatrimestre', estado: 'R', correlativas: [] },
-  { id: 3, nombre: 'Programación II', año: 2, regimen: 'Anual', estado: '', correlativas: [1] },
-  { id: 4, nombre: 'Ingeniería de Software', año: 2, regimen: 'Anual', estado: '', correlativas: [2] },
-  { id: 5, nombre: 'Desarrollo Web', año: 2, regimen: '2do Cuatrimestre', estado: '', correlativas: [3, 4] },
-];
+const MATERIAS_INICIALES = [];
 
 const InscripcionesContext = createContext(null);
 

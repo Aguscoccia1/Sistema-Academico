@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import YearCard from './components/YearCard';
-import { useEnrollments } from '../../components/enrollments/useEnrollments';
 
 function InscripcionesContainer() {
   const [planId, setPlanId] = useState('');
   const [notice, setNotice] = useState('');
-  const { years, plans, summaries } = useEnrollments(planId);
+  // los años, los planes y los resúmenes van a venir de la API
+  const years = [];
+  const plans = [];
+  const summaries = [];
 
   const handleManagePlaces = (idAño) => {
     const selectedYear = years.find((year) => year.id === idAño);
@@ -40,6 +42,8 @@ function InscripcionesContainer() {
           </select>
         </label>
       </div>
+
+      {years.length === 0 && <p className="enrollments-empty">Todavía no hay inscripciones cargadas.</p>}
 
       <div className="years-grid">
         {years.map((year) => {

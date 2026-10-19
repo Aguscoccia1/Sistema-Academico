@@ -19,7 +19,6 @@ function Header({ activeSection, rolSimulado, showNotifications, onToggleNotific
             aria-pressed={showNotifications}
           >
             <Bell size={20} />
-            <span className="notification-badge">3</span>
           </button>
         </div>
       </div>

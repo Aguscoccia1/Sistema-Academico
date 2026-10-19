@@ -141,7 +141,7 @@ Y en **Branch rules**, tildá:
 
 ### Revisión automática del E1 (CODEOWNERS)
 
-El repositorio trae `.github/CODEOWNERS`, que dice qué partes revisa sí o sí el E1 (la configuración del proyecto y todo `src/core`, `src/api`, `src/hooks`). Para que sirva:
+El repositorio trae `.github/CODEOWNERS`, que dice qué partes revisa sí o sí el E1 (la configuración del proyecto y todo `src/core`, `src/services`, `src/hooks`). Para que sirva:
 
 1. **Tener el usuario correcto.** Hoy asigna todo a `@gonzaleztomi1978-design`. Si hay más integrantes del E1 que revisan, agregá sus usuarios en la misma línea separados por espacio. Cada persona listada tiene que ser colaboradora con rol **Write** como mínimo.
 2. **Activar la opción en el ruleset.** Adentro de *Require a pull request before merging*, tildá **Require review from Code Owners**.

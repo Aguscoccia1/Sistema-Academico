@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AlertCircle, ArrowRight, Clock, Eye, EyeOff, Lock, User } from 'lucide-react';
-import { login } from '../../../api/authApi';
+import { authService } from '../../../services/authService';
 import { guardarSesion } from '../../../core/auth/session';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { rolFront, rutaInicio } from '../../../core/auth/roles';
@@ -32,7 +32,7 @@ function LoginPage({ onLogin }) {
 
   setCargando(true);
   try {
-    const sesion = await login(usuario.trim(), password);
+    const sesion = await authService.login(usuario.trim(), password);
     const rol = rolFront(sesion.role);
     if (!rol) {
         setErrorGeneral('Tu usuario no tiene un rol habilitado para ingresar.');

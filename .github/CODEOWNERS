@@ -51,7 +51,6 @@
 # ---------------------------------------------------------------------------
 /src/main.jsx                              @gonzaleztomi1978-design
 /src/core/                                 @gonzaleztomi1978-design
-/src/api/                                  @gonzaleztomi1978-design
+/src/services/                             @gonzaleztomi1978-design
 /src/hooks/                                @gonzaleztomi1978-design
-/src/data/                                 @gonzaleztomi1978-design
 /src/styles/                               @gonzaleztomi1978-design
