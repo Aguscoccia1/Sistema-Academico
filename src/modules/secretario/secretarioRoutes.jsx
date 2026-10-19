@@ -2,6 +2,7 @@ import { lazy } from 'react';
 import { Navigate, Route } from 'react-router-dom';
 import { withSuspense } from '../../core/router/withSuspense';
 
+<<<<<<< HEAD
 
 const HomePage = lazy(() =>
   import('./pages/Inicio/HomePage')
@@ -42,6 +43,12 @@ const AppLayout = lazy(() =>
   import('../../core/layouts/AppLayout')
 );
 
+=======
+const HomePage = lazy(() => import('./pages/Inicio/HomePage'));
+const PlanesEstudio = lazy(() => import('./pages/PlanesEstudio/PlanesEstudio'));
+const InscripcionesContainer = lazy(() => import('./pages/Inscripciones/InscripcionesContainer'));
+const AppLayout = lazy(() => import('../../core/layouts/AppLayout'));
+>>>>>>> 8e032f25645166d7dc5245e9d31310f5accbef4d
 
 export const secretarioRoutes = (rolSimulado) => (
 
@@ -69,6 +76,7 @@ export const secretarioRoutes = (rolSimulado) => (
 
     }
   >
+<<<<<<< HEAD
 
 
     {/* =========================
@@ -179,6 +187,12 @@ export const secretarioRoutes = (rolSimulado) => (
       }
     />
 
+=======
+    <Route index element={<Navigate to="inicio" replace />} />
+    <Route path="inicio" element={withSuspense(HomePage)} />
+    <Route path="planes-de-estudio" element={withSuspense(PlanesEstudio)} />
+    <Route path="inscripciones" element={withSuspense(InscripcionesContainer)} />
+>>>>>>> 8e032f25645166d7dc5245e9d31310f5accbef4d
   </Route>
 
 );

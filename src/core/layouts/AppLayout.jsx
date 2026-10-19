@@ -8,6 +8,7 @@ function AppLayout({ rolSimulado = 'secretario' }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const location = useLocation();
+<<<<<<< HEAD
 
   const section = location.pathname.includes('inicio') || location.pathname === '/' ? 'Inicio' : location.pathname.includes('planes') ? 'Planes de Estudio' : location.pathname.includes('manage-slots') ? 'Gestionar cupos' : location.pathname.includes('modificar') ? 'Modificar estudiante' : location.pathname.includes('visualizar') ? 'Visualizar estudiante' : location.pathname.includes('inscripciones') ? 'Inscripciones' : location.pathname.includes('docentes') ? 'Docentes' : 'Estudiantes';
 
@@ -21,6 +22,9 @@ function AppLayout({ rolSimulado = 'secretario' }) {
       )
     );
 
+=======
+  const section = location.pathname.includes('mis-inscripciones') ? 'Mis Inscripciones' : location.pathname.includes('inicio') || location.pathname === '/' ? 'Inicio' : location.pathname.includes('planes') ? 'Planes de Estudio' : location.pathname.includes('inscripciones') ? 'Inscripciones' : location.pathname.includes('docentes') ? 'Docentes' : 'Estudiantes';
+>>>>>>> 8e032f25645166d7dc5245e9d31310f5accbef4d
   const closeSidebar = () => setIsSidebarOpen(false);
 
   return (
@@ -60,5 +64,9 @@ function AppLayout({ rolSimulado = 'secretario' }) {
   );
 }
 
+<<<<<<< HEAD
 export default AppLayout;
 
+=======
+export default AppLayout;
+>>>>>>> 8e032f25645166d7dc5245e9d31310f5accbef4d

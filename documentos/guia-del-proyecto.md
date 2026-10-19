@@ -77,15 +77,14 @@ Sistema-Academico/
 │   ├── integracion-y-releases.md
 │   └── configuracion-github.md
 ├── src/
-│   ├── api/
 │   ├── assets/
 │   ├── core/
-│   ├── data/
 │   ├── hooks/
 │   ├── modules/
 │   │   ├── auth/
 │   │   ├── estudiante/
 │   │   └── secretario/
+│   ├── services/
 │   ├── styles/
 │   └── main.jsx
 ├── .env.example
@@ -141,8 +140,6 @@ Sistema-Academico/
 - `auth/useExpiracionSesion.js`: hook asociado al vencimiento de sesión.
 - `router/withSuspense.jsx`: envoltorio para cargar módulos lazy con `Suspense`.
 - `layouts/AppLayout.jsx`, `Header.jsx`, `Sidebar.jsx`: marco visual autenticado y navegación.
-- `components/SimuladorRoles.jsx`: selector de perfil para desarrollo cuando está habilitado.
-- `components/ui/ManagementTable.jsx`: tabla reutilizable para vistas de gestión.
 
 #### `src/modules/`: funcionalidades organizadas por perfil
 
@@ -152,27 +149,19 @@ Sistema-Academico/
 - `secretario/`
   - `secretarioRoutes.jsx`: define las rutas del perfil y carga las pantallas de forma diferida.
   - `pages/Inicio/HomePage.jsx`: inicio/panel del secretario.
-  - `pages/PlanesEstudio/PlanesEstudio.jsx` y `PlanCard.jsx`: búsqueda y tarjetas de planes; las acciones actuales trabajan con datos mock.
-  - `pages/Docentes/Docentes.jsx` y `ManagementPage.jsx`: interfaz reutilizable de gestión de docentes.
-  - `pages/Inscripciones/InscripcionesContainer.jsx` y `components/YearCard.jsx`: resumen de inscripciones por año.
-  - `components/plans/plansApi.js`: repositorio en memoria con datos iniciales para planes.
-  - `components/teachers/teachersApi.js`: repositorio en memoria con datos iniciales para docentes.
-  - `components/enrollments/useEnrollments.js`: hook de datos de demostración para el resumen de inscripción.
+  - `pages/PlanesEstudio/`: listado, alta y detalle de planes de estudio con sus materias, conectado a la API.
+  - `pages/Inscripciones/InscripcionesContainer.jsx` y `components/YearCard.jsx`: resumen de inscripciones por año; todavía sin conectar a la API.
+  - `components/plans/plansApi.js`: adapta los datos de planes y materias entre el backend y las pantallas; usa los services.
 - `estudiante/`
   - `estudianteRoutes.jsx`: rutas del perfil estudiante.
-  - `pages/Inicio/HomePage.jsx`: panel del estudiante, actualmente alimentado por datos de ejemplo.
-  - `pages/Inscripciones/InscripcionesEstudiante.jsx`: consulta/inscripción visual a materias con datos locales.
-  - `pages/Inscripciones/components/MateriaInscripcionCard.jsx`: tarjeta reutilizable de materia.
-  - `components/enrollments/useEnrollments.js`: datos locales de ejemplo para inscripciones.
+  - `pages/Inicio/HomePage.jsx`: panel del estudiante con su nombre y legajo de la sesión.
+  - `pages/Inscripciones/`: inscripción a materias y "Mis inscripciones"; todavía sin conectar a la API.
 
-#### `src/api/`, `src/hooks/` y `src/data/`
+#### `src/services/` y `src/hooks/`
 
-- `api/httpClient.js`: función `request`, construye solicitudes HTTP usando `VITE_API_BASE_URL`, adjunta el token y representa errores HTTP con `ApiError`.
-- `api/authApi.js`: operación de login que llama a `/api/auth/login`.
-- `api/createMockRepository.js`: CRUD asíncrono en memoria para prototipos; los cambios se pierden al recargar la página.
+- `services/httpClient.js`: función `request`, construye solicitudes HTTP usando `VITE_API_BASE_URL`, adjunta el token y representa errores HTTP con `ApiError`.
+- `services/<nombre>Service.js`: un archivo por cada controller del backend. Los que pertenecen a un solo model van en su carpeta: `estudiante/studentsService.js` y `secretario/academicSecretariesService.js`. Cada función llama a un endpoint con `request`.
 - `hooks/useAsyncResource.js`: estado común de carga/error y recarga para recursos asíncronos.
-- `hooks/useCrud.js`: estado y acciones CRUD reutilizables para pantallas de gestión.
-- `data/managementData.js`: configuración de columnas y datos/acciones para vistas de gestión.
 
 #### Rutas del frontend
 
@@ -182,11 +171,11 @@ Sistema-Academico/
 | Secretario | `/secretario/inicio` | Panel del secretario |
 | Secretario | `/secretario/planes-de-estudio` | Planes de estudio |
 | Secretario | `/secretario/inscripciones` | Resumen de inscripciones |
-| Secretario | `/secretario/docentes` | Docentes |
 | Estudiante | `/estudiante/inicio` | Panel del estudiante |
 | Estudiante | `/estudiante/inscripciones` | Inscripción a materias |
+| Estudiante | `/estudiante/mis-inscripciones` | Mis inscripciones |
 
-La aplicación redirige al inicio correspondiente al perfil. Las rutas desconocidas vuelven a ese inicio o al login. El simulador está habilitado solo en desarrollo y con `VITE_ENABLE_ROLE_SIMULATOR=true`.
+La aplicación redirige al inicio correspondiente al perfil. Las rutas desconocidas vuelven a ese inicio o al login. Sin sesión iniciada, todas las pantallas internas mandan al login.
 
 ### `backend/`: API .NET
 
@@ -262,8 +251,8 @@ El script es la referencia para la forma de la base. Revisá restricciones y rel
 
 ### Inicio de sesión
 
-1. El frontend llama a `login()` en `src/api/authApi.js`.
-2. `request()` en `src/api/httpClient.js` envía `POST /api/auth/login` a la URL configurada y convierte respuestas no exitosas en errores.
+1. El frontend llama a `authService.login()` en `src/services/authService.js`.
+2. `request()` en `src/services/httpClient.js` envía `POST /api/auth/login` a la URL configurada y convierte respuestas no exitosas en errores.
 3. `AuthController` valida la solicitud y llama a `AuthService`.
 4. `AuthService` busca un usuario activo y verifica el hash de la contraseña; limita intentos fallidos.
 5. `JwtTokenService` firma el token. La respuesta entrega perfil y token, no el hash.
@@ -316,7 +305,6 @@ Crear `.env.local` en la raíz a partir de `.env.example` y configurar:
 
 ```dotenv
 VITE_API_BASE_URL=http://localhost:5000
-VITE_ENABLE_ROLE_SIMULATOR=false
 ```
 
 `VITE_*` son valores incorporados al cliente: no poner secretos en ellos. Reiniciar Vite al cambiar el archivo de entorno.
@@ -350,15 +338,6 @@ En Development se intentan crear estos usuarios de demostración si no existen:
 
 Son credenciales exclusivamente locales/de desarrollo. El seeder no configura usuarios de producción.
 
-### Ver la interfaz sin API
-
-Para probar pantallas de presentación en desarrollo:
-
-1. Poner `VITE_ENABLE_ROLE_SIMULATOR=true` en `.env.local`.
-2. Reiniciar `npm run dev`.
-
-El simulador solo funciona con Vite en desarrollo. No sustituye autenticación real ni hace persistentes los datos mock.
-
 ## 6. Comandos de validación
 
 Desde la raíz del repositorio:
@@ -385,10 +364,10 @@ Vitest busca pruebas bajo `src/**/*.test.js` y `src/**/*.test.jsx`. El workflow 
 1. Confirmar el equipo/perfil y el módulo propietario del cambio.
 2. Crear o actualizar la pantalla dentro de `src/modules/<perfil>/pages/`.
 3. Agregar su ruta en `secretarioRoutes.jsx` o `estudianteRoutes.jsx` y, si corresponde, su entrada de menú en `src/core/auth/permisos.js`.
-4. Mantener la lógica de solicitudes en `src/api/` o en el API del módulo; evitar fetch directo disperso por componentes.
+4. Llamar a la API solo a través del service del controller, en `src/services/`; evitar fetch directo disperso por componentes.
 5. Reutilizar los hooks y componentes existentes si su contrato coincide.
 6. Agregar o actualizar estilos bajo `src/styles/` siguiendo el patrón del módulo.
-7. Mientras el endpoint no exista, identificar explícitamente los datos como mock. Al migrar a API real, cubrir estados de carga, error y vacío.
+7. No cargar datos inventados en las pantallas: mientras el endpoint no exista, mostrar el estado vacío. Cubrir los estados de carga, error y vacío.
 
 ### Backend
 

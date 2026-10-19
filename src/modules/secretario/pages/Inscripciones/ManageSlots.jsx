@@ -111,7 +111,7 @@ const ManageSlots = () => {
         </div>
 
         {/* FILTRO POR COMISIÓN */}
-        <div className="ladoDer">
+        <div className="ladoDer1">
 
           <div className="asignar-aleatorio-container">
             <button
@@ -224,9 +224,10 @@ const ManageSlots = () => {
         </table>
         <div className="total-estudiantes">
 
-          <div className="ladoDer">
+          <div className="ladoDer1">
             <h3>Total de alumnos inscriptos:</h3>
             <p>{totalEstudiantes}</p>
+            
           </div>
         </div>
 
