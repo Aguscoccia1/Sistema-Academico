@@ -193,6 +193,35 @@ Queda en **http://localhost:5000**. Para comprobar que se conectó a la base, ab
 
 Tiene que mostrar `"status":"ok"` y `"roles":4`.
 
+### Clave del login
+
+La API necesita una clave para firmar los tokens. Cada integrante genera la suya y la guarda solo en su computadora. En PowerShell, parado en `backend/`:
+
+```powershell
+$bytes = New-Object byte[] 48
+[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+dotnet user-secrets set "Jwt:Key" ([Convert]::ToBase64String($bytes)) --project AcademicSystem.Api
+```
+
+### Usuarios de prueba
+
+Se crean solos al levantar el backend en desarrollo:
+
+| Rol | Correo | Contraseña |
+|---|---|---|
+| Secretario | maria@uni.edu | admin |
+| Estudiante | loko@uni.edu | 1234 |
+
+### Ver las pantallas sin iniciar sesión
+
+Para probar pantallas con datos simulados sin levantar el backend, agregá esta línea a tu `.env.local`:
+
+```
+VITE_ENABLE_ROLE_SIMULATOR=true
+```
+
+Solo funciona con `npm run dev`. La versión que se entrega siempre pide login.
+
 ### Si tu SQL Server tiene otro nombre
 
 El backend se conecta a `localhost\SQLEXPRESS`. Si tu servidor se llama distinto, **no cambies `appsettings.json`**: ese cambio les rompe la conexión a todos los demás. Guardá tu conexión solo en tu computadora con este comando, cambiando la parte de `Server`:
@@ -308,6 +337,7 @@ En el backend, cada equipo agrega sus endpoints en `backend/AcademicSystem.Api/C
 
 **De la cátedra**
 
+- [Guía del proyecto](documentos/guia-del-proyecto.md) — estructura de carpetas, arquitectura, funcionalidades actuales y puesta en marcha técnica.
 - [Sistema Académico](documentos/Sistema%20Acad%C3%A9mico.md) — qué tiene que hacer el sistema.
 - [Equipos Proyectos 2do](documentos/Equipos%20Proyectos%202do.md) — integrantes y responsabilidades de cada equipo.
 - [continuacion.md](documentos/continuacion.md) — arquitectura del proyecto y convenciones de código.

@@ -81,6 +81,9 @@ CREATE TABLE dbo.Users (
     EmergencyContactPhone  NVARCHAR(20)      NULL,
     PasswordHash           NVARCHAR(255)     NOT NULL,
     IsActive               BIT               NOT NULL CONSTRAINT DF_Users_IsActive DEFAULT (1),
+    FailedLoginAttempts    INT               NOT NULL CONSTRAINT DF_Users_FailedLoginAttempts DEFAULT (0),
+    FailedLoginWindowStartedAt DATETIMEOFFSET NULL,
+    LockedUntil            DATETIMEOFFSET    NULL,
 
     CONSTRAINT PK_Users            PRIMARY KEY (Id),
     CONSTRAINT UQ_Users_Cuil       UNIQUE (Cuil),
@@ -90,6 +93,20 @@ CREATE TABLE dbo.Users (
     CONSTRAINT FK_Users_Roles      FOREIGN KEY (RoleId) REFERENCES dbo.Roles (Id),
     INDEX IX_Users_RoleId (RoleId)
 );
+GO
+
+/* Add lockout columns to existing databases without overwriting existing values. */
+IF COL_LENGTH(N'dbo.Users', N'FailedLoginAttempts') IS NULL
+    ALTER TABLE dbo.Users ADD FailedLoginAttempts INT NOT NULL
+        CONSTRAINT DF_Users_FailedLoginAttempts DEFAULT (0);
+GO
+
+IF COL_LENGTH(N'dbo.Users', N'FailedLoginWindowStartedAt') IS NULL
+    ALTER TABLE dbo.Users ADD FailedLoginWindowStartedAt DATETIMEOFFSET NULL;
+GO
+
+IF COL_LENGTH(N'dbo.Users', N'LockedUntil') IS NULL
+    ALTER TABLE dbo.Users ADD LockedUntil DATETIMEOFFSET NULL;
 GO
 
 /* =============================================================================

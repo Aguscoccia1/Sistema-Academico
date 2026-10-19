@@ -396,9 +396,12 @@ public partial class AcademicSystemContext : DbContext
                 .IsFixedLength();
             entity.Property(e => e.Email).HasMaxLength(255);
             entity.Property(e => e.EmergencyContactPhone).HasMaxLength(20);
+            entity.Property(e => e.FailedLoginAttempts).HasDefaultValue(0);
+            entity.Property(e => e.FailedLoginWindowStartedAt).HasColumnType("datetimeoffset");
             entity.Property(e => e.FirstName).HasMaxLength(100);
             entity.Property(e => e.IsActive).HasDefaultValue(true, "DF_Users_IsActive");
             entity.Property(e => e.LastName).HasMaxLength(100);
+            entity.Property(e => e.LockedUntil).HasColumnType("datetimeoffset");
             entity.Property(e => e.PasswordHash).HasMaxLength(255);
             entity.Property(e => e.Phone).HasMaxLength(20);
 

@@ -1,39 +1,48 @@
-import { Pencil, Power, Trash2 } from 'lucide-react';
+import { CalendarDays, Clock, FileText, GraduationCap, CalendarRange } from 'lucide-react';
 
-/**
- * Tarjeta reutilizable para un plan de estudio.
- * @param {{ id: number, nombre: string, añoInicio: number, añoFin: number, activo: boolean }} plan
- */
-function PlanCard({ plan, onEdit, onToggleStatus, onDelete, onViewSubjects }) {
-  const { id, nombre, añoInicio, añoFin, activo } = plan;
+function PlanCard({ plan, onToggleStatus, onViewSubjects }) {
+  const { id, nombre, codigo, añoInicio, añoFin, duracion, modalidad, cargaHoraria, regimen, activo } = plan;
 
   return (
     <article className="plan-card">
-      <div className="plan-card-header">
-        <span className={`plan-badge ${activo ? 'plan-badge-active' : 'plan-badge-inactive'}`}>
-          {activo ? 'Activo' : 'Inactivo'}
-        </span>
-        <div className="plan-card-actions">
-          <button type="button" title="Editar plan" aria-label={`Editar ${nombre}`} onClick={() => onEdit(id)}>
-            <Pencil size={16} />
-          </button>
-          <button type="button" title={activo ? 'Desactivar plan' : 'Activar plan'} aria-label={`${activo ? 'Desactivar' : 'Activar'} ${nombre}`} onClick={() => onToggleStatus(id)}>
-            <Power size={17} />
-          </button>
-          <button className="plan-delete-action" type="button" title="Eliminar plan" aria-label={`Eliminar ${nombre}`} onClick={() => onDelete(id)}>
-            <Trash2 size={16} />
-          </button>
+      <div className="plan-card-top">
+        <div className="plan-card-icon"><FileText size={20} /></div>
+        <div>
+          <span className={`plan-badge ${activo ? 'plan-badge-active' : 'plan-badge-inactive'}`}>
+            {activo ? 'Activo' : 'Archivado'}
+          </span>
+          <h3 className="plan-card-title">{codigo} – {nombre}</h3>
+          <p className="plan-card-years">{añoFin ? `${añoInicio} - ${añoFin}` : `Desde ${añoInicio}`}</p>
         </div>
       </div>
-      <div className="plan-card-body">
-        <span className="plan-card-id">PLAN {String(id).padStart(2, '0')}</span>
-        <h2>{nombre}</h2>
-        <p>Vigencia académica</p>
-        <strong>{añoInicio} - {añoFin}</strong>
+
+      {activo && (
+        <div className="plan-card-details">
+          <div className="plan-card-detail">
+            <CalendarDays size={18} />
+            <div><span className="detail-label">Duración</span><strong className="detail-value">{duracion ?? '—'}</strong></div>
+          </div>
+          <div className="plan-card-detail">
+            <GraduationCap size={18} />
+            <div><span className="detail-label">Modalidad</span><strong className="detail-value">{modalidad ?? '—'}</strong></div>
+          </div>
+          <div className="plan-card-detail">
+            <Clock size={18} />
+            <div><span className="detail-label">Carga Horaria</span><strong className="detail-value">{cargaHoraria ?? '—'}</strong></div>
+          </div>
+          <div className="plan-card-detail">
+            <CalendarRange size={18} />
+            <div><span className="detail-label">Régimen de cursado</span><strong className="detail-value">{regimen ?? '—'}</strong></div>
+          </div>
+        </div>
+      )}
+
+      <div className={`plan-card-footer ${activo ? '' : 'is-archived'}`}>
+        <button type="button" className="plan-outline-button" onClick={() => onViewSubjects(id)}>Ver plan</button>
+        <button type="button" className="plan-outline-button" onClick={() => onToggleStatus(id)}>
+          {activo ? 'Archivar' : 'Restaurar'}
+        </button>
       </div>
-      <button className="plan-subjects-button" type="button" onClick={() => onViewSubjects(id)}>
-        Ver Materias y Correlatividades
-      </button>
     </article>
   );
 }

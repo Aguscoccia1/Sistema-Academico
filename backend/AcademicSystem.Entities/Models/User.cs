@@ -29,6 +29,12 @@ public partial class User
 
     public bool IsActive { get; set; }
 
+    public int FailedLoginAttempts { get; set; }
+
+    public DateTimeOffset? FailedLoginWindowStartedAt { get; set; }
+
+    public DateTimeOffset? LockedUntil { get; set; }
+
     public virtual ICollection<AbsenceJustification> AbsenceJustificationAuditorUsers { get; set; } = new List<AbsenceJustification>();
 
     public virtual ICollection<AbsenceJustification> AbsenceJustificationUsers { get; set; } = new List<AbsenceJustification>();

@@ -1,7 +1,11 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 function SimuladorRoles({ rolSimulado, onChange }) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  if (!import.meta.env.DEV || import.meta.env.VITE_ENABLE_ROLE_SIMULATOR !== 'true') return null;
+  if (pathname === '/login') return null;
 
   const cambiarRol = (rol) => {
     onChange(rol);

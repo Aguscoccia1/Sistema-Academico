@@ -1,5 +1,6 @@
 using AcademicSystem.Business.Services;
 using AcademicSystem.Entities.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AcademicSystem.Api.Controllers;
@@ -10,6 +11,7 @@ namespace AcademicSystem.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/health")]
+[AllowAnonymous]
 public class HealthController(IHealthService healthService) : ControllerBase
 {
     [HttpGet]
