@@ -60,6 +60,10 @@ builder.Services.AddScoped<IStudyPlanService, StudyPlanService>();
 
 builder.Services.AddScoped<ISubjectService, SubjectService>();
 
+// E4: inscripciones y validacion de correlatividades.
+builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
+builder.Services.AddScoped<IPrerequisiteValidationService, PrerequisiteValidationService>();
+
 // Lets the React frontend (Vite, http://localhost:5173) call this API.
 const string FrontendCorsPolicy = "Frontend";
 var frontendOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
