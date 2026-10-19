@@ -4,7 +4,7 @@ const MENU_POR_ROL = {
     { label: 'Inicio', path: '/secretario/inicio', icon: 'Grid2X2', habilitado: true },
     { label: 'Planes de Estudio', path: '/secretario/planes-de-estudio', icon: 'GraduationCap', habilitado: true },
     { label: 'Inscripciones', path: '/secretario/inscripciones', icon: 'ClipboardList', habilitado: true },
-    { label: 'Docentes', path: '/secretario/docentes', icon: 'UserRound', habilitado: true },
+    { label: 'Docentes', path: '/secretario/docentes', icon: 'UserRound', habilitado: false },
     { label: 'Materias', path: '/secretario/materias', icon: 'BookOpen', habilitado: false },
     { label: 'Usuarios', path: '/secretario/usuarios', icon: 'Users', habilitado: false },
     { label: 'Auditoría', path: '/secretario/auditoria', icon: 'ShieldCheck', habilitado: false },

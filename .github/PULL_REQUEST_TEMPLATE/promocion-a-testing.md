@@ -44,8 +44,8 @@ Se prueban con el proyecto levantado (`npm run dev`) en http://localhost:5173.
 Si un módulo todavía no existe en esta candidata, no borres el ítem: marcalo y escribile al lado
 "N/A — sin pantallas todavía", así queda claro que no se olvidó de probar.
 
-- [ ] **Perfil Secretario**: el simulador de roles cambia a Secretario y se ve su menú
-- [ ] **Perfil Estudiante**: el simulador de roles cambia a Estudiante y se ve su menú
+- [ ] **Perfil Secretario**: inicio sesión con `maria@uni.edu` y se ve su menú
+- [ ] **Perfil Estudiante**: inicio sesión con `loko@uni.edu` y se ve su menú
 - [ ] **Navegación**: todos los ítems del menú abren su pantalla, en los dos perfiles
 - [ ] **Rutas cruzadas**: entrar a una URL del otro rol redirige, no rompe la pantalla
 - [ ] **Pantallas del E1**: acceso, usuarios, roles y permisos

@@ -125,7 +125,7 @@ npm install
 npm run dev
 ```
 
-Queda en http://localhost:5173. Para cambiar entre Secretario y Estudiante, usá el simulador de roles de la pantalla.
+Queda en http://localhost:5173. Para entrar necesitás el backend corriendo e iniciar sesión con un usuario de prueba (están en el README).
 
 ---
 
@@ -168,7 +168,7 @@ Escribí tu código **en la carpeta de tu equipo**:
 
 | Equipo | Dónde crea sus pantallas |
 |---|---|
-| E1 | `src/core/`, `src/api/`, `src/hooks/` |
+| E1 | `src/core/`, `src/services/httpClient.js`, `src/hooks/` |
 | E2 | `src/modules/secretario/pages/Docentes/`, `src/modules/secretario/pages/Inscripciones/` |
 | E3 | `src/modules/secretario/pages/PlanesEstudio/` |
 | E4 | `src/modules/estudiante/pages/Inscripciones/` |
@@ -415,7 +415,7 @@ Después de resolver, corré `npm run build` y probá que las dos pantallas abra
 
 ### 7.3. Datos y estilos compartidos
 
-En `src/data/managementData.js` y en los archivos de `src/styles/` vale la misma regla: se quedan los dos bloques. Si dos equipos definieron **la misma clase CSS** con contenido distinto, no lo resuelvas solo: hablalo con el otro equipo y avisale al E1, porque ahí hay que renombrar una.
+En `src/core/auth/permisos.js` (el menú) y en los archivos de `src/styles/` vale la misma regla: se quedan los dos bloques. Si dos equipos definieron **la misma clase CSS** con contenido distinto, no lo resuelvas solo: hablalo con el otro equipo y avisale al E1, porque ahí hay que renombrar una.
 
 ### 7.4. `package-lock.json` — se acepta el de development
 
@@ -516,7 +516,7 @@ git reset --hard origin/development
 ### Querés descartar cambios locales
 
 ```bash
-git restore src/modules/secretario/pages/Docentes/Docentes.jsx   # un archivo
+git restore src/modules/secretario/pages/Inicio/HomePage.jsx   # un archivo
 git restore .                                                     # todos los cambios sin commitear
 ```
 
