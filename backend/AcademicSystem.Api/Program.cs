@@ -1,11 +1,6 @@
-<<<<<<< HEAD
-using AcademicSystem;
-
-=======
 using System.Text;
 using AcademicSystem.Api;
 using AcademicSystem.Api.Security;
->>>>>>> origin/development
 using AcademicSystem.Business.Services;
 using AcademicSystem.Data.Context;
 using AcademicSystem.Data.Repositories;
@@ -13,8 +8,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,16 +20,16 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // Business: each team registers its services here, one line per service.
 builder.Services.AddScoped<IHealthService, HealthService>();
-<<<<<<< HEAD
 builder.Services.AddScoped<IComisionesService, ComisionesService>();
 builder.Services.AddScoped<IInscripcionesService, InscripcionesService>();
 builder.Services.AddScoped<IStudentService, StudentService>();
-=======
-builder.Services.AddScoped<IAuthService, AuthService>(); 
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IJwtTokenService, JwtTokenService>(); 
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
-// validacion del JWT. La clave vive en user-secrets, nunca en el repo.
+builder.Services.AddScoped<IStudyPlanService, StudyPlanService>();
+builder.Services.AddScoped<ISubjectService, SubjectService>();
+
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("Falta 'Jwt:Key'. Configurala con user-secrets.");
 
@@ -54,12 +47,11 @@ builder.Services
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
             ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero, // sin margen: un token vencido da 401 en el momento
+            ClockSkew = TimeSpan.Zero,
             NameClaimType = "sub",
             RoleClaimType = "role"
         };
     });
-
 
 builder.Services.AddAuthorization(options =>
 {
@@ -67,11 +59,6 @@ builder.Services.AddAuthorization(options =>
         .RequireAuthenticatedUser()
         .Build();
 });
-
-builder.Services.AddScoped<IStudyPlanService, StudyPlanService>();
-
-builder.Services.AddScoped<ISubjectService, SubjectService>();
->>>>>>> origin/development
 
 // Lets the React frontend (Vite, http://localhost:5173) call this API.
 const string FrontendCorsPolicy = "Frontend";
