@@ -135,3 +135,593 @@
 	}
 }
 .simulador-roles{position:fixed;top:12px;left:50%;z-index:10;display:flex;align-items:center;gap:14px;transform:translateX(-50%);padding:6px 8px 6px 12px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:#ffffffec;box-shadow:0 4px 14px #183b3814;color:var(--color-muted);font-size:11px;font-weight:700}.simulador-roles__buttons{display:flex;gap:4px}.simulador-roles button{border:0;border-radius:var(--radius-sm);padding:7px 11px;background:transparent;color:var(--color-muted);font:700 11px 'DM Sans',sans-serif;cursor:pointer}.simulador-roles button:hover,.simulador-roles button.activo{background:var(--color-primary);color:#fff}.estudiante-dashboard{min-height:auto;padding:0;background:transparent;color:var(--color-text)}.estudiante-nav{display:flex;align-items:center;justify-content:space-between;max-width:1180px;margin:0 auto 48px;padding-bottom:18px;border-bottom:1px solid var(--color-border)}.estudiante-nav__brand,.estudiante-nav__active{display:flex;align-items:center;gap:9px}.estudiante-nav__brand{color:var(--color-primary-strong);font:700 16px 'Plus Jakarta Sans',sans-serif}.estudiante-nav__active{padding:9px 12px;border-radius:var(--radius-sm);background:var(--color-accent);color:var(--color-primary-strong);font-size:12px;font-weight:700}.estudiante-header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;max-width:1180px;margin:0 auto 14px}.estudiante-eyebrow{color:var(--color-primary);font-size:10px;font-weight:700;letter-spacing:1.2px}.estudiante-header h1{margin:8px 0 5px;font:700 clamp(25px,4vw,36px) 'Plus Jakarta Sans',sans-serif;color:var(--color-text)}.estudiante-header p{margin:0;color:var(--color-muted);font-size:13px}.estudiante-plan{display:flex;align-items:center;gap:11px;min-width:270px;padding:14px 16px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);box-shadow:var(--shadow-card);color:var(--color-primary)}.estudiante-plan span{display:grid;gap:4px}.estudiante-plan small{color:var(--color-muted);font-size:10px}.estudiante-plan strong{color:var(--color-text);font-size:12px}.estudiante-meta{display:flex;gap:18px;max-width:1180px;margin:0 auto 25px;color:var(--color-muted);font-size:11px}.estudiante-meta span{display:flex;align-items:center;gap:5px}.estudiante-periodo-cerrado,.estudiante-aviso{max-width:1180px;margin:0 auto 18px;padding:12px 15px;border:1px solid #e8cfa8;border-radius:var(--radius-sm);background:#fff7e8;color:#89652e;font-size:12px}.estudiante-aviso{display:flex;justify-content:space-between;border-color:#cfdfd0;background:#e8f0e7;color:#42665c}.estudiante-aviso button{border:0;background:transparent;color:inherit;font-size:18px;cursor:pointer}.materias-heading{display:flex;align-items:flex-end;justify-content:space-between;max-width:1180px;margin:0 auto 16px}.materias-heading h2{margin:7px 0 0;font:700 22px 'Plus Jakarta Sans',sans-serif}.materias-heading>span{color:var(--color-muted);font-size:12px}.materias-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;max-width:1180px;margin:0 auto}.materia-inscripcion-card{display:flex;min-height:220px;flex-direction:column;padding:18px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);box-shadow:var(--shadow-card);transition:transform .2s ease,box-shadow .2s ease}.materia-inscripcion-card:not(.materia-inscripcion-card--bloqueada):hover{transform:translateY(-3px);box-shadow:0 9px 24px #183b3814}.materia-inscripcion-card--bloqueada{background:#f0f2ef;opacity:.74}.materia-inscripcion-card__header{display:flex;align-items:center;justify-content:space-between;gap:8px}.materia-inscripcion-card__year{color:var(--color-muted);font-size:10px;font-weight:700;text-transform:uppercase}.materia-inscripcion-card h2{margin:24px 0 10px;font:700 18px 'Plus Jakarta Sans',sans-serif}.materia-estado{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700}.materia-estado--a{color:var(--color-primary)}.materia-estado--r{color:#9a7636}.materia-estado--pendiente{color:var(--color-muted)}.materia-bloqueo{display:flex;align-items:flex-start;gap:6px;margin:0;color:#89652e;font-size:11px;line-height:1.4}.materia-inscripcion-button{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:auto;padding:10px;border:1px solid #c9dcca;border-radius:var(--radius-sm);background:#f4f8f1;color:var(--color-primary-strong);font:700 12px 'DM Sans',sans-serif;cursor:pointer}.materia-inscripcion-button:disabled{border-color:#d5dad5;background:#e4e7e3;color:#7d8780;cursor:not-allowed}@media(max-width:850px){.estudiante-header{align-items:stretch;flex-direction:column}.estudiante-plan{min-width:0}.materias-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.simulador-roles{right:12px;left:auto;transform:none}.simulador-roles>span{display:none}.estudiante-dashboard{padding:70px 18px 32px}.estudiante-nav{margin-bottom:32px}.estudiante-meta{flex-direction:column;gap:7px}.materias-grid{grid-template-columns:1fr}.materia-inscripcion-card{min-height:200px}}
+
+
+
+
+
+
+/* Design system */
+:root {
+	/* Colores */
+	--ds-primary: #1f4c48;
+	--ds-secondary: #3f7468;
+	--ds-primary-light: #67968a;
+	--ds-light: #d6e3d6;
+	--ds-accent: #d3df8a;
+	--ds-background: #f6f7ef;
+	--ds-text-primary: #183b38;
+	--ds-text-secondary: #6e827c;
+	--ds-border: #dce5dd;
+	--ds-warning: #d80707;
+
+	/* Espaciado */
+	--ds-space-1: 4px;
+	--ds-space-2: 8px;
+	--ds-space-3: 16px;
+	--ds-space-4: 24px;
+	--ds-space-5: 32px;
+	--ds-space-6: 48px;
+
+	/* Border radius */
+	--ds-radius-sm: 4px;
+	--ds-radius-md: 8px;
+	--ds-radius-lg: 12px;
+	--ds-radius-xl: 16px;
+	--ds-radius-full: 999px;
+
+	/* Efectos */
+	--ds-border-width: 1px;
+	--ds-shadow-sm: 0 2px 8px rgba(24, 59, 56, 0.08);
+	--ds-shadow-modal: 0 12px 32px rgba(24, 59, 56, 0.16);
+}
+
+/* MateriaInscripcionRow.jsx*/
+/* Celdas de la fila */
+.tabla-materias tbody td {
+	position: relative;
+	height: 41px;
+	padding: 0 var(--ds-space-3);
+	border-bottom: var(--ds-border-width) solid var(--ds-border);
+	background: #fff;
+	color: var(--ds-text-primary);
+	font: 400 14px 'DM Sans', sans-serif; 
+	vertical-align: middle;
+}
+
+.tabla-materias tbody tr:last-child td {
+	border-bottom: 0;
+}
+
+.tabla-materias tbody tr:hover td {
+	background: var(--ds-background);
+}
+
+.tabla-materia,
+.tabla-centro {
+	text-align: center;
+}
+
+/* Separadores verticales cortos entre columnas */
+.tabla-materias tbody td + td::before {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 0;
+	width: var(--ds-border-width);
+	height: 20px;
+	background: var(--ds-border);
+	transform: translateY(-50%);
+}
+
+/* Columna Correlativas */
+.correlativas-estado {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--ds-space-2);
+	white-space: nowrap;
+}
+
+.correlativas-estado svg {
+	flex-shrink: 0;
+}
+
+.correlativas-estado--ok svg {
+	color: var(--ds-secondary);
+}
+
+.correlativas-estado--no svg {
+	color: var(--ds-warning);
+}
+
+/* Badges de estado*/
+.estado-badge {
+	display: inline-block;
+	padding: var(--ds-space-1) 10px;
+	border-radius: var(--ds-radius-full);
+	font: 500 12px 'DM Sans', sans-serif; 
+	line-height: 1.4;
+	white-space: nowrap;
+}
+
+.badge--habilitado {
+	background: var(--ds-light);
+	color: var(--ds-primary);
+}
+
+.badge--bloqueado {
+	background: var(--ds-warning);
+	color: #fff;
+}
+
+/* Botón de la columna Acciones*/
+.tabla-boton {
+	min-width: 88px;
+	padding: var(--ds-space-2) var(--ds-space-3);
+	border: var(--ds-border-width) solid var(--ds-primary-light);
+	border-radius: var(--ds-radius-md);
+	background: #fff;
+	color: var(--ds-secondary);
+	font: 500 14px 'DM Sans', sans-serif; 
+	cursor: pointer;
+	transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.tabla-boton:not(:disabled):hover {
+	border-color: var(--ds-primary);
+	background: var(--ds-background);
+	color: var(--ds-primary);
+}
+
+.tabla-boton:disabled {
+	border-color: var(--ds-border);
+	background: var(--ds-background);
+	color: var(--ds-text-secondary);
+	cursor: not-allowed;
+}
+
+
+/* Tabla de materias (contenedor, tabla y encabezado) */
+.tabla-wrapper {
+	padding: var(--ds-space-2);
+	border: var(--ds-border-width) solid var(--ds-border);
+	border-radius: var(--ds-radius-lg);
+	background: var(--ds-background);
+	box-shadow: var(--ds-shadow-sm);
+	overflow-x: auto;
+}
+
+.tabla-materias {
+	width: 100%;
+	min-width: 860px;
+	border-collapse: separate;
+	border-spacing: 0;
+	background: #fff;
+	font: 400 14px 'DM Sans', sans-serif;
+}
+
+.tabla-materias thead th {
+	padding: var(--ds-space-3) var(--ds-space-2);
+	background: var(--ds-light);
+	color: var(--ds-text-primary);
+	font: 500 14px 'DM Sans', sans-serif;
+	text-align: center;
+}
+
+.tabla-materias thead th:first-child {
+	border-top-left-radius: var(--ds-radius-md);
+}
+
+.tabla-materias thead th:last-child {
+	border-top-right-radius: var(--ds-radius-md);
+}
+
+
+
+/* InscripcionesEstudiante.jsx*/
+/* Breadcrumb */
+.breadcrumb {
+	display: flex;
+	align-items: center;
+	gap: var(--ds-space-1);
+	margin-bottom: var(--ds-space-5);
+	color: var(--ds-text-secondary);
+	font: 400 12px 'DM Sans', sans-serif;
+}
+
+.breadcrumb a {
+	color: var(--ds-text-secondary);
+	text-decoration: none;
+}
+
+.breadcrumb a:hover {
+	text-decoration: underline;
+}
+
+/* Encabezado + tarjeta de período */
+.inscripciones-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: var(--ds-space-4);
+	margin-bottom: var(--ds-space-6);
+	background: transparent;
+}
+
+.inscripciones-header h1 {
+	margin: 0 0 var(--ds-space-2);
+	color: var(--ds-primary);
+	font: 600 24px 'Plus Jakarta Sans', sans-serif;
+}
+
+.inscripciones-header p {
+	margin: 0;
+	color: var(--ds-text-secondary);
+	font: 400 14px 'DM Sans', sans-serif;
+}
+
+.periodo-card {
+	display: flex;
+	align-items: center;
+	gap: var(--ds-space-3);
+	min-width: 280px;
+	padding: var(--ds-space-3) var(--ds-space-4);
+	border: var(--ds-border-width) solid var(--ds-border);
+	border-radius: var(--ds-radius-lg);
+	background: var(--ds-light);
+	color: var(--ds-primary);
+}
+
+.periodo-card div {
+	display: grid;
+	gap: var(--ds-space-1);
+}
+
+.periodo-card small {
+	color: var(--ds-text-secondary);
+	font: 400 12px 'DM Sans', sans-serif;
+}
+
+.periodo-card strong {
+	color: var(--ds-text-primary);
+	font: 500 14px 'DM Sans', sans-serif;
+}
+
+/* Espacio entre tabla de periodo de inscripcion y una linea separadora que antes colisionaban */
+.estudiante-dashboard .inscripciones-header {
+	height: auto;
+	min-height: 0;
+	padding: 0 0 var(--ds-space-4); /* aire entre la tarjeta y la línea */
+	border: 0;
+	border-bottom: var(--ds-border-width) solid var(--ds-border);
+	box-shadow: none;
+	background: transparent;
+	margin-bottom: var(--ds-space-4);
+}
+
+/* Pestañas */
+.tabs-bar {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	margin-bottom: var(--ds-space-3);
+	border-bottom: var(--ds-border-width) solid var(--ds-border);
+}
+
+.tabs {
+	display: flex;
+	gap: var(--ds-space-4);
+	padding-left: var(--ds-space-2);
+}
+
+.tab {
+	padding: var(--ds-space-2) 0;
+	border: 0;
+	border-bottom: 2px solid transparent;
+	background: transparent;
+	color: var(--ds-text-secondary);
+	font: 500 14px 'DM Sans', sans-serif; 
+	cursor: pointer;
+}
+
+.tab:hover {
+	color: var(--ds-primary);
+}
+
+.tab--activa {
+	border-bottom-color: var(--ds-primary);
+	color: var(--ds-primary);
+}
+
+.tabs-contador {
+	padding-bottom: var(--ds-space-2);
+	color: var(--ds-text-secondary);
+	font: 400 12px 'DM Sans', sans-serif; 
+}
+
+@media (max-width: 720px) {
+	.inscripciones-header {
+		flex-direction: column;
+	}
+
+	.periodo-card {
+		width: 100%;
+		min-width: 0;
+	}
+}
+
+
+
+/*Estado vacío*/
+.estado-vacio {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 292px;
+	padding: var(--ds-space-5) var(--ds-space-4);
+	border: var(--ds-border-width) solid var(--ds-border);
+	border-radius: var(--ds-radius-lg);
+	background: #fff;
+	box-shadow: var(--ds-shadow-sm);
+	text-align: center;
+}
+
+.estado-vacio__icono {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 72px;
+	height: 72px;
+	margin-bottom: var(--ds-space-4);
+	border-radius: var(--ds-radius-full);
+	background: var(--ds-light);
+	color: var(--ds-primary);
+}
+
+.estado-vacio h2 {
+	margin: 0 0 var(--ds-space-2);
+	color: var(--ds-text-primary);
+	font: 600 16px 'Plus Jakarta Sans', sans-serif;
+}
+
+.estado-vacio p {
+	margin: 0;
+	color: var(--ds-text-secondary);
+	font: 400 12px 'DM Sans', sans-serif;
+}
+
+
+
+/*Modales*/
+.modal-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 100;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--ds-space-3);
+	background: rgba(24, 59, 56, 0.45);
+}
+
+.modal {
+	width: 100%;
+	max-width: 420px;
+	padding: var(--ds-space-4);
+	border-radius: var(--ds-radius-xl);
+	background: #fff;
+	box-shadow: var(--ds-shadow-modal);
+}
+
+.modal__header {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--ds-space-3);
+	margin-bottom: var(--ds-space-4);
+}
+
+.modal__icono {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	border-radius: var(--ds-radius-lg);
+}
+
+.modal__icono--ok {
+	background: var(--ds-light);
+	color: var(--ds-primary);
+}
+
+.modal__icono--error {
+	background: #feefef;
+	color: var(--ds-warning);
+}
+
+.modal__titulos {
+	flex: 1;
+}
+
+.modal__titulos h2 {
+	margin: 0 0 var(--ds-space-1);
+	color: var(--ds-primary);
+	font: 600 20px 'Plus Jakarta Sans', sans-serif;
+}
+
+.modal__titulos p {
+	margin: 0;
+	color: var(--ds-text-secondary);
+	font: 400 12px 'DM Sans', sans-serif;
+}
+
+.modal__cerrar {
+	display: flex;
+	padding: var(--ds-space-1);
+	border: 0;
+	border-radius: var(--ds-radius-sm);
+	background: transparent;
+	color: var(--ds-text-secondary);
+	cursor: pointer;
+}
+
+.modal__cerrar:hover {
+	color: var(--ds-primary);
+	background: var(--ds-background);
+}
+
+/* Cuerpo */
+.modal__label {
+	display: block;
+	margin-bottom: var(--ds-space-2);
+	color: var(--ds-text-primary);
+	font: 500 14px 'DM Sans', sans-serif;
+}
+
+.modal__label--seccion {
+	margin-top: var(--ds-space-4);
+}
+
+.modal__valor {
+	margin: 0;
+	padding-bottom: var(--ds-space-3);
+	border-bottom: var(--ds-border-width) solid var(--ds-border);
+	color: var(--ds-text-primary);
+	font: 400 14px 'DM Sans', sans-serif;
+}
+
+.modal__correlativas-ok {
+	display: flex;
+	align-items: center;
+	gap: var(--ds-space-2);
+	margin-top: var(--ds-space-3);
+	color: var(--ds-text-primary);
+	font: 400 12px 'DM Sans', sans-serif;
+}
+
+.modal__correlativas-ok svg {
+	color: var(--ds-secondary);
+}
+
+/* Alerta de correlativas pendientes */
+.modal__alerta {
+	display: flex;
+	align-items: center;
+	gap: var(--ds-space-3);
+	padding: var(--ds-space-3) var(--ds-space-4);
+	border: var(--ds-border-width) solid #f5c2c2;
+	border-radius: var(--ds-radius-md);
+	background: #feefef;
+	color: var(--ds-warning);
+}
+
+.modal__alerta svg {
+	flex-shrink: 0;
+}
+
+.modal__alerta strong {
+	display: block;
+	margin-bottom: var(--ds-space-1);
+	color: var(--ds-warning);
+	font: 600 14px 'DM Sans', sans-serif;
+}
+
+.modal__alerta p {
+	margin: 0;
+	color: var(--ds-text-secondary);
+	font: 400 12px 'DM Sans', sans-serif;
+}
+
+.modal__alerta ul {
+	margin: var(--ds-space-1) 0 0;
+	padding-left: var(--ds-space-4);
+	color: var(--ds-text-secondary);
+	font: 400 12px 'DM Sans', sans-serif;
+}
+
+/* Pie del modal de confirmación */
+.modal__footer {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: var(--ds-space-3);
+	margin-top: var(--ds-space-4);
+}
+
+.modal__nota {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--ds-space-2);
+	color: var(--ds-text-secondary);
+	font: 400 12px 'DM Sans', sans-serif;
+}
+
+.modal__acciones {
+	display: flex;
+	gap: var(--ds-space-3);
+}
+
+.modal-boton {
+	min-width: 96px;
+	padding: 10px var(--ds-space-4);
+	border-radius: var(--ds-radius-md);
+	font: 500 14px 'DM Sans', sans-serif;
+	cursor: pointer;
+	transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.modal-boton--secundario {
+	border: var(--ds-border-width) solid var(--ds-primary-light);
+	background: #fff;
+	color: var(--ds-secondary);
+}
+
+.modal-boton--secundario:hover {
+	background: var(--ds-background);
+	border-color: var(--ds-primary);
+}
+
+.modal-boton--primario {
+	min-width: 130px;
+	border: var(--ds-border-width) solid var(--ds-secondary);
+	background: var(--ds-secondary);
+	box-shadow: var(--ds-shadow-sm);
+	color: #fff;
+}
+
+.modal-boton--primario:hover {
+	border-color: var(--ds-primary);
+	background: var(--ds-primary);
+}
+
+
+
+/*Mis Inscripciones*/
+.badge--inscripta {
+	background: var(--ds-primary-light);
+	color: #fff;
+}
+
+.estado-vacio p {
+	max-width: 320px;
+}
+
+.boton-primario {
+	margin-top: var(--ds-space-4);
+	padding: 10px var(--ds-space-5);
+	border: var(--ds-border-width) solid var(--ds-secondary);
+	border-radius: var(--ds-radius-md);
+	background: var(--ds-secondary);
+	box-shadow: var(--ds-shadow-sm);
+	color: #fff;
+	font: 500 14px 'DM Sans', sans-serif;
+	cursor: pointer;
+	transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.boton-primario:hover {
+	border-color: var(--ds-primary);
+	background: var(--ds-primary);
+}

@@ -2,22 +2,18 @@
 
 ## 1. Estado actual del proyecto
 
-El proyecto cuenta con una base funcional de frontend en React + Vite para un sistema académico con dos perfiles principales: secretario y estudiante. La arquitectura actual está organizada por módulos de dominio y por roles, y no depende de un backend real: la persistencia y las interacciones se simulan con repositorios mock en memoria y hooks reutilizables.
+El proyecto tiene un frontend en React + Vite y un backend en .NET con SQL Server. Hay dos perfiles: secretario y estudiante. Para entrar hay que iniciar sesión, y cada perfil ve solo lo suyo. Ya no hay datos simulados: toda la información viene de la API.
 
 Actualmente la aplicación contempla:
 
-- Inicio general.
-- Gestión de planes de estudio.
-- Gestión de docentes.
-- Inscripciones académicas.
-- Vista del estudiante con acceso a sus inscripciones.
-- Cambio de rol simulado para validar la navegación por perfil.
+- Inicio de sesión, cierre y vencimiento de sesión, y permisos por rol.
+- Gestión de planes de estudio y materias, conectada a la API.
+- Inscripciones del secretario, con la pantalla lista para conectar a la API.
+- Vista del estudiante con la inscripción a materias y sus inscripciones, también para conectar a la API.
 
-La capa de acceso a datos se encuentra desacoplada de la UI mediante adaptadores mock y utilidades de CRUD, lo que permite migrar a una API real sin afectar la lógica de las pantallas.
+El acceso a datos está separado de las pantallas: en `src/services/` hay un archivo por cada controller del backend, y `httpClient.js` arma cada pedido.
 
 ## 2. Estructura real del frontend
-
-La estructura actual del repositorio refleja la implementación real del sistema, y no coincide con una organización todavía basada en `src/features` ni con una distribución por carpetas genéricas de páginas y componentes sueltos. La base actual es la siguiente:
 
 ```text
 Sistema Académico/
@@ -26,81 +22,41 @@ Sistema Académico/
 ├── vite.config.js
 ├── vitest.config.js
 ├── eslint.config.js
+├── backend/                → API en .NET (Api, Business, Data, Entities)
+├── database/               → script de la base de datos
 ├── documentos/
-│   ├── Sistema Académico.md
-│   ├── Equipos Proyectos 2do.md
-│   └── continuacion.md
 ├── src/
 │   ├── main.jsx
-│   ├── api/
-│   │   ├── createMockRepository.js
-│   │   └── httpClient.js
+│   ├── services/
+│   │   ├── httpClient.js   → arma cada pedido: dirección de la API, token y sesión vencida
+│   │   ├── <nombre>Service.js   → uno por cada controller del backend
+│   │   ├── estudiante/     → studentsService.js
+│   │   └── secretario/     → academicSecretariesService.js
 │   ├── assets/
 │   ├── core/
-│   │   ├── components/
-│   │   │   ├── SimuladorRoles.jsx
-│   │   │   └── ui/
-│   │   │       └── ManagementTable.jsx
-│   │   ├── layouts/
-│   │   │   ├── AppLayout.jsx
-│   │   │   ├── Header.jsx
-│   │   │   └── Sidebar.jsx
-│   │   ├── router/
-│   │   │   └── withSuspense.jsx
-│   │   └── routes/
-│   │       └── App.jsx
-│   ├── data/
-│   │   └── managementData.js
+│   │   ├── auth/           → sesión, roles, permisos y vencimiento por inactividad
+│   │   ├── layouts/        → AppLayout, Header y Sidebar
+│   │   ├── router/         → withSuspense.jsx
+│   │   └── routes/         → App.jsx
 │   ├── hooks/
-│   │   ├── useAsyncResource.js
-│   │   └── useCrud.js
+│   │   └── useAsyncResource.js
 │   ├── modules/
+│   │   ├── auth/
+│   │   │   └── pages/      → LoginPage y AccesoDenegadoPage
 │   │   ├── estudiante/
 │   │   │   ├── estudianteRoutes.jsx
-│   │   │   ├── components/
-│   │   │   │   └── enrollments/
-│   │   │   │       └── useEnrollments.js
 │   │   │   └── pages/
 │   │   │       ├── Inicio/
-│   │   │       │   └── HomePage.jsx
 │   │   │       └── Inscripciones/
-│   │   │           ├── InscripcionesEstudiante.jsx
-│   │   │           └── components/
-│   │   │               └── MateriaInscripcionCard.jsx
 │   │   └── secretario/
 │   │       ├── secretarioRoutes.jsx
 │   │       ├── components/
-│   │       │   ├── enrollments/
-│   │       │   │   └── useEnrollments.js
-│   │       │   ├── plans/
-│   │       │   │   └── plansApi.js
-│   │       │   └── teachers/
-│   │       │       └── teachersApi.js
+│   │       │   └── plans/plansApi.js
 │   │       └── pages/
-│   │           ├── Docentes/
-│   │           │   ├── Docentes.jsx
-│   │           │   └── ManagementPage.jsx
 │   │           ├── Inicio/
-│   │           │   └── HomePage.jsx
 │   │           ├── Inscripciones/
-│   │           │   ├── InscripcionesContainer.jsx
-│   │           │   └── components/
-│   │           │       └── YearCard.jsx
 │   │           └── PlanesEstudio/
-│   │               ├── PlanCard.jsx
-│   │               └── PlanesEstudio.jsx
-│   ├── styles/
-│   │   ├── base.css
-│   │   ├── enrollments.css
-│   │   ├── globals.css
-│   │   ├── index.css
-│   │   ├── layout.css
-│   │   ├── management.css
-│   │   ├── navigation.css
-│   │   ├── plans.css
-│   │   ├── student.css
-│   │   └── tokens.css
-│   └── utils/ (si se agrega en desarrollo futuro)
+│   └── styles/
 └── node_modules/
 ```
 
@@ -110,80 +66,68 @@ Sistema Académico/
 
 La aplicación usa una separación funcional por roles y por módulos, con un shell global compartido:
 
-- `src/core/routes/App.jsx`: punto central de ruteo y selector de rol simulado.
+- `src/core/routes/App.jsx`: punto central de ruteo; protege las rutas por sesión y por rol.
 - `src/modules/secretario/secretarioRoutes.jsx`: rutas del rol secretario.
 - `src/modules/estudiante/estudianteRoutes.jsx`: rutas del rol estudiante.
 - `src/core/layouts/AppLayout.jsx`: layout base del dashboard con sidebar y header.
 - `src/modules/.../pages`: pantallas específicas del dominio.
-- `src/modules/.../components`: componentes orientados al dominio.
-- `src/hooks/useCrud.js`: patrón reusable para carga y mutaciones de registros.
-- `src/api/createMockRepository.js`: repositorio en memoria con comportamiento CRUD simulando backend.
+- `src/services/`: un archivo por cada controller del backend; los de un solo model van en su carpeta (`estudiante/`, `secretario/`).
+- `src/services/httpClient.js`: función `request` que usan todos los services.
 
-La navegación actual no se define en un único archivo global de páginas, sino en archivos de rutas asociados a cada módulo, y la selección del rol se resuelve desde un simulador de interfaz. Ese patrón debe mantenerse como base para continuar creciendo.
+La navegación no se define en un único archivo global de páginas, sino en archivos de rutas asociados a cada módulo. El rol sale de la sesión iniciada. Ese patrón debe mantenerse como base para continuar creciendo.
 
 ## 4. Cómo se integra la capa de datos
 
-El flujo de acceso a datos actual sigue un patrón claro:
+Cada service llama a los endpoints de un controller con `request`:
 
 ```js
-const repository = createMockRepository(seed);
-const data = await repository.list();
-await repository.create(payload);
-await repository.update(id, changes);
-await repository.remove(id);
+// src/services/studyPlanService.js
+import { request } from './httpClient';
+
+export const studyPlanService = {
+  obtenerTodos: () => request('/api/StudyPlan'),
+  crear: (plan) => request('/api/StudyPlan', { method: 'POST', body: JSON.stringify(plan) }),
+};
 ```
 
-Y la capa de negocio reutiliza el hook:
+Y la pantalla usa el service, nunca `fetch` directo:
 
 ```js
-const { rows, isLoading, error, create, remove, reload } = useCrud({
-  api,
-  createPayload,
-  validate,
-  entityLabel,
-});
+const { data: planes, isLoading, error } = useAsyncResource(studyPlanService.obtenerTodos, []);
 ```
 
-Esto permite que la UI no dependa directamente de arreglos o datos estáticos, y que el reemplazo por una API real signifique cambiar la implementación del adaptador, no la lógica de cada pantalla.
+Si una pantalla necesita adaptar los datos entre el formato del backend y el de la vista, lo hace en un archivo propio del módulo, como `plansApi.js`, que a su vez usa los services.
 
 ## 5. Arquitectura recomendada para continuar
 
 El proyecto debe seguir una lógica incremental basada en la estructura ya existente:
 
-1. Mantener `src/core` para infraestructura compartida: layout, rutas, utilitarios y componentes globales.
+1. Mantener `src/core` para infraestructura compartida: layout, rutas, sesión y componentes globales.
 2. Mantener `src/modules` como eje principal de feature/rol: secretario y estudiante.
 3. Crear componentes y hooks internos por cada módulo antes de duplicar lógica entre pantallas.
 4. Evitar mezclar acceso a datos, validaciones y render dentro de un mismo componente cuando crezca la complejidad.
 5. Usar `id` como clave principal en todos los modelos y operaciones de actualización/eliminación.
-6. Preparar la API mock para que sea reemplazada por `httpClient` o un servicio real sin tocar la vista.
+6. Toda llamada a la API pasa por su service en `src/services/`. Si un equipo crea un controller nuevo, crea también su service.
 
-## 6. Recomendación de migración a backend .NET
+## 6. Contratos con el backend .NET
 
-Cuando se integre un backend real, el contrato debe definirse primero con la Mesa Técnica. La sustitución no debe cambiar la interfaz, sino solo la implementación de la capa de acceso. Por ejemplo:
+Los contratos se definen primero con la Mesa Técnica. Cada controller del backend tiene su service en `src/services/`:
 
-```js
-export const planesApi = {
-  async obtenerPlanes() {
-    const response = await httpClient.get('/api/planes');
-    return response.data;
-  },
-};
-```
+| Controller | Ruta | Service |
+|---|---|---|
+| `AuthController` | `POST /api/auth/login` | `authService.js` |
+| `PermissionsController` | `GET /api/auth/permissions` | `permissionsService.js` |
+| `StudyPlanController` | `/api/StudyPlan` | `studyPlanService.js` |
+| `SubjectController` | `/api/Subject` | `subjectService.js` |
+| `UsersController` | `/api/users` | `usersService.js` |
+| `StudentsController` | `/api/students` | `estudiante/studentsService.js` |
+| `AcademicSecretariesController` | `/api/academic-secretaries` | `secretario/academicSecretariesService.js` |
+| `RolesController` | `/api/roles` | `rolesService.js` |
+| `EnrollmentController` | `/api/enrollments` | `enrollmentService.js` |
+| `HealthController` | `/api/health` | `healthService.js` |
+| `PrerequisiteValidationController` | `/api/prerequisites` | `prerequisiteValidationService.js` |
 
-El objetivo es que las pantallas, páginas y hooks sigan funcionando aunque cambie la fuente de datos.
-
-### Contratos sugeridos
-
-- `GET /api/planes`
-- `POST /api/planes`
-- `PUT /api/planes/{id}`
-- `DELETE /api/planes/{id}`
-- `GET /api/materias?planId={id}`
-- `GET /api/comisiones?materiaId={id}`
-- `GET /api/estudiantes/{id}`
-- `POST /api/inscripciones`
-
-Se recomienda documentar DTOs, códigos HTTP, errores normalizados, validaciones y autenticación antes de implementar consumo real.
+Se recomienda documentar DTOs, códigos HTTP, errores normalizados, validaciones y autenticación antes de implementar cada endpoint nuevo.
 
 ## 7. Convenciones de código del proyecto
 
@@ -191,7 +135,7 @@ Se recomienda documentar DTOs, códigos HTTP, errores normalizados, validaciones
 
 - Componentes React: `PascalCase`.
 - Archivos JSX: `PascalCase`.
-- Hooks: prefijo `use`, por ejemplo `useCrud` o `useEnrollments`.
+- Hooks: prefijo `use`, por ejemplo `useAsyncResource`.
 - Funciones y variables: `camelCase`.
 - Constantes globales: `UPPER_SNAKE_CASE` cuando corresponda.
 - Identificadores de entidad: `id` y nombres descriptivos como `planId`, `materiaId`, `estudianteId`.
@@ -217,9 +161,9 @@ La continuidad del proyecto debe enfocarse en estos puntos prioritarios:
 
 1. Consolidar la base de rutas y roles con `secretario` y `estudiante`.
 2. Completar el dominio de planes, docentes y estudiantes con formularios y validaciones.
-3. Reforzar la capa de API mock para que se comporte como un backend real con errores, estados y persistencia en memoria.
+3. Conectar a la API las pantallas que todavía no muestran datos, con sus estados de carga, error y vacío.
 4. Crear hooks específicos por entidad para centralizar carga, edición y eliminación.
-5. Definir DTOs y contratos con el equipo .NET antes de implementar HTTP real.
+5. Definir DTOs y contratos en la Mesa Técnica antes de crear cada endpoint nuevo.
 6. Ejecutar validaciones finales antes de cada entrega:
 
 ```bash

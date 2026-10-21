@@ -64,7 +64,7 @@ Si tenés que elegir entre "mergear rápido para no frenar al equipo" y "que `pr
 - [ ] **Respeta la estructura de carpetas.** Pantallas en `src/modules/<rol>/pages/`, componentes propios en el `components/` de ese módulo, nada de carpetas nuevas inventadas al costado.
 - [ ] **No trae basura versionada.** Nada de `node_modules/`, `dist/`, `.env`, `.vite/`.
 - [ ] **No agrega dependencias sin avisar.** Si el diff toca `package.json`, tiene que estar acordado en la Mesa Técnica. Una librería nueva la terminan sufriendo los cuatro equipos.
-- [ ] **No pisa archivos de otro equipo.** Excepción normal: los compartidos (`Sidebar.jsx`, los archivos de rutas, `managementData.js`), donde es esperable un agregado chico.
+- [ ] **No pisa archivos de otro equipo.** Excepción normal: los compartidos (`permisos.js`, los archivos de rutas, `Program.cs`), donde es esperable un agregado chico.
 - [ ] **Prefijo de commit correcto**, y que coincida con el equipo dueño de la rama.
 - [ ] **Tiene evidencia.** El template pide capturas; si la funcionalidad es visible y no hay nada, pedila.
 - [ ] **No hay conflictos con `development`.** Si GitHub marca conflicto, lo resuelve el equipo autor en su rama.
@@ -81,8 +81,8 @@ Comentario tipo para pedir cambios:
 ```
 No lo mergeo todavía, faltan dos cosas:
 
-1. `npm run build` falla en src/modules/secretario/pages/Docentes/Docentes.jsx:42
-   (el import de ManagementTable está mal escrito).
+1. `npm run build` falla en src/modules/secretario/pages/Inscripciones/InscripcionesContainer.jsx:3
+   (el import de un archivo que ya no existe).
 
 2. El PR trae node_modules/. Sacalo con:
    git rm -r --cached node_modules
@@ -131,7 +131,7 @@ npm run dev
 Y ahí sí:
 
 - Entrá a http://localhost:5173 y probá **la funcionalidad del PR**, no solo que la pantalla abra.
-- Cambiá de rol con el simulador y probá que **lo que ya andaba siga andando**.
+- Iniciá sesión con el secretario y con el estudiante, y probá que **lo que ya andaba siga andando**.
 - Mirá la consola del navegador: no tiene que haber errores rojos.
 
 `npm run lint` es aparte: **avisa pero no bloquea**, igual que en el CI. Si tira algo, pedile al equipo que lo mire, pero no frenes el PR por eso.
