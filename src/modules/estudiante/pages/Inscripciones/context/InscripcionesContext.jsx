@@ -1,36 +1,81 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { enrollmentService } from '../../../../../services/enrollmentService';
+import { prerequisiteValidationService } from '../../../../../services/prerequisiteValidationService';
 
 // el período de inscripción y las materias van a venir de la API
 export const PERIODO_TEXTO = 'Sin definir';
 
-const MATERIAS_INICIALES = [];
-
 const InscripcionesContext = createContext(null);
 
 export function InscripcionesProvider({ children }) {
-  const [materias, setMaterias] = useState(MATERIAS_INICIALES);
+  const [materiasPreparadas, setMateriasPreparadas] = useState([]);
+  const [errorCarga, setErrorCarga] = useState('');
 
-  const materiasPreparadas = materias.map((materia) => {
-    const correlativasPendientes = materia.correlativas
-      .map((correlativaId) => materias.find(({ id }) => id === correlativaId))
-      .filter((correlativa) => correlativa && correlativa.estado !== 'A')
-      .map((correlativa) => correlativa.nombre);
+  useEffect(() => {
+    let cancelado = false;
 
-    return {
-      ...materia,
-      correlativasPendientes,
-      correlativaBloqueante: correlativasPendientes[0],
+    async function cargarMaterias() {
+      try {
+        setErrorCarga('');
+        const respuesta = await enrollmentService.obtenerMateriasDisponibles();
+        const materias = await Promise.all(
+          (respuesta.subjects ?? []).map(async (materia) => {
+            const validacion = await prerequisiteValidationService.validar({
+              studyPlanId: materia.studyPlanId,
+              subjectId: materia.id,
+            });
+            const correlativasPendientes = (validacion.missingPrerequisites ?? [])
+              .map((correlativa) => correlativa.name);
+
+            return {
+              id: materia.id,
+              studyPlanId: materia.studyPlanId,
+              section: materia.section,
+              nombre: materia.name,
+              año: materia.courseYear,
+              regimen: materia.term ?? '',
+              correlativasPendientes,
+              correlativaBloqueante: correlativasPendientes[0],
+            };
+          })
+        );
+
+        if (!cancelado) setMateriasPreparadas(materias);
+      } catch (error) {
+        console.error('No se pudieron cargar las materias de la API.', error);
+        if (!cancelado) {
+          setMateriasPreparadas([]);
+          setErrorCarga(error.message || 'No se pudieron cargar las materias disponibles.');
+        }
+      }
+    }
+
+    cargarMaterias();
+    return () => {
+      cancelado = true;
     };
-  });
+  }, []);
 
-  const inscribir = (materiaId) => {
-    setMaterias((actuales) =>
-      actuales.map((materia) => (materia.id === materiaId ? { ...materia, estado: 'R' } : materia))
+  const inscribir = async (materiaId) => {
+    const materia = materiasPreparadas.find((item) => item.id === materiaId);
+    if (!materia) throw new Error('No se encontró la materia seleccionada.');
+    if (!materia.section) {
+      throw new Error('El servidor todavía no informa la comisión asignada. No se realizó la inscripción.');
+    }
+
+    await enrollmentService.inscribir({
+      studyPlanId: materia.studyPlanId,
+      subjectId: materia.id,
+      section: materia.section,
+    });
+
+    setMateriasPreparadas((actuales) =>
+      actuales.map((item) => item.id === materiaId ? { ...item, estado: 'R' } : item)
     );
   };
 
   return (
-    <InscripcionesContext.Provider value={{ materiasPreparadas, inscribir }}>
+    <InscripcionesContext.Provider value={{ materiasPreparadas, inscribir, errorCarga }}>
       {children}
     </InscripcionesContext.Provider>
   );
