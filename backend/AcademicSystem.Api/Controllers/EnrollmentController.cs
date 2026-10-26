@@ -10,7 +10,7 @@ namespace AcademicSystem.Api.Controllers;
 [Authorize(Roles = RoleNames.Student)]
 public class EnrollmentController(IEnrollmentService enrollmentService, ILogger<EnrollmentController> logger) : ControllerBase
 {
-    // materias disponibles para inscribirse
+    
     [HttpGet("available-subjects")]
     public async Task<ActionResult<AvailableSubjectsResponseDto>> GetAvailable(CancellationToken cancellationToken)
     {
@@ -23,6 +23,43 @@ public class EnrollmentController(IEnrollmentService enrollmentService, ILogger<
         {
             logger.LogError(ex, "Error al consultar las materias disponibles.");
             return StatusCode(500, "Error al consultar las materias disponibles.");
+        }
+    }
+
+    [HttpGet("me")]
+    [ProducesResponseType(typeof(IReadOnlyList<StudentEnrollmentDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IReadOnlyList<StudentEnrollmentDto>>> GetMyEnrollments(
+        CancellationToken cancellationToken)
+    {
+        if (!int.TryParse(User.FindFirst("sub")?.Value, out int userId))
+        {
+            return Unauthorized(new { message = "No se pudo identificar al usuario autenticado." });
+        }
+
+        try
+        {
+            var enrollments = await enrollmentService.GetStudentEnrollmentsAsync(userId, cancellationToken);
+
+            if (enrollments is null)
+            {
+                return NotFound(new { message = "No se encontró el perfil de estudiante del usuario autenticado." });
+            }
+
+            return Ok(enrollments);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error al consultar las inscripciones del estudiante autenticado.");
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new { message = "Error interno del servidor al consultar las inscripciones." });
         }
     }
 
@@ -86,5 +123,7 @@ public class EnrollmentController(IEnrollmentService enrollmentService, ILogger<
                 StatusCodes.Status500InternalServerError,
                 new { message = "Error interno del servidor al realizar la inscripción." });
         }
+
+        
     }
 }

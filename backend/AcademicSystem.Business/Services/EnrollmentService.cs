@@ -48,6 +48,34 @@ public sealed class EnrollmentService(
             subjects);
     }
 
+    public async Task<IReadOnlyList<StudentEnrollmentDto>?> GetStudentEnrollmentsAsync(
+        int userId,
+        CancellationToken cancellationToken = default)
+    {
+        int? studentId = await context.Students
+            .AsNoTracking()
+            .Where(student => student.UserId == userId)
+            .Select(student => (int?)student.Id)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (studentId is null)
+        {
+            return null;
+        }
+
+        return await context.StudentSubjects
+            .AsNoTracking()
+            .Where(enrollment => enrollment.StudentId == studentId.Value)
+            .OrderBy(enrollment => enrollment.Subject.Name)
+            .ThenBy(enrollment => enrollment.Section)
+            .Select(enrollment => new StudentEnrollmentDto(
+                enrollment.Id,
+                enrollment.SubjectId,
+                enrollment.Subject.Name,
+                enrollment.Section))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<EnrollmentResult> EnrollAsync(
         int userId,
         StudentSubjectRequestDto request,

@@ -6,6 +6,10 @@ public interface IEnrollmentService
 {
     Task<AvailableSubjectsResponseDto> GetAvailableAsync(CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<StudentEnrollmentDto>?> GetStudentEnrollmentsAsync(
+        int userId,
+        CancellationToken cancellationToken = default);
+
     Task<EnrollmentResult> EnrollAsync(
         int userId,
         StudentSubjectRequestDto request,
