@@ -1,88 +1,101 @@
 import { studyPlanService } from '../../../../services/studyPlanService';
 import { subjectService } from '../../../../services/subjectService';
  
-// Régimen de una materia en el front <-> cuatrimestre (term) en el backend: vacío = anual
-const REGIMEN_A_TERM = { 'Anual': null, '1.º cuatrimestre': 1, '2.º cuatrimestre': 2 };
- 
-const termARegimen = (term) => {
-  if (term === 1) return '1.º cuatrimestre';
-  if (term === 2) return '2.º cuatrimestre';
-  return 'Anual';
+// Nombres de los campos: { nombre en el front: nombre en el backend }
+const CAMPOS_PLAN = {
+  nombre: 'name',
+  codigo: 'planCode',
+  añoInicio: 'startYear',
+  añoFin: 'endYear',
+  modalidad: 'attendanceMode',
+  activo: 'isActive',
 };
  
-// plan: backend -> frontend
+const CAMPOS_MATERIA = {
+  orden: 'orderNumber',
+  formato: 'format',
+  materia: 'name',
+  horasCatedra: 'lectureHours',
+  horasReloj: 'totalHours',
+  course: 'course',
+};
+ 
+// Régimen en el front -> cuatrimestre (term) en el backend: vacío = anual
+const REGIMENES = { 'Anual': null, '1.º cuatrimestre': 1, '2.º cuatrimestre': 2 };
+ 
+// copian un objeto cambiando los nombres de los campos según el mapa
+const aFront = (datos, campos) => Object.fromEntries(Object.entries(campos).map(([front, api]) => [front, datos[api]]));
+const aApi = (datos, campos) => Object.fromEntries(Object.entries(campos).map(([front, api]) => [api, datos[front]]));
+ 
+// Los campos con otro formato (texto, números) se completan aparte.
 const adaptarPlan = (plan) => ({
   id: plan.id,
-  nombre: plan.name,
-  codigo: plan.planCode,
-  añoInicio: plan.startYear,
-  añoFin: plan.endYear,
+  ...aFront(plan, CAMPOS_PLAN),
   duracion: plan.careerDurationYears != null ? `${plan.careerDurationYears} años` : null,
-  modalidad: plan.attendanceMode,
   cargaHoraria: plan.totalWorkloadHours != null ? `${plan.totalWorkloadHours} horas reloj` : null,
-  activo: plan.isActive,
 });
  
-// plan: frontend -> backend
 const prepararPlan = (plan) => ({
-  name: plan.nombre,
-  planCode: plan.codigo,
+  ...aApi(plan, CAMPOS_PLAN),
   careerDurationYears: Number.parseInt(plan.duracion, 10) || null,
-  attendanceMode: plan.modalidad,
   totalWorkloadHours: Number.parseInt(plan.cargaHoraria, 10) || null,
-  startYear: Number(plan.añoInicio),
-  endYear: plan.añoFin ? Number(plan.añoFin) : null,
-  isActive: Boolean(plan.activo),
 });
  
-// materia de un plan: backend -> frontend
+// una materia de un plan llega como { courseYear, term, subject: {...} }
 const adaptarMateria = (planSubject) => ({
   id: planSubject.id,
-  orden: planSubject.subject.orderNumber,
-  formato: planSubject.subject.format,
-  materia: planSubject.subject.name,
+  subjectId: planSubject.subjectId,
+  ...aFront(planSubject.subject, CAMPOS_MATERIA),
   anio: `${planSubject.courseYear}°`,
-  regimen: termARegimen(planSubject.term),
-  horasCatedra: planSubject.subject.lectureHours,
-  horasReloj: planSubject.subject.totalHours,
+  regimen: Object.keys(REGIMENES).find((nombre) => REGIMENES[nombre] === (planSubject.term ?? null)) ?? 'Anual',
 });
  
+const prepararMateria = (materia) => ({
+  ...aApi(materia, CAMPOS_MATERIA),
+  orderNumber: Number(materia.orden),
+  lectureHours: Number(materia.horasCatedra),
+  totalHours: Number(materia.horasReloj),
+});
+ 
+// una fila de la grilla = crear la materia + agregarla al plan
+const agregarMateria = async (planId, fila) => {
+  const materia = await subjectService.crear(prepararMateria(fila));
+ 
+  await studyPlanService.agregarMateria(planId, {
+    subjectId: materia.id,
+    courseYear: Number.parseInt(fila.anio, 10),
+    term: REGIMENES[fila.regimen] ?? null,
+  });
+};
+ 
 export const plansApi = {
-  obtenerPlanes: async () => {
-    const planes = await studyPlanService.obtenerTodos();
-    return planes.map(adaptarPlan);
+  obtenerPlanes: async () => (await studyPlanService.obtenerTodos()).map(adaptarPlan),
+ 
+  crearPlan: async (plan) => adaptarPlan(await studyPlanService.crear(prepararPlan(plan))),
+ 
+  // el PUT reemplaza todos los campos: siempre hay que enviar el plan completo
+  actualizarPlan: async (id, plan) => adaptarPlan(await studyPlanService.actualizar(id, prepararPlan(plan))),
+ 
+  // materias del plan, ordenadas por año y cuatrimestre desde el backend
+  obtenerMaterias: async (planId) => {
+    const plan = await studyPlanService.obtenerPorId(planId);
+    return plan.subjects.map(adaptarMateria);
   },
  
-  // devuelve el plan con sus materias (ordenadas por año y cuatrimestre desde el backend)
-  obtenerPlanPorId: async (id) => {
-    const plan = await studyPlanService.obtenerPorId(id);
-    return { ...adaptarPlan(plan), materias: plan.subjects.map(adaptarMateria) };
+  // agrega las filas de a una y en orden; si una falla, avisa cuántas ya quedaron guardadas
+  agregarMaterias: async (planId, filas) => {
+    let guardadas = 0;
+    try {
+      for (const fila of filas) {
+        await agregarMateria(planId, fila);
+        guardadas += 1;
+      }
+    } catch (error) {
+      if (guardadas === 0) throw error;
+      throw new Error(`Se guardaron ${guardadas} de ${filas.length} materias antes del error: ${error.message} Cancelá y revisá la lista antes de reintentar, para no duplicar materias.`);
+    }
   },
  
-  crearPlan: async (plan) => {
-    const nuevoPlan = await studyPlanService.crear(prepararPlan(plan));
-    return adaptarPlan(nuevoPlan);
-  },
- 
-  actualizarPlan: async (id, plan) => {
-    const planActualizado = await studyPlanService.actualizar(id, prepararPlan(plan));
-    return adaptarPlan(planActualizado);
-  },
- 
-  // una fila de la grilla = crear la materia + agregarla al plan
-  agregarMateria: async (planId, fila) => {
-    const materia = await subjectService.crear({
-      name: fila.materia,
-      orderNumber: Number(fila.orden),
-      format: fila.formato,
-      lectureHours: Number(fila.horasCatedra),
-      totalHours: Number(fila.horasReloj),
-    });
- 
-    await studyPlanService.agregarMateria(planId, {
-      subjectId: materia.id,
-      courseYear: Number.parseInt(fila.anio, 10),
-      term: REGIMEN_A_TERM[fila.regimen],
-    });
-  },
+  // solo cambia los datos propios de la materia (nombre, orden, formato, horas)
+  actualizarMateria: (materia) => subjectService.actualizar(materia.subjectId, prepararMateria(materia)),
 };
