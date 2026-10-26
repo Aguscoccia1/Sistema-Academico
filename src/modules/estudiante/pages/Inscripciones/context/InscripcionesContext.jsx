@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { enrollmentService } from '../../../../../services/enrollmentService';
-import { prerequisiteValidationService } from '../../../../../services/prerequisiteValidationService';
+import { enrollmentService } from '../../../../../services/estudiante/enrollmentService';
+import { prerequisiteValidationService } from '../../../../../services/estudiante/prerequisiteValidationService';
 
 // el período de inscripción y las materias van a venir de la API
 export const PERIODO_TEXTO = 'Sin definir';

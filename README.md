@@ -263,8 +263,8 @@ Todas las llamadas a la API pasan por `src/services/`. Hay un archivo por cada c
 | `rolesService.js` | `RolesController` | Roles |
 | `studyPlanService.js` | `StudyPlanController` | Planes de estudio |
 | `subjectService.js` | `SubjectController` | Materias |
-| `enrollmentService.js` | `EnrollmentController` | Materias disponibles para inscribirse |
-| `prerequisiteValidationService.js` | `PrerequisiteValidationController` | Validar correlativas |
+| `estudiante/enrollmentService.js` | `EnrollmentController` | Materias disponibles para inscribirse |
+| `estudiante/prerequisiteValidationService.js` | `PrerequisiteValidationController` | Validar correlativas |
 | `estudiante/studentsService.js` | `StudentsController` | Estudiantes |
 | `secretario/academicSecretariesService.js` | `AcademicSecretariesController` | Secretarios |
 

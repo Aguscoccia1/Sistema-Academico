@@ -1,4 +1,4 @@
-import { request } from './httpClient';
+import { request } from '../httpClient';
 
 // EnrollmentController: /api/enrollments (solo Estudiante)
 export const enrollmentService = {
