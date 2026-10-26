@@ -1,22 +1,20 @@
 import { useState } from 'react';
 import { FileText, X } from 'lucide-react';
+import { useSubmit } from '../../../../hooks/useSubmit';
 import '../../../../styles/modal.css';
 
 const FORMATOS = ['Asignatura', 'Taller'];
-const ANIOS = ['1°', '2°', '3°'];
-const REGIMENES = ['Anual', 'Cuatrimestral'];
 
 function EditSubjectModal({ subject, onClose, onSave }) {
   const [form, setForm] = useState({
     orden: subject.orden,
     materia: subject.materia,
     formato: subject.formato,
-    regimen: subject.regimen,
-    anio: subject.anio,
     horasCatedra: subject.horasCatedra,
     horasReloj: subject.horasReloj,
   });
   const [errors, setErrors] = useState({});
+  const { submit, isSubmitting: isSaving, submitError } = useSubmit(onSave);
 
   const handleChange = (field) => (event) => {
     setForm((current) => ({ ...current, [field]: event.target.value }));
@@ -27,8 +25,6 @@ function EditSubjectModal({ subject, onClose, onSave }) {
     if (!String(form.orden).trim()) newErrors.orden = 'Este campo es obligatorio';
     if (!form.materia.trim()) newErrors.materia = 'Este campo es obligatorio';
     if (!form.formato) newErrors.formato = 'Este campo es obligatorio';
-    if (!form.regimen) newErrors.regimen = 'Este campo es obligatorio';
-    if (!form.anio) newErrors.anio = 'Este campo es obligatorio';
     if (!String(form.horasCatedra).trim()) newErrors.horasCatedra = 'Este campo es obligatorio';
     if (!String(form.horasReloj).trim()) newErrors.horasReloj = 'Este campo es obligatorio';
     setErrors(newErrors);
@@ -38,7 +34,7 @@ function EditSubjectModal({ subject, onClose, onSave }) {
   const handleSubmit = (event) => {
     event.preventDefault();
     if (!validate()) return;
-    onSave({ ...subject, ...form, materia: form.materia.trim() });
+    submit({ ...subject, ...form, materia: form.materia.trim() });
   };
 
   const errorClass = (field) => (errors[field] ? 'input-error' : '');
@@ -82,22 +78,17 @@ function EditSubjectModal({ subject, onClose, onSave }) {
 
           <div className="modal-row">
             <div className="modal-field">
-              <label htmlFor="edit-regimen">Régimen *</label>
-              <select id="edit-regimen" value={form.regimen} onChange={handleChange('regimen')} className={errorClass('regimen')}>
-                <option value="" />
-                {REGIMENES.map((option) => <option key={option} value={option}>{option}</option>)}
-              </select>
-              {errors.regimen && <span className="field-error">{errors.regimen}</span>}
+              <label htmlFor="edit-regimen">Régimen</label>
+              <input id="edit-regimen" type="text" value={subject.regimen} disabled />
             </div>
             <div className="modal-field">
-              <label htmlFor="edit-anio">Año *</label>
-              <select id="edit-anio" value={form.anio} onChange={handleChange('anio')} className={errorClass('anio')}>
-                <option value="" />
-                {ANIOS.map((option) => <option key={option} value={option}>{option}</option>)}
-              </select>
-              {errors.anio && <span className="field-error">{errors.anio}</span>}
+              <label htmlFor="edit-anio">Año</label>
+              <input id="edit-anio" type="text" value={subject.anio} disabled />
             </div>
           </div>
+          <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 16px' }}>
+            El año y el régimen se definen al agregar la materia al plan y por ahora no se pueden modificar.
+          </p>
 
           <div className="modal-row">
             <div className="modal-field">
@@ -112,9 +103,13 @@ function EditSubjectModal({ subject, onClose, onSave }) {
             </div>
           </div>
 
+          {submitError && <p className="field-error" role="alert">{submitError}</p>}
+
           <div className="modal-footer">
-            <button type="button" className="modal-cancel-button" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="modal-submit-button">Guardar cambios</button>
+            <button type="button" className="modal-cancel-button" onClick={onClose} disabled={isSaving}>Cancelar</button>
+            <button type="submit" className="modal-submit-button" disabled={isSaving}>
+              {isSaving ? 'Guardando...' : 'Guardar cambios'}
+            </button>
           </div>
         </form>
       </div>

@@ -37,8 +37,13 @@ function PlanesEstudio() {
   const togglePlanStatus = async (planId) => {
     const plan = planes.find((currentPlan) => currentPlan.id === planId);
     if (!plan) return;
-    await plansApi.actualizarPlan(planId, { activo: !plan.activo });
-    setPlanes((currentPlans) => currentPlans.map((currentPlan) => (currentPlan.id === planId ? { ...currentPlan, activo: !currentPlan.activo } : currentPlan)));
+    try {
+      // el PUT del backend reemplaza todos los campos: se envía el plan completo con el estado cambiado
+      const updatedPlan = await plansApi.actualizarPlan(planId, { ...plan, activo: !plan.activo });
+      setPlanes((currentPlans) => currentPlans.map((currentPlan) => (currentPlan.id === planId ? updatedPlan : currentPlan)));
+    } catch (error) {
+      setNotice(`No se pudo cambiar el estado del plan: ${error.message}`);
+    }
   };
 
   if (selectedPlan) {

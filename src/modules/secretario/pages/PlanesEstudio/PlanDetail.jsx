@@ -3,6 +3,8 @@ import { ChevronRight, FileText, Pencil, Plus, Trash2 } from 'lucide-react';
 import CargarMaterias from './LoadSubjects';
 import EditSubjectModal from './EditSubjectModal';
 import ConfirmCorrelativesModal from './ConfirmCorrelativesModal';
+import { plansApi } from '../../components/plans/plansApi';
+import { useAsyncResource } from '../../../../hooks/useAsyncResource';
 
 const tabs = ['Resumen', 'Materias', 'Materias por año', 'Correlatividades'];
 const YEARS = ['1°', '2°', '3°'];
@@ -23,7 +25,10 @@ function Field({ label, value }) {
 function PlanDetalle({ plan, onBack }) {
   const [activeTab, setActiveTab] = useState('Resumen');
   const [isLoadingSubjects, setIsLoadingSubjects] = useState(false);
-  const [materias, setMaterias] = useState([]);
+  const { data: materias, setData: setMaterias, isLoading: isLoadingList, error: listError, reload: reloadSubjects } = useAsyncResource(
+    () => plansApi.obtenerMaterias(plan.id),
+    [plan.id],
+  );
   const [selectedYear, setSelectedYear] = useState('1°');
   const [editingSubject, setEditingSubject] = useState(null);
 
@@ -35,13 +40,19 @@ function PlanDetalle({ plan, onBack }) {
   const [correlativeNotice, setCorrelativeNotice] = useState('');
   const [isConfirmingCorrelatives, setIsConfirmingCorrelatives] = useState(false);
 
-  const handleSaveSubjects = (newSubjects) => {
-    setMaterias((current) => [...current, ...newSubjects]);
+
+  const handleSaveSubjects = async (newSubjects) => {
+    try {
+      await plansApi.agregarMaterias(plan.id, newSubjects);
+    } finally {
+      await reloadSubjects(); 
+    }
     setIsLoadingSubjects(false);
   };
 
-  const handleUpdateSubject = (updatedSubject) => {
-    setMaterias((current) => current.map((materia) => (materia.id === updatedSubject.id ? updatedSubject : materia)));
+  const handleUpdateSubject = async (updatedSubject) => {
+    await plansApi.actualizarMateria(updatedSubject);
+    await reloadSubjects();
     setEditingSubject(null);
   };
 
@@ -49,7 +60,6 @@ function PlanDetalle({ plan, onBack }) {
     if (!window.confirm(`¿Eliminar la materia "${subject.materia}"?`)) return;
     setMaterias((current) => current.filter((materia) => materia.id !== subject.id));
 
-    // Se limpian las correlativas que apuntaban a la materia eliminada
     const cleanUp = (source) => {
       const result = {};
       Object.entries(source).forEach(([id, list]) => {
@@ -119,7 +129,6 @@ function PlanDetalle({ plan, onBack }) {
     const selectedSubject = materias.find((materia) => materia.id === selectedSubjectId) ?? null;
     const selectedList = draftCorrelatives[selectedSubjectId] ?? [];
 
-    // Solo se puede ser correlativa de una materia de un año anterior
     const previousYears = YEARS.slice(0, YEARS.indexOf(correlativeYear));
 
     return (
@@ -247,7 +256,11 @@ function PlanDetalle({ plan, onBack }) {
             )}
           </div>
 
-          {materias.length === 0 ? (
+          {listError && <p className="field-error" role="alert">{listError}</p>}
+
+          {isLoadingList ? (
+            <p>Cargando materias...</p>
+          ) : materias.length === 0 ? (
             <div className="plan-materias-empty">
               <div className="plan-materias-icon"><FileText size={32} /></div>
               <h3>Todavía no hay materias cargadas</h3>
