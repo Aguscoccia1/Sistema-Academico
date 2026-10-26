@@ -6,7 +6,7 @@ function MateriaInscripcionRow({ materia, periodoAbierto, onInscribir, onVerDeta
   const bloqueada = !!materia.correlativaBloqueante && !aprobada && !inscripta;
 
   const badge = aprobada
-    ? { texto: 'Aprobada', clase: 'badge--habilitado' }
+    ? { texto: 'Aprobada', clase: 'badge--aprobada' }
     : inscripta
       ? { texto: 'Inscripta', clase: 'badge--habilitado' }
       : bloqueada
