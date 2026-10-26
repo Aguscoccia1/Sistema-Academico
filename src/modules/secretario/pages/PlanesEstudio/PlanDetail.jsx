@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ChevronRight, FileText, Pencil, Plus, Trash2 } from 'lucide-react';
 import CargarMaterias from './LoadSubjects';
 import EditSubjectModal from './EditSubjectModal';
+import ConfirmCorrelativesModal from './ConfirmCorrelativesModal';
 
 const tabs = ['Resumen', 'Materias', 'Materias por año', 'Correlatividades'];
 const YEARS = ['1°', '2°', '3°'];
@@ -32,6 +33,7 @@ function PlanDetalle({ plan, onBack }) {
   const [correlativeYear, setCorrelativeYear] = useState('2°');
   const [selectedSubjectId, setSelectedSubjectId] = useState(null);
   const [correlativeNotice, setCorrelativeNotice] = useState('');
+  const [isConfirmingCorrelatives, setIsConfirmingCorrelatives] = useState(false);
 
   const handleSaveSubjects = (newSubjects) => {
     setMaterias((current) => [...current, ...newSubjects]);
@@ -79,8 +81,18 @@ function PlanDetalle({ plan, onBack }) {
     });
   };
 
-  const saveCorrelatives = () => {
+  const requestSaveCorrelatives = () => {
+    if (!selectedSubjectId) {
+      setCorrelativeNotice('Seleccioná una materia para guardar sus correlatividades.');
+      return;
+    }
+    setCorrelativeNotice('');
+    setIsConfirmingCorrelatives(true);
+  };
+
+  const confirmSaveCorrelatives = () => {
     setCorrelatives(draftCorrelatives);
+    setIsConfirmingCorrelatives(false);
     setCorrelativeNotice('Las correlatividades se guardaron correctamente.');
   };
 
@@ -195,7 +207,7 @@ function PlanDetalle({ plan, onBack }) {
 
         <div className="correlative-footer">
           <button type="button" className="plan-detalle-button" onClick={cancelCorrelatives}>Cancelar cambios</button>
-          <button type="button" className="create-plan-button" onClick={saveCorrelatives}>Guardar cambios</button>
+          <button type="button" className="create-plan-button" onClick={requestSaveCorrelatives}>Guardar cambios</button>
         </div>
       </div>
     );
@@ -379,6 +391,18 @@ function PlanDetalle({ plan, onBack }) {
           subject={editingSubject}
           onClose={() => setEditingSubject(null)}
           onSave={handleUpdateSubject}
+        />
+      )}
+
+      {isConfirmingCorrelatives && (
+        <ConfirmCorrelativesModal
+          subject={materias.find((materia) => materia.id === selectedSubjectId)}
+          correlatives={(draftCorrelatives[selectedSubjectId] ?? [])
+            .map((id) => materias.find((materia) => materia.id === id))
+            .filter(Boolean)
+            .sort(sortByOrder)}
+          onClose={() => setIsConfirmingCorrelatives(false)}
+          onConfirm={confirmSaveCorrelatives}
         />
       )}
     </section>
