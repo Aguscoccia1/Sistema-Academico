@@ -27,23 +27,19 @@ public sealed class EnrollmentService(
             return null;
         }
 
-        var assignedSection = await GetAssignedSectionAsync(studentId.Value, cancellationToken);
-
-        if (assignedSection.Section is null)
-        {
-            return new AvailableSubjectsResponseDto(
-                assignedSection.Message,
-                Array.Empty<AvailableSubjectDto>());
-        }
-
-        string normalizedSection = assignedSection.Section.Trim().ToUpperInvariant();
-
         var rows = await context.StudyPlanSubjects
             .AsNoTracking()
             .Where(planSubject =>
                 planSubject.StudyPlan.IsActive &&
-                planSubject.Subject.TeacherSubjects.Any(teacherSubject =>
-                    teacherSubject.Section.Trim().ToUpper() == normalizedSection))
+                (planSubject.Subject.TeacherSubjects.Any(teacherSubject =>
+                    teacherSubject.Section.Trim().ToUpper() == "A"
+                    || teacherSubject.Section.Trim().ToUpper() == "B")
+                || planSubject.Subject.SubjectSchedules.Any(schedule =>
+                    schedule.Section.Trim().ToUpper() == "A"
+                    || schedule.Section.Trim().ToUpper() == "B")
+                || planSubject.Subject.StudentSubjects.Any(enrollment =>
+                    enrollment.Section.Trim().ToUpper() == "A"
+                    || enrollment.Section.Trim().ToUpper() == "B")))
             .Select(planSubject => new
             {
                 planSubject.StudyPlanId,
@@ -184,40 +180,93 @@ public sealed class EnrollmentService(
                 Validation: validation);
         }
 
-        var assignedSection = await GetAssignedSectionAsync(studentId.Value, cancellationToken);
+        await using var transaction = await context.Database.BeginTransactionAsync(
+            System.Data.IsolationLevel.Serializable,
+            cancellationToken);
 
-        if (assignedSection.Section is null)
+        var lockResource = $"comisiones-asignacion-materia-{request.SubjectId}";
+        await context.Database.ExecuteSqlInterpolatedAsync(
+            $"""
+            DECLARE @lockResult int;
+            EXEC @lockResult = sys.sp_getapplock
+                @Resource = {lockResource},
+                @LockMode = 'Exclusive',
+                @LockOwner = 'Transaction',
+                @LockTimeout = -1;
+            IF @lockResult < 0
+            BEGIN
+                ;THROW 51001, 'No se pudo obtener el bloqueo para asignar comisiones.', 1;
+            END;
+            """,
+            cancellationToken);
+
+        // Recheck after taking the same subject lock used by E2.
+        var duplicateEnrollment = await context.StudentSubjects
+            .AsNoTracking()
+            .Where(item => item.StudentId == studentId.Value && item.SubjectId == request.SubjectId)
+            .Select(item => new
+            {
+                FinalStatus = item.CourseRecord == null ? null : item.CourseRecord.FinalStatus
+            })
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (duplicateEnrollment is not null)
         {
             return new EnrollmentResult(
-                EnrollmentResultStatus.InvalidRequest,
-                Message: assignedSection.Message);
+                EnrollmentResultStatus.Conflict,
+                Message: GetExistingEnrollmentMessage(duplicateEnrollment.FinalStatus));
         }
 
-        string section = assignedSection.Section;
-
-        var teacherSections = await context.StudyPlanSubjects
+        var configuredSections = await context.TeacherSubjects
             .AsNoTracking()
-            .Where(item =>
-                item.StudyPlanId == request.StudyPlanId
-                && item.SubjectId == request.SubjectId
-                && item.StudyPlan.IsActive)
-            .SelectMany(item => item.Subject.TeacherSubjects)
-            .Select(teacherSubject => teacherSubject.Section)
+            .Where(assignment => assignment.SubjectId == request.SubjectId)
+            .Select(assignment => assignment.Section)
+            .Concat(context.SubjectSchedules
+                .AsNoTracking()
+                .Where(schedule => schedule.SubjectId == request.SubjectId)
+                .Select(schedule => schedule.Section))
             .ToListAsync(cancellationToken);
 
-        bool sectionIsAvailable = teacherSections.Any(teacherSection =>
-            !string.IsNullOrWhiteSpace(teacherSection)
-            && string.Equals(
-                teacherSection.Trim(),
-                section,
-                StringComparison.OrdinalIgnoreCase));
+        var existingSections = await context.StudentSubjects
+            .AsNoTracking()
+            .Where(enrollment => enrollment.SubjectId == request.SubjectId)
+            .Select(enrollment => enrollment.Section)
+            .ToListAsync(cancellationToken);
 
-        if (!sectionIsAvailable)
+        var sections = configuredSections
+            .Concat(existingSections)
+            .Select(NormalizeSection)
+            .OfType<string>()
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(section => section)
+            .ToList();
+
+        if (sections.Count == 0)
         {
             return new EnrollmentResult(
                 EnrollmentResultStatus.InvalidRequest,
-                Message: "La materia no está disponible en tu comisión.");
+                Message: "La materia no tiene comisiones A o B disponibles.");
         }
+
+        var sectionCounts = sections.ToDictionary(
+            section => section,
+            _ => 0,
+            StringComparer.Ordinal);
+
+        foreach (var existingSection in existingSections)
+        {
+            var normalizedSection = NormalizeSection(existingSection);
+            if (normalizedSection is not null && sectionCounts.ContainsKey(normalizedSection))
+            {
+                sectionCounts[normalizedSection]++;
+            }
+        }
+
+        int leastEnrollmentCount = sectionCounts.Values.Min();
+        var leastPopulatedSections = sections
+            .Where(section => sectionCounts[section] == leastEnrollmentCount)
+            .ToArray();
+        string section = leastPopulatedSections[Random.Shared.Next(leastPopulatedSections.Length)];
 
         var enrollment = new StudentSubject
         {
@@ -231,6 +280,7 @@ public sealed class EnrollmentService(
         try
         {
             await context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
         }
         catch (DbUpdateException exception) when (IsUniqueConstraintViolation(exception))
         {
@@ -250,33 +300,10 @@ public sealed class EnrollmentService(
             });
     }
 
-    private async Task<(string? Section, string? Message)> GetAssignedSectionAsync(
-        int studentId,
-        CancellationToken cancellationToken)
+    private static string? NormalizeSection(string? section)
     {
-        var storedSections = await context.StudentSubjects
-            .AsNoTracking()
-            .Where(item => item.StudentId == studentId)
-            .Select(item => item.Section)
-            .ToListAsync(cancellationToken);
-
-        var assignedSections = storedSections
-            .Where(section => !string.IsNullOrWhiteSpace(section))
-            .Select(section => section.Trim())
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        if (assignedSections.Count == 0)
-        {
-            return (null, "No tenés una comisión asignada. Consultá con Secretaría.");
-        }
-
-        if (assignedSections.Count > 1)
-        {
-            return (null, "Tus inscripciones tienen comisiones distintas. Consultá con Secretaría.");
-        }
-
-        return (assignedSections[0], null);
+        var normalizedSection = section?.Trim().ToUpperInvariant();
+        return normalizedSection is "A" or "B" ? normalizedSection : null;
     }
 
     private static string GetExistingEnrollmentMessage(string? finalStatus)
