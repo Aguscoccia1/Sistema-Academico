@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react';
 import { ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { useSubmit } from '../../../../hooks/useSubmit';
 
 const FORMATOS = ['Asignatura', 'Taller'];
 const ANIOS = ['1°', '2°', '3°'];
-const REGIMENES = ['Anual', 'Cuatrimestral'];
+const REGIMENES = ['Anual', '1.º cuatrimestre', '2.º cuatrimestre'];
 const INITIAL_ROWS = 5;
 
 function CargarMaterias({ plan, onBack, onCancel, onSave }) {
@@ -21,6 +22,7 @@ function CargarMaterias({ plan, onBack, onCancel, onSave }) {
 
   const [rows, setRows] = useState(() => Array.from({ length: INITIAL_ROWS }, (_, i) => createRow(i)));
   const [error, setError] = useState('');
+  const { submit, isSubmitting: isSaving, submitError } = useSubmit(onSave);
 
   const updateRow = (id, field, value) => {
     setRows((current) => current.map((row) => (row.id === id ? { ...row, [field]: value } : row)));
@@ -49,7 +51,8 @@ function CargarMaterias({ plan, onBack, onCancel, onSave }) {
       return;
     }
 
-    onSave(filledRows.map((row) => ({ ...row, materia: row.materia.trim() })));
+    setError('');
+    submit(filledRows.map((row) => ({ ...row, materia: row.materia.trim() })));
   };
 
   const renderSelect = (row, field, options) => (
@@ -106,11 +109,13 @@ function CargarMaterias({ plan, onBack, onCancel, onSave }) {
         <Plus size={12} /> Agregar fila
       </button>
 
-      {error && <p className="field-error cargar-materias-error" role="alert">{error}</p>}
+      {(error || submitError) && <p className="field-error cargar-materias-error" role="alert">{error || submitError}</p>}
 
       <div className="cargar-materias-footer">
-        <button type="button" className="plan-detalle-button" onClick={onCancel}>Cancelar</button>
-        <button type="button" className="create-plan-button" onClick={handleSubmit}>Agregar materias</button>
+        <button type="button" className="plan-detalle-button" onClick={onCancel} disabled={isSaving}>Cancelar</button>
+        <button type="button" className="create-plan-button" onClick={handleSubmit} disabled={isSaving}>
+          {isSaving ? 'Guardando...' : 'Agregar materias'}
+        </button>
       </div>
     </section>
   );
