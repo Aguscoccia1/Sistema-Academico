@@ -7,7 +7,8 @@ public sealed record EstudianteResponseDto(
     string Nombre,
     string Apellido,
     string Dni,
-    string Legajo);
+    string Legajo,
+    string Email);
 
 public sealed record MateriaResponseDto(
     int Id,

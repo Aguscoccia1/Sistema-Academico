@@ -57,6 +57,7 @@ public class ComisionesController(IComisionesService comisionesService) : Contro
 
         return resultado.Exito
             ? Ok(resultado)
-            : BadRequest(resultado);
+            : BadRequest(resultado.Mensaje);
     }
+
 }

@@ -333,11 +333,7 @@ git diff --name-only --diff-filter=U    # solo la lista pelada
 Abrí el archivo en VS Code. Vas a encontrar bloques así:
 
 ```jsx
-<<<<<<< HEAD
     { label: 'Docentes', path: '/secretario/docentes', icon: 'UserRound' },
-=======
-    { label: 'Materias', path: '/secretario/materias', icon: 'GraduationCap' },
->>>>>>> origin/development
 ```
 
 - Entre `<<<<<<< HEAD` y `=======` está **lo tuyo**, lo que hay en `e2`.
@@ -379,11 +375,7 @@ Es el conflicto más frecuente: cada equipo agrega su ítem al menú, en el obje
 Conflicto:
 
 ```jsx
-<<<<<<< HEAD
     { label: 'Docentes', path: '/secretario/docentes', icon: 'UserRound' },
-=======
-    { label: 'Materias', path: '/secretario/materias', icon: 'GraduationCap' },
->>>>>>> origin/development
 ```
 
 Resuelto, **con los dos ítems**:

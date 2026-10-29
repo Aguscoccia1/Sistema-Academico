@@ -31,14 +31,17 @@ public class InscripcionesService(AcademicSystemContext context) : IInscripcione
     public async Task<IReadOnlyList<EstudianteResponseDto>> ObtenerEstudiantesAsync(
         CancellationToken cancellationToken = default)
     {
-        return await context.Students
-            .OrderBy(student => student.Id)
-            .Select(student => new EstudianteResponseDto(
+        return await (
+            from student in context.Students
+            join user in context.Users on student.UserId equals user.Id
+            orderby student.Id
+            select new EstudianteResponseDto(
                 student.Id,
                 student.FirstName,
                 student.LastName,
                 student.Dni,
-                student.RecordNumber))
+                student.RecordNumber,
+                user.Email))
             .ToListAsync(cancellationToken);
     }
 
@@ -46,15 +49,25 @@ public class InscripcionesService(AcademicSystemContext context) : IInscripcione
         int anio,
         CancellationToken cancellationToken = default)
     {
-        return await context.StudyPlanSubjects
+        var materias = await context.StudyPlanSubjects
+            .AsNoTracking()
             .Where(studyPlanSubject => studyPlanSubject.CourseYear == anio)
-            .Select(studyPlanSubject => new MateriaResponseDto(
+            .Select(studyPlanSubject => new
+            {
                 studyPlanSubject.SubjectId,
-                studyPlanSubject.Subject.Name,
-                studyPlanSubject.CourseYear))
+                Nombre = studyPlanSubject.Subject.Name,
+                studyPlanSubject.CourseYear
+            })
             .Distinct()
             .OrderBy(subject => subject.Nombre)
             .ToListAsync(cancellationToken);
+
+        return materias
+            .Select(subject => new MateriaResponseDto(
+                subject.SubjectId,
+                subject.Nombre,
+                subject.CourseYear))
+            .ToList();
     }
 
     public async Task<int> ObtenerCantidadAsync(
@@ -100,11 +113,25 @@ public class InscripcionesService(AcademicSystemContext context) : IInscripcione
             return new ResultadoInscripcionDto(false, "La materia no existe.");
         }
 
-        if (!await context.TeacherSubjects.AnyAsync(
+        var comisionEstandar = solicitud.Seccion is "A" or "B";
+        var comisionConfigurada =
+            await context.TeacherSubjects.AnyAsync(
                 assignment =>
                     assignment.SubjectId == solicitud.MateriaId &&
                     assignment.Section == solicitud.Seccion,
-                cancellationToken))
+                cancellationToken) ||
+            await context.SubjectSchedules.AnyAsync(
+                schedule =>
+                    schedule.SubjectId == solicitud.MateriaId &&
+                    schedule.Section == solicitud.Seccion,
+                cancellationToken) ||
+            await context.StudentSubjects.AnyAsync(
+                enrollment =>
+                    enrollment.SubjectId == solicitud.MateriaId &&
+                    enrollment.Section == solicitud.Seccion,
+                cancellationToken);
+
+        if (!comisionEstandar && !comisionConfigurada)
         {
             return new ResultadoInscripcionDto(false, "La comisión no existe para esa materia.");
         }

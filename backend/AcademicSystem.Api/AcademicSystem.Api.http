@@ -17,3 +17,21 @@ Content-Type: application/json
 }
 
 ###
+
+### Get schedules for subject 1, commission A
+GET {{AcademicSystem_Api_HostAddress}}/api/horarios-materias?materiaId=1&seccion=A
+Accept: application/json
+
+### Create a schedule for subject 1, commission A (Secretary role required)
+POST {{AcademicSystem_Api_HostAddress}}/api/horarios-materias
+Content-Type: application/json
+
+{
+  "subjectId": 1,
+  "section": "A",
+  "day": "Monday",
+  "startTime": "14:00:00",
+  "endTime": "16:00:00"
+}
+
+###

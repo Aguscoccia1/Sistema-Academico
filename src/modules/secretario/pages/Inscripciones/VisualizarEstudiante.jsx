@@ -6,11 +6,12 @@ import FileText from '../../../../assets/FileText.svg';
 
 
 
-import { studentsApi } from '../../components/students/studentApi';
 import {
-    MATERIAS,
-    CLAVES_MATERIAS,
-} from '../../components/students/materiasHorarios';
+    consultarEstudiante,
+    consultarInscripcionesEstudiante,
+} from '../../../../services/secretario/studentAdministrationService';
+import { subjectService } from '../../../../services/subjectService';
+import SubjectScheduleList from '../../components/students/SubjectScheduleList';
 
 const VisualizarEstudiante = () => {
     const { id } = useParams();
@@ -21,36 +22,48 @@ const VisualizarEstudiante = () => {
     const [error, setError] = useState('');
 
     useEffect(() => {
+
         const cargarEstudiante = async () => {
             try {
                 setIsLoading(true);
+                setError('');
 
-                const estudiantes =
-                    await studentsApi.obtenerEstudiantes();
+                const [datos, inscripciones, materias] = await Promise.all([
+                    consultarEstudiante(id),
+                    consultarInscripcionesEstudiante(id),
+                    subjectService.obtenerTodos(),
+                ]);
 
-                const encontrado = estudiantes.find(
-                    (item) => String(item.id) === String(id)
-                );
-
-                if (!encontrado) {
-                    setError('No se encontró el estudiante.');
-                    return;
-                }
-
-                setStudent(encontrado);
-
+                setStudent({
+                    id: datos.id,
+                    nombreCompleto: `${datos.nombre} ${datos.apellido}`,
+                    dni: datos.dni,
+                    legajo: datos.legajo,
+                    correo: datos.email,
+                    comision: [
+                        ...new Set(inscripciones.map((item) => item.seccion)),
+                    ].join(', '),
+                    estado: inscripciones.length > 0
+                        ? 'Inscripto'
+                        : 'Sin inscripciones',
+                    inscripciones,
+                    materias: materias.map((materia) => ({
+                        ...materia,
+                        inscripcion: inscripciones.find(
+                            (inscripcion) => inscripcion.materiaId === materia.id
+                        ) ?? null,
+                    })),
+                });
             } catch (err) {
                 console.error(err);
-
-                setError(
-                    'Ocurrió un error al cargar el estudiante.'
-                );
+                setError('No se pudo consultar el estudiante.');
             } finally {
                 setIsLoading(false);
             }
         };
 
         cargarEstudiante();
+
     }, [id]);
 
     if (isLoading) {
@@ -78,24 +91,6 @@ const VisualizarEstudiante = () => {
             </div>
         );
     }
-
-    const obtenerHorario = (materia) => {
-        const comision =
-            student.materias?.[materia];
-
-        if (!comision) {
-            return 'Sin comisión asignada';
-        }
-
-        const horario =
-            MATERIAS[materia].horarios[comision];
-
-        if (!horario) {
-            return 'Horario no disponible';
-        }
-
-        return `Comisión ${comision} - ${horario}`;
-    };
 
     return (
         <div className="contenedor">
@@ -190,29 +185,38 @@ const VisualizarEstudiante = () => {
                         Materias y horarios
                     </h2>
 
-                    <div className="student-edit-form1">
-                        {CLAVES_MATERIAS.map((materia, index) => (
-                            <div
-                                key={materia}
-                                className={
-                                    index % 2 === 0
-                                        ? 'contV'
-                                        : 'contB'
-                                }
-                            >
-                                <label>
-                                    {MATERIAS[materia].nombre}
-                                </label>
 
-                                <input
-                                    className='date'
-                                    type="text"
-                                    value={obtenerHorario(materia)}
-                                    readOnly
-                                />
-                            </div>
-                        ))}
+                    <div className="student-edit-form1">
+                        {student.materias.length > 0 ? (
+                            student.materias.map((materia, index) => (
+                                <div
+                                    key={materia.id}
+                                    className={index % 2 === 0 ? 'contV' : 'contB'}
+                                >
+                                    <label>{materia.name}</label>
+
+                                    {materia.inscripcion ? (
+                                        <SubjectScheduleList
+                                            subjectId={materia.id}
+                                            section={materia.inscripcion.seccion}
+                                            subjectName={materia.name}
+                                            readOnly
+                                        />
+                                    ) : (
+                                        <input
+                                            className="date"
+                                            type="text"
+                                            value="Sin inscripción"
+                                            readOnly
+                                        />
+                                    )}
+                                </div>
+                            ))
+                        ) : (
+                            <p>No hay materias cargadas en la base de datos.</p>
+                        )}
                     </div>
+
                 </div>
             </div>
 

@@ -1,29 +1,24 @@
 
 import { useState } from 'react';
 import YearCard from './components/YearCard';
-<<<<<<< HEAD
-import { useEnrollments } from '../../components/enrollments/useEnrollments';
 import { useNavigate } from 'react-router-dom';
-=======
->>>>>>> 8e032f25645166d7dc5245e9d31310f5accbef4d
+import { useEnrollments } from './useEnrollments';
+
+const academicYears = [
+  { id: 1, etiqueta: '1ro' },
+  { id: 2, etiqueta: '2do' },
+  { id: 3, etiqueta: '3ro' },
+];
 
 function InscripcionesContainer() {
   const navigate = useNavigate();
 
   const [planId, setPlanId] = useState('');
   const [notice, setNotice] = useState('');
-<<<<<<< HEAD
-=======
-  // los años, los planes y los resúmenes van a venir de la API
-  const years = [];
-  const plans = [];
-  const summaries = [];
->>>>>>> 8e032f25645166d7dc5245e9d31310f5accbef4d
 
   const {
-    years,
     plans,
-    summaries
+    summaries,
   } = useEnrollments(planId);
 
   // Ir a gestionar cupos solamente de 1er año.
@@ -112,15 +107,11 @@ function InscripcionesContainer() {
 
       </div>
 
-<<<<<<< HEAD
-      {/* Años */}
-=======
-      {years.length === 0 && <p className="enrollments-empty">Todavía no hay inscripciones cargadas.</p>}
+      {summaries.length === 0 && <p className="enrollments-empty">Todavía no hay inscripciones cargadas.</p>}
 
->>>>>>> 8e032f25645166d7dc5245e9d31310f5accbef4d
       <div className="years-grid">
 
-        {years.map((year) => {
+        {academicYears.map((year) => {
 
           const summary =
             summaries.find(
@@ -151,4 +142,3 @@ function InscripcionesContainer() {
 }
 
 export default InscripcionesContainer;
-

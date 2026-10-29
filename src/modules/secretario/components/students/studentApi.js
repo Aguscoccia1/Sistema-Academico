@@ -1,5 +1,5 @@
 import { createMockRepository } from '../../../../api/createMockRepository';
-import { CLAVES_MATERIAS } from './materiasHorarios';
+import { CLAVES_MATERIAS } from './materiasMock';
 
 const initialStudents = [
   {
@@ -136,5 +136,4 @@ export const studentsApi = {
     return estudiantes.length;
   },
 };
-
 

@@ -195,7 +195,9 @@ Cada uno tiene su propia copia de la base. Se crea con el script del repositorio
 1. Abrí Management Studio y conectate a tu servidor con **Windows Authentication**.
 2. Abrí el archivo `database/AcademicSystem.sql` y apretá **F5**.
 
-Se crea la base `AcademicSystem` con sus 22 tablas. Si el script cambia, lo volvés a correr: no borra nada ni duplica datos.
+Se crea la base `AcademicSystem` con sus tablas. Si el script cambia, lo volvés a correr: no borra nada ni duplica datos.
+
+La tabla `SubjectSchedules` guarda los horarios por materia y sección. Para actualizar una base ya creada, volvé a ejecutar `database/AcademicSystem.sql` en Management Studio; el script crea la tabla si todavía no existe y conserva los datos existentes.
 
 ### 2. Crear la clave del login (una sola vez)
 
@@ -250,6 +252,35 @@ VITE_API_BASE_URL=http://localhost:5000
 
 Después reiniciá `npm run dev`. Ese archivo no se sube al repositorio.
 
+### Horarios de materias por comisión
+
+Las comisiones del sistema no tienen una entidad ni un ID propios: se identifican por `SubjectId` + `Section`. Pueden existir por una asignación en `TeacherSubjects` o al cargar el primer horario para esa materia y sección. Por eso, los horarios se guardan por materia y sección, sin crear una entidad de comisión duplicada.
+
+Para consultar los horarios:
+
+```http
+GET http://localhost:5000/api/horarios-materias?materiaId=1&seccion=A
+```
+
+La pantalla de modificación del estudiante consulta este endpoint al elegir una comisión para una materia y muestra carga, horarios, ausencia de horarios o error.
+
+Para configurar un horario, un usuario con rol Secretario puede enviar:
+
+```http
+POST http://localhost:5000/api/horarios-materias
+Content-Type: application/json
+
+{
+  "subjectId": 1,
+  "section": "A",
+  "day": "Monday",
+  "startTime": "14:00:00",
+  "endTime": "16:00:00"
+}
+```
+
+El día debe estar en inglés (`Monday` a `Sunday`). El backend rechaza rangos inválidos y horarios duplicados o superpuestos para la misma materia, sección y día. Si todavía no hay una comisión para la materia, este `POST` crea la combinación materia-sección al guardar el horario; entonces aparecerá en el selector. Para crear la tabla en una base existente, ejecutá de nuevo `database/AcademicSystem.sql` desde Management Studio; este proyecto no usa migraciones de EF Core y el script conserva los datos existentes.
+
 ### Cómo llamar a la API desde el frontend
 
 Todas las llamadas a la API pasan por `src/services/`. Hay un archivo por cada controller del backend. Los que pertenecen a un solo model van en su carpeta: `estudiante/` y `secretario/`.
@@ -263,6 +294,7 @@ Todas las llamadas a la API pasan por `src/services/`. Hay un archivo por cada c
 | `rolesService.js` | `RolesController` | Roles |
 | `studyPlanService.js` | `StudyPlanController` | Planes de estudio |
 | `subjectService.js` | `SubjectController` | Materias |
+| `subjectScheduleService.js` | `HorariosMateriasController` | Horarios por materia y comisión |
 | `enrollmentService.js` | `EnrollmentController` | Materias disponibles para inscribirse |
 | `prerequisiteValidationService.js` | `PrerequisiteValidationController` | Validar correlativas |
 | `estudiante/studentsService.js` | `StudentsController` | Estudiantes |

@@ -78,6 +78,29 @@ label{
     height: 265px;
     overflow-y: auto;
 }
+.schedule-error{
+    display: block;
+    margin: 8px 0 0;
+    color: #183b38;
+    font-family: DM Sans;
+    font-size: 12px;
+}
+.date[aria-label^="Comisión y horario"]{
+    min-height: 42px;
+    height: auto;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+.schedule-list{
+    margin: 8px 0 0;
+    padding-left: 20px;
+    color: #183b38;
+    font-family: DM Sans;
+    font-size: 12px;
+}
+.schedule-list li + li{
+    margin-top: 4px;
+}
 .save{
     background-color: #3f746b;
     border: none;

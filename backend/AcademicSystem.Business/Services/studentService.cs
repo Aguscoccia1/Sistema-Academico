@@ -29,14 +29,17 @@ public class StudentService(AcademicSystemContext context) : IStudentService
         int id,
         CancellationToken cancellationToken = default)
     {
-        return await context.Students
-            .Where(student => student.Id == id)
-            .Select(student => new EstudianteResponseDto(
+        return await (
+            from student in context.Students
+            join user in context.Users on student.UserId equals user.Id
+            where student.Id == id
+            select new EstudianteResponseDto(
                 student.Id,
                 student.FirstName,
                 student.LastName,
                 student.Dni,
-                student.RecordNumber))
+                student.RecordNumber,
+                user.Email))
             .FirstOrDefaultAsync(cancellationToken);
     }
 
@@ -84,11 +87,25 @@ public class StudentService(AcademicSystemContext context) : IStudentService
             return EstadoReasignacionComision.InscripcionNoEncontrada;
 
         var seccionNormalizada = seccion.Trim();
-        if (!await context.TeacherSubjects.AnyAsync(
+        var comisionEstandar = seccionNormalizada is "A" or "B";
+        var comisionConfigurada =
+            await context.TeacherSubjects.AnyAsync(
                 assignment =>
                     assignment.SubjectId == materiaId &&
                     assignment.Section == seccionNormalizada,
-                cancellationToken))
+                cancellationToken) ||
+            await context.SubjectSchedules.AnyAsync(
+                schedule =>
+                    schedule.SubjectId == materiaId &&
+                    schedule.Section == seccionNormalizada,
+                cancellationToken) ||
+            await context.StudentSubjects.AnyAsync(
+                enrollment =>
+                    enrollment.SubjectId == materiaId &&
+                    enrollment.Section == seccionNormalizada,
+                cancellationToken);
+
+        if (!comisionEstandar && !comisionConfigurada)
         {
             return EstadoReasignacionComision.ComisionInexistente;
         }

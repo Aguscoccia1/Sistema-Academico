@@ -222,6 +222,70 @@ CREATE TABLE dbo.StudentSubjects (
 );
 GO
 
+IF OBJECT_ID(N'dbo.SubjectSchedules', N'U') IS NULL
+CREATE TABLE dbo.SubjectSchedules (
+    Id         INT IDENTITY(1,1) NOT NULL,
+    SubjectId  INT               NOT NULL,
+    Section    NVARCHAR(20)      NOT NULL,
+    Day        NVARCHAR(10)      NOT NULL,
+    StartTime  TIME(0)           NOT NULL,
+    EndTime    TIME(0)           NOT NULL,
+
+    CONSTRAINT PK_SubjectSchedules PRIMARY KEY (Id),
+    CONSTRAINT UQ_SubjectSchedules_SubjectSectionDayTime
+        UNIQUE (SubjectId, Section, Day, StartTime, EndTime),
+    CONSTRAINT CK_SubjectSchedules_Day
+        CHECK (Day IN (N'Monday', N'Tuesday', N'Wednesday', N'Thursday',
+                       N'Friday', N'Saturday', N'Sunday')),
+    CONSTRAINT CK_SubjectSchedules_TimeRange CHECK (StartTime < EndTime),
+    CONSTRAINT FK_SubjectSchedules_Subjects
+        FOREIGN KEY (SubjectId) REFERENCES dbo.Subjects (Id)
+);
+GO
+
+IF EXISTS (
+    SELECT 1
+    FROM dbo.Subjects
+    WHERE Name IN (N'Programación I', N'Programacion I')
+)
+BEGIN
+    DECLARE @ProgramacionIId INT = (
+        SELECT TOP (1) Id
+        FROM dbo.Subjects
+        WHERE Name IN (N'Programación I', N'Programacion I')
+        ORDER BY Id
+    );
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM dbo.SubjectSchedules
+        WHERE SubjectId = @ProgramacionIId
+          AND Section = N'A'
+          AND Day = N'Monday'
+          AND StartTime = '14:00'
+          AND EndTime = '16:00'
+    )
+    BEGIN
+        INSERT INTO dbo.SubjectSchedules (SubjectId, Section, Day, StartTime, EndTime)
+        VALUES (@ProgramacionIId, N'A', N'Monday', '14:00', '16:00');
+    END;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM dbo.SubjectSchedules
+        WHERE SubjectId = @ProgramacionIId
+          AND Section = N'A'
+          AND Day = N'Wednesday'
+          AND StartTime = '16:10'
+          AND EndTime = '17:00'
+    )
+    BEGIN
+        INSERT INTO dbo.SubjectSchedules (SubjectId, Section, Day, StartTime, EndTime)
+        VALUES (@ProgramacionIId, N'A', N'Wednesday', '16:10', '17:00');
+    END;
+END;
+GO
+
 IF OBJECT_ID(N'dbo.Exams', N'U') IS NULL
 CREATE TABLE dbo.Exams (
     Id         INT IDENTITY(1,1) NOT NULL,

@@ -71,13 +71,26 @@ label{
     width: 100%;
     color: #183b38;
 }
+.commission-help{
+    color: #526b64;
+    font-family: DM Sans;
+    font-size: 13px;
+}
 
 .student-edit-actions{
     text-align: center;
 }
 .student-edit-form1{
-    height: 200px;
+    max-height: 320px;
     overflow-y: auto;
+}
+.schedule-error{
+    display: block;
+    margin: 10px 0 0;
+    color: #183b38;
+    font-family: DM Sans;
+    font-size: 13px;
+    line-height: 1.5;
 }
 .save{
     background-color: #3f746b;

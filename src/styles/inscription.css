@@ -58,6 +58,12 @@
     width: auto;
 }
 
+.asignacion-comisiones-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .asignar-aleatorio {
     background-color: #3f746b;
     border: none;
@@ -79,6 +85,11 @@
     color: #ffffff;
     transform: translate(0, -5%);
 
+}
+
+.asignar-aleatorio:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .filtro {

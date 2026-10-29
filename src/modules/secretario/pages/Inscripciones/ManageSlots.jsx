@@ -1,11 +1,16 @@
 
 import "../../../../styles/inscription.css";
 
-import { useEffect, useMemo, useState } from 'react';
-import { Edit, Eye, Shuffle, Users } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Edit, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-import { studentsApi } from '../../components/students/studentApi';
+import {
+  asignarComisionesAleatoriamente,
+  obtenerEstudiantes,
+  consultarCantidadInscriptos,
+  consultarInscripcionesEstudiante,
+} from '../../../../services/secretario/studentAdministrationService';
 
 const ManageSlots = () => {
   const navigate = useNavigate();
@@ -20,52 +25,72 @@ const ManageSlots = () => {
   const [asignando, setAsignando] = useState(false);
   const [mensaje, setMensaje] = useState('');
 
-  // Cargar estudiantes y actualizar el contador
-  const cargarEstudiantes = async () => {
+
+  const cargarEstudiantes = useCallback(async () => {
     try {
       setIsLoading(true);
       setError('');
 
-      const data = await studentsApi.obtenerEstudiantes();
+      const [estudiantes, total] = await Promise.all([
+        obtenerEstudiantes(),
+        consultarCantidadInscriptos(),
+      ]);
 
-      setStudents(data);
-      setTotalEstudiantes(data.length);
+      const estudiantesConInscripciones = await Promise.all(
+        estudiantes.map(async (estudiante) => {
+          const inscripciones =
+            await consultarInscripcionesEstudiante(estudiante.id);
+
+          const comisiones = [
+            ...new Set(
+              inscripciones
+                .map((inscripcion) => inscripcion.seccion)
+                .filter(Boolean)
+            ),
+          ];
+
+          return {
+            ...estudiante,
+            comision: comisiones.join(', '),
+            estado: inscripciones.length > 0
+              ? 'Inscripto'
+              : 'Sin inscripciones',
+          };
+        })
+      );
+
+      setStudents(estudiantesConInscripciones);
+      setTotalEstudiantes(total);
     } catch (err) {
       console.error(err);
-      setError('No se pudieron cargar los estudiantes.');
+      setError('No se pudieron cargar los estudiantes desde el servidor.');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     cargarEstudiantes();
-  }, []);
+  }, [cargarEstudiantes]);
 
-  // Asignar aleatoriamente los alumnos pendientes
+
   const handleAsignacionAleatoria = async () => {
     try {
       setAsignando(true);
       setError('');
       setMensaje('');
 
-      const asignados =
-        await studentsApi.asignarPendientesAleatoriamente();
-
-      // Volver a cargar los datos para actualizar la tabla
-      const data = await studentsApi.obtenerEstudiantes();
-
-      setStudents(data);
-      setTotalEstudiantes(data.length);
-
-      setMensaje(
-        asignados.length > 0
-          ? `Se asignaron ${asignados.length} alumnos aleatoriamente.`
-          : 'No hay alumnos pendientes para asignar.'
-      );
+      const resultado = await asignarComisionesAleatoriamente();
+      await cargarEstudiantes();
+      setMensaje(resultado.mensaje);
+      setError(resultado.errores.length > 0
+        ? resultado.errores.join(' ')
+        : '');
     } catch (err) {
       console.error(err);
-      setError('No se pudieron asignar las comisiones.');
+      setError(err instanceof Error
+        ? err.message
+        : 'No se pudieron asignar las comisiones.');
     } finally {
       setAsignando(false);
     }
@@ -83,7 +108,10 @@ const ManageSlots = () => {
         student.correo?.toLowerCase().includes(texto);
 
       const coincideComision =
-        !commission || student.comision === commission;
+        !commission ||
+        student.comision
+          ?.split(', ')
+          .includes(commission);
 
       return coincideBusqueda && coincideComision;
     });
@@ -113,7 +141,7 @@ const ManageSlots = () => {
         {/* FILTRO POR COMISIÓN */}
         <div className="ladoDer1">
 
-          <div className="asignar-aleatorio-container">
+          <div className="asignar-aleatorio-container asignacion-comisiones-controls">
             <button
               type="button"
               className="asignar-aleatorio"
@@ -227,12 +255,12 @@ const ManageSlots = () => {
           <div className="ladoDer1">
             <h3>Total de alumnos inscriptos:</h3>
             <p>{totalEstudiantes}</p>
-            
+
           </div>
         </div>
 
         <br />
-        
+
         {/* MENSAJES */}
         {mensaje && (
           <p className="crud-notice" role="status">

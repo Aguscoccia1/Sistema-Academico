@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { studentsApi } from '../../components/students/studentApi';
+import {
+    consultarEstudiante,
+    modificarEstudiante,
+    consultarInscripcionesEstudiante,
+    reasignarComision,
+    inscribirEstudiante,
+} from '../../../../services/secretario/studentAdministrationService';
+import { subjectService } from '../../../../services/subjectService';
 
 import "../../../../styles/modificarEst.css";
 import FileText from '../../../../assets/FileText.svg';
+import SubjectScheduleList from '../../components/students/SubjectScheduleList';
 
-
-import {
-    MATERIAS,
-    CLAVES_MATERIAS,
-} from '../../components/students/materiasHorarios';
+const COMISIONES = ['A', 'B'];
 
 const ModificarEstudiante = () => {
     const { id } = useParams();
@@ -21,46 +25,66 @@ const ModificarEstudiante = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [notice, setNotice] = useState('');
     const [error, setError] = useState('');
+    const [comisionGeneral, setComisionGeneral] = useState('');
 
     useEffect(() => {
+
         const cargarEstudiante = async () => {
             try {
                 setIsLoading(true);
+                setError('');
 
-                const estudiantes = await studentsApi.obtenerEstudiantes();
+                const [datos, inscripciones, materias] = await Promise.all([
+                    consultarEstudiante(id),
+                    consultarInscripcionesEstudiante(id),
+                    subjectService.obtenerTodos(),
+                ]);
 
-                const student = estudiantes.find(
-                    (item) => String(item.id) === String(id)
-                );
+                const materiasDisponibles = materias.map((materia) => {
+                    const inscripcion = inscripciones.find(
+                        (item) => item.materiaId === materia.id
+                    ) ?? null;
 
-                if (!student) {
-                    setError('No se encontró el estudiante.');
-                    return;
-                }
-
-                const materiasIniciales = Object.fromEntries(
-                    CLAVES_MATERIAS.map((materia) => [
-                        materia,
-                        student.materias?.[materia] ?? student.comision ?? '',
-                    ])
-                );
+                    return {
+                        ...materia,
+                        comisionesDisponibles: COMISIONES,
+                        inscripcion,
+                        seccionSeleccionada: inscripcion?.seccion ?? '',
+                    };
+                });
 
                 setEditingStudent({
-                    ...student,
-
-                    comision: student.comision ?? '',
-
-                    materias: materiasIniciales,
+                    id: datos.id,
+                    nombre: datos.nombre,
+                    apellido: datos.apellido,
+                    nombreCompleto: `${datos.nombre} ${datos.apellido}`,
+                    dni: datos.dni,
+                    legajo: datos.legajo,
+                    correo: datos.email,
+                    inscripciones,
+                    materiasDisponibles,
                 });
+                const seccionesIniciales = [
+                    ...new Set(inscripciones.map((item) => item.seccion).filter(Boolean)),
+                ];
+                setComisionGeneral(
+                    seccionesIniciales.length === 1 &&
+                        COMISIONES.includes(seccionesIniciales[0])
+                        ? seccionesIniciales[0]
+                        : ''
+                );
             } catch (err) {
                 console.error(err);
-                setError('Ocurrió un error al cargar el estudiante.');
+                setError(
+                    `No se pudo cargar el estudiante. ${err.message || 'Revisá la conexión con la API.'}`
+                );
             } finally {
                 setIsLoading(false);
             }
         };
 
         cargarEstudiante();
+
     }, [id]);
 
     const handleChange = (event) => {
@@ -72,37 +96,43 @@ const ModificarEstudiante = () => {
         }));
     };
 
+    const handleComisionMateriaChange = (materiaId, seccion) => {
+        setEditingStudent((current) => {
+            const materiasDisponibles = current.materiasDisponibles.map((materia) => (
+                materia.id === materiaId
+                    ? { ...materia, seccionSeleccionada: seccion }
+                    : materia
+            ));
 
-    const handleCommissionChange = (event) => {
-        const nuevaComision = event.target.value;
-
-        setEditingStudent((current) => ({
-            ...current,
-
-            comision: nuevaComision,
-
-            materias: Object.fromEntries(
-                CLAVES_MATERIAS.map((materia) => [
-                    materia,
-                    nuevaComision,
-                ])
-            ),
-        }));
+            return {
+                ...current,
+                materiasDisponibles,
+            };
+        });
+        const secciones = editingStudent.materiasDisponibles.map((materia) => (
+            materia.id === materiaId ? seccion : materia.seccionSeleccionada
+        ));
+        setComisionGeneral(
+            secciones.length > 0 &&
+                secciones.every((item) => item && item === secciones[0])
+                ? secciones[0]
+                : ''
+        );
+        setError('');
     };
 
-
-    const handleMateriaChange = (materia, nuevaComision) => {
+    const handleComisionGeneralChange = (event) => {
+        const seccion = event.target.value;
+        setError('');
+        setComisionGeneral(seccion);
         setEditingStudent((current) => ({
             ...current,
-
-            materias: {
-                ...current.materias,
-
-                [materia]: nuevaComision,
-            },
+            materiasDisponibles: current.materiasDisponibles.map((materia) => ({
+                ...materia,
+                seccionSeleccionada: seccion,
+            })),
         }));
     };
-
 
     const handleSave = async (event) => {
         event.preventDefault();
@@ -111,49 +141,96 @@ const ModificarEstudiante = () => {
             setError('');
             setNotice('');
 
+            const nombreCompleto = editingStudent.nombreCompleto.trim();
+            const partesNombre = nombreCompleto.split(/\s+/);
 
-            const todasLasMateriasCompletas = CLAVES_MATERIAS.every(
-                (materia) => editingStudent.materias?.[materia]
-            );
+            if (partesNombre.length < 2) {
+                setError('Ingresá el nombre y el apellido del estudiante.');
+                return;
+            }
 
+            const nombre = partesNombre[0];
+            const apellido = partesNombre.slice(1).join(' ');
 
-            const nuevoEstado =
-                editingStudent.comision && todasLasMateriasCompletas
-                    ? 'Completa'
-                    : 'Pendiente';
+            // Primero actualizamos los datos personales.
+            await modificarEstudiante(editingStudent.id, {
+                nombre,
+                apellido,
+                dni: editingStudent.dni.trim(),
+            });
 
-            const updatedStudent = await studentsApi.actualizarEstudiante(
-                editingStudent.id,
-                {
-                    id: editingStudent.id,
-
-                    nombreCompleto: editingStudent.nombreCompleto,
-
-                    dni: editingStudent.dni,
-
-                    correo: editingStudent.correo,
-
-                    comision: editingStudent.comision,
-
-                    materias: editingStudent.materias,
-
-                    estado: nuevoEstado,
+            for (const materia of editingStudent.materiasDisponibles) {
+                if (!materia.seccionSeleccionada) {
+                    continue;
                 }
-            );
 
-            setEditingStudent(updatedStudent);
+                if (!materia.inscripcion) {
+                    await inscribirEstudiante(
+                        editingStudent.id,
+                        materia.id,
+                        materia.seccionSeleccionada
+                    );
+                } else if (materia.seccionSeleccionada !== materia.inscripcion.seccion) {
+                    await reasignarComision(
+                        editingStudent.id,
+                        materia.id,
+                        materia.seccionSeleccionada
+                    );
+                }
+            }
 
-            setNotice(
-                nuevoEstado === 'Completa'
-                    ? 'Estudiante modificado y completado correctamente.'
-                    : 'Estudiante modificado correctamente, pero todavía quedan materias pendientes.'
+            setNotice('Los cambios se guardaron correctamente.');
+
+            // Volvemos a consultar los datos persistidos.
+            const [datosActualizados, inscripcionesActualizadas] =
+                await Promise.all([
+                    consultarEstudiante(editingStudent.id),
+                    consultarInscripcionesEstudiante(editingStudent.id),
+                ]);
+
+            const materiasActualizadas = editingStudent.materiasDisponibles.map((materia) => {
+                const inscripcion = inscripcionesActualizadas.find(
+                    (item) => item.materiaId === materia.id
+                ) ?? null;
+
+                return {
+                    ...materia,
+                    inscripcion,
+                    seccionSeleccionada: inscripcion?.seccion ?? '',
+                };
+            });
+
+            setEditingStudent((actual) => ({
+                ...actual,
+                nombre: datosActualizados.nombre,
+                apellido: datosActualizados.apellido,
+                nombreCompleto:
+                    `${datosActualizados.nombre} ${datosActualizados.apellido}`,
+                dni: datosActualizados.dni,
+                inscripciones: inscripcionesActualizadas,
+                materiasDisponibles: materiasActualizadas,
+            }));
+            const seccionesActualizadas = [
+                ...new Set(
+                    inscripcionesActualizadas
+                        .map((item) => item.seccion)
+                        .filter(Boolean)
+                ),
+            ];
+            setComisionGeneral(
+                seccionesActualizadas.length === 1 &&
+                    COMISIONES.includes(seccionesActualizadas[0])
+                    ? seccionesActualizadas[0]
+                    : ''
             );
         } catch (err) {
             console.error(err);
-
-            setError('No se pudieron guardar los cambios.');
+            setError(
+                'No se pudieron guardar todos los cambios. Revisá los datos y la respuesta de la API.'
+            );
         }
     };
+
 
     if (isLoading) {
         return (
@@ -250,28 +327,21 @@ const ModificarEstudiante = () => {
 
 
                             <div>
-                                <label>
-                                    Comisión
-                                </label>
-
+                                <label htmlFor="comision-general">Comisión</label>
                                 <select
-                                    className='date'
-                                    name="comision"
-                                    value={editingStudent.comision ?? ''}
-                                    onChange={handleCommissionChange}
+                                    id="comision-general"
+                                    className="date"
+                                    value={comisionGeneral}
+                                    onChange={handleComisionGeneralChange}
                                 >
-                                    <option value="">
-                                        Seleccionar comisión
-                                    </option>
-
-                                    <option value="A">
-                                        Comisión A
-                                    </option>
-
-                                    <option value="B">
-                                        Comisión B
-                                    </option>
+                                    <option value="">Seleccionar comisión</option>
+                                    {COMISIONES.map((seccion) => (
+                                        <option key={seccion} value={seccion}>
+                                            Comisión {seccion}
+                                        </option>
+                                    ))}
                                 </select>
+                                
                             </div>
                         </div>
                     </div>
@@ -279,51 +349,33 @@ const ModificarEstudiante = () => {
                     <div className='ladoDer'>
                         <h2>Materias y horarios</h2>
 
+
                         <div className="student-edit-form1">
-                            {CLAVES_MATERIAS.map((materia, index) => {
-                                const comisionSeleccionada =
-                                    editingStudent.materias?.[materia] ?? '';
-
-                                const horarioSeleccionado =
-                                    comisionSeleccionada
-                                        ? MATERIAS[materia].horarios[comisionSeleccionada]
-                                        : '';
-
-                                return (
+                            {editingStudent.materiasDisponibles.length > 0 ? (
+                                editingStudent.materiasDisponibles.map((materia, index) => (
                                     <div
-                                        key={materia}
+                                        key={materia.id}
                                         className={index % 2 === 0 ? 'contV' : 'contB'}
                                     >
-                                        <label>
-                                            {MATERIAS[materia].nombre}
-                                        </label>
+                                        <label>{materia.name}</label>
 
-                                        <select
-                                            className='date1'
-                                            value={comisionSeleccionada}
-                                            onChange={(event) =>
-                                                handleMateriaChange(
-                                                    materia,
-                                                    event.target.value
-                                                )
-                                            }
-                                        >
-                                            <option value="">
-                                                Seleccionar comisión
-                                            </option>
+                                        <SubjectScheduleList
+                                            subjectId={materia.id}
+                                            section={materia.seccionSeleccionada}
+                                            subjectName={materia.name}
+                                            onChange={(seccion) => handleComisionMateriaChange(
+                                                materia.id,
+                                                seccion
+                                            )}
+                                        />
 
-                                            <option value="A">
-                                                Comisión A - {MATERIAS[materia].horarios.A}
-                                            </option>
-
-                                            <option value="B">
-                                                Comisión B - {MATERIAS[materia].horarios.B}
-                                            </option>
-                                        </select>
                                     </div>
-                                );
-                            })}
+                                ))
+                            ) : (
+                                <p>No hay materias cargadas en la base de datos.</p>
+                            )}
                         </div>
+
                     </div>
                 </div>
 
