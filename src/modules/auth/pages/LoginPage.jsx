@@ -32,7 +32,7 @@ function LoginPage({ onLogin }) {
 
   setCargando(true);
   try {
-    const sesion = await authService.login(usuario.trim(), password);
+    const sesion = await authService.login(usuario.trim(), password, recordar);
     const rol = rolFront(sesion.role);
     if (!rol) {
         setErrorGeneral('Tu usuario no tiene un rol habilitado para ingresar.');

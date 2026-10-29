@@ -10,14 +10,16 @@ El sistema tiene dos perfiles: **Secretario** y **Estudiante**.
 
 ## Dónde estamos
 
-Actualizado al 19/10/2026. Esto es lo que ya está integrado en `development`:
+Actualizado al 29/10/2026. Los cuatro equipos ya tienen su trabajo integrado en `development`:
 
 | Equipo | Qué ya está integrado | Qué sigue |
 |---|---|---|
-| **E1** — Acceso e Integración | Login con correo y contraseña, cierre y vencimiento de sesión, roles y permisos, menú por rol y la API de usuarios. | Pantalla de gestión de usuarios y recuperación de contraseña. |
-| **E2** — Secretaría | Todavía nada: su trabajo está en el fork y no abrió el Pull Request. | Abrir el Pull Request hacia `development`. |
-| **E3** — Gestión Académica | API y pantallas de planes de estudio y materias, solo para el Secretario. | Correlatividades, guardar las materias desde el detalle del plan y las bajas. |
-| **E4** — Inscripciones | Pantallas de inscripción y "Mis inscripciones", todavía vacías, y los endpoints de materias disponibles y validación de correlativas. | Registrar sus servicios en `Program.cs`, conectar las pantallas a la API y guardar la inscripción. |
+| **E1** — Acceso e Integración | Login, cierre y vencimiento de sesión con renovación automática, roles y permisos, menú por rol, y la API y la pantalla de usuarios. | Recuperación de contraseña. |
+| **E2** — Secretaría | Inscripción a 1.º año, ver y modificar estudiantes, comisiones y cupos, docentes con sus materias y horarios por comisión, con las pantallas conectadas a la API. | Hacer el resumen de inscripciones con menos pedidos a la API. |
+| **E3** — Gestión Académica | API y pantallas de planes de estudio y materias, y la pantalla de correlatividades. | Guardar las correlatividades en la base, bajas y cursos. |
+| **E4** — Inscripciones | Materias disponibles, validación de correlativas e inscripción, con las pantallas conectadas a la API. | Mostrar la comisión para poder inscribirse desde la pantalla y leer "Mis inscripciones" de la base. |
+
+El detalle de cada integración, cómo se probó y los pendientes de cada equipo están en la [bitácora de integración](documentos/bitacora-de-integracion.md).
 
 Ya no hay datos simulados: lo que todavía no está conectado a la API aparece vacío. Las llamadas a la API van en `src/services/`, con un archivo por cada controller del backend: [cómo usarla](#cómo-llamar-a-la-api-desde-el-frontend).
 
@@ -226,8 +228,8 @@ Se crean solos al levantar el backend en desarrollo:
 
 | Rol | Correo | Contraseña |
 |---|---|---|
-| Secretario | maria@uni.edu | admin |
-| Estudiante | loko@uni.edu | 1234 |
+| Secretario | fernando@uni.edu | admin |
+| Estudiante | esteban@uni.edu | 1234 |
 
 ### Si tu SQL Server tiene otro nombre
 
@@ -250,6 +252,33 @@ VITE_API_BASE_URL=http://localhost:5000
 
 Después reiniciá `npm run dev`. Ese archivo no se sube al repositorio.
 
+### Horarios de materias por comisión
+
+Las comisiones se identifican por `SubjectId` + `Section`. Los horarios se guardan por materia y sección en `SubjectSchedules`.
+
+Para consultar un horario:
+
+```http
+GET http://localhost:5000/api/horarios-materias?materiaId=1&seccion=A
+```
+
+Para configurar un horario, un usuario con rol Secretario puede enviar:
+
+```http
+POST http://localhost:5000/api/horarios-materias
+Content-Type: application/json
+
+{
+  "subjectId": 1,
+  "section": "A",
+  "day": "Monday",
+  "startTime": "14:00:00",
+  "endTime": "16:00:00"
+}
+```
+
+El día debe estar en inglés (`Monday` a `Sunday`). El backend rechaza rangos inválidos y horarios duplicados o superpuestos para la misma materia, sección y día. Si todavía no hay una comisión para la materia, el `POST` crea la combinación materia-sección al guardar el horario; entonces aparecerá en el selector. Para crear la tabla en una base existente, ejecutá de nuevo `database/AcademicSystem.sql` desde Management Studio; el script conserva los datos existentes.
+
 ### Cómo llamar a la API desde el frontend
 
 Todas las llamadas a la API pasan por `src/services/`. Hay un archivo por cada controller del backend. Los que pertenecen a un solo model van en su carpeta: `estudiante/` y `secretario/`.
@@ -263,8 +292,13 @@ Todas las llamadas a la API pasan por `src/services/`. Hay un archivo por cada c
 | `rolesService.js` | `RolesController` | Roles |
 | `studyPlanService.js` | `StudyPlanController` | Planes de estudio |
 | `subjectService.js` | `SubjectController` | Materias |
-| `enrollmentService.js` | `EnrollmentController` | Materias disponibles para inscribirse |
-| `prerequisiteValidationService.js` | `PrerequisiteValidationController` | Validar correlativas |
+| `comisionesService.js` | `ComisionesController` | Comisiones |
+| `registrationService.js` | `RegistrationController` | Inscripciones |
+| `estudiante/studentAdministrationService.js` | `StudentController` | Administración de estudiantes |
+| `docente/teachersService.js` | `TeachersController` | Docentes |
+| `subjectScheduleService.js` | `HorariosMateriasController` | Horarios por materia y comisión |
+| `estudiante/enrollmentService.js` | `EnrollmentController` | Materias disponibles para inscribirse |
+| `estudiante/prerequisiteValidationService.js` | `PrerequisiteValidationController` | Validar correlativas |
 | `estudiante/studentsService.js` | `StudentsController` | Estudiantes |
 | `secretario/academicSecretariesService.js` | `AcademicSecretariesController` | Secretarios |
 
@@ -395,6 +429,7 @@ En el backend, cada equipo agrega sus endpoints en `backend/AcademicSystem.Api/C
 
 - [flujo-git.md](documentos/flujo-git.md) — guía completa del trabajo diario, con conflictos y casos raros.
 - [integracion-y-releases.md](documentos/integracion-y-releases.md) — cómo integra y promueve el E1.
+- [bitacora-de-integracion.md](documentos/bitacora-de-integracion.md) — qué entró en cada integración, cómo se probó y qué falta.
 - [configuracion-github.md](documentos/configuracion-github.md) — configuración del repositorio en GitHub.
 
 **Del login y los permisos (las arma el E1)**

@@ -222,6 +222,27 @@ CREATE TABLE dbo.StudentSubjects (
 );
 GO
 
+IF OBJECT_ID(N'dbo.SubjectSchedules', N'U') IS NULL
+CREATE TABLE dbo.SubjectSchedules (
+    Id         INT IDENTITY(1,1) NOT NULL,
+    SubjectId  INT               NOT NULL,
+    Section    NVARCHAR(20)      NOT NULL,
+    Day        NVARCHAR(10)      NOT NULL,
+    StartTime  TIME(0)           NOT NULL,
+    EndTime    TIME(0)           NOT NULL,
+
+    CONSTRAINT PK_SubjectSchedules PRIMARY KEY (Id),
+    CONSTRAINT UQ_SubjectSchedules_SubjectSectionDayTime
+        UNIQUE (SubjectId, Section, Day, StartTime, EndTime),
+    CONSTRAINT CK_SubjectSchedules_Day
+        CHECK (Day IN (N'Monday', N'Tuesday', N'Wednesday', N'Thursday',
+                       N'Friday', N'Saturday', N'Sunday')),
+    CONSTRAINT CK_SubjectSchedules_TimeRange CHECK (StartTime < EndTime),
+    CONSTRAINT FK_SubjectSchedules_Subjects
+        FOREIGN KEY (SubjectId) REFERENCES dbo.Subjects (Id)
+);
+GO
+
 IF OBJECT_ID(N'dbo.Exams', N'U') IS NULL
 CREATE TABLE dbo.Exams (
     Id         INT IDENTITY(1,1) NOT NULL,

@@ -23,6 +23,7 @@ builder.Services.AddScoped<IHealthService, HealthService>();
 builder.Services.AddScoped<IAuthService, AuthService>(); 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>(); 
+builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 // validacion del JWT. La clave vive en user-secrets, nunca en el repo.
 var jwtKey = builder.Configuration["Jwt:Key"]
@@ -63,6 +64,13 @@ builder.Services.AddScoped<ISubjectService, SubjectService>();
 // E4: inscripciones y validacion de correlatividades.
 builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
 builder.Services.AddScoped<IPrerequisiteValidationService, PrerequisiteValidationService>();
+builder.Services.AddScoped<IComisionesRepository, ComisionesRepository>();
+builder.Services.AddScoped<ITeacherSubjectRepository, TeacherSubjectRepository>();
+builder.Services.AddScoped<IComisionesService, ComisionesService>();
+builder.Services.AddScoped<ITeacherSubjectService, TeacherSubjectService>();
+builder.Services.AddScoped<IInscripcionesService, InscripcionesService>();
+builder.Services.AddScoped<ISubjectScheduleService, SubjectScheduleService>();
+builder.Services.AddScoped<IStudentService, StudentService>();
 
 // Lets the React frontend (Vite, http://localhost:5173) call this API.
 const string FrontendCorsPolicy = "Frontend";

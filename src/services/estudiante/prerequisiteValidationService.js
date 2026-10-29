@@ -1,4 +1,4 @@
-import { request } from './httpClient';
+import { request } from '../httpClient';
 
 // PrerequisiteValidationController: /api/prerequisites
 export const prerequisiteValidationService = {

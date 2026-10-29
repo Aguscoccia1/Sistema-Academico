@@ -15,7 +15,12 @@ public class JwtTokenService : IJwtTokenService
         _configuration = configuration;
     }
 
-    public string CreateToken(User user)
+    public int ExpiresMinutes =>
+        int.TryParse(_configuration["Jwt:ExpiresMinutes"], out int minutes) ? minutes : 30;
+
+    public string CreateToken(User user) => CreateToken(user.Id, user.Role.Name);
+
+    public string CreateToken(int userId, string roleName)
     {
         string? key = _configuration["Jwt:Key"];
 
@@ -24,20 +29,11 @@ public class JwtTokenService : IJwtTokenService
             throw new InvalidOperationException("Falta 'Jwt:Key'. Configurala con user-secrets.");
         }
 
-        // el token vence a los 30 minutos (se puede cambiar en appsettings.json)
-        int expiresMinutes = 30;
-        string? configuredMinutes = _configuration["Jwt:ExpiresMinutes"];
-
-        if (configuredMinutes != null)
-        {
-            expiresMinutes = int.Parse(configuredMinutes);
-        }
-
         // datos que lleva el token: id del usuario y su rol
         List<Claim> claims = new List<Claim>
         {
-            new Claim("sub", user.Id.ToString()),
-            new Claim("role", user.Role.Name)
+            new Claim("sub", userId.ToString()),
+            new Claim("role", roleName)
         };
 
         SymmetricSecurityKey securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
@@ -47,7 +43,7 @@ public class JwtTokenService : IJwtTokenService
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(expiresMinutes),
+            expires: DateTime.UtcNow.AddMinutes(ExpiresMinutes),
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

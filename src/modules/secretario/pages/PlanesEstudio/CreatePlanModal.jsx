@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FileText, X } from 'lucide-react';
+import { useSubmit } from '../../../../hooks/useSubmit';
 import '../../../../styles/modal.css';
 
 const initialForm = {
@@ -16,7 +17,6 @@ const initialForm = {
 const NEGATIVE_NUMBER = /-\s*\d/;
 const NEGATIVE_ERROR = 'No se admiten números negativos';
 
-// Evita escribir "-", "+" o "e" en los campos numéricos
 const blockInvalidKeys = (event) => {
   if (['-', '+', 'e', 'E'].includes(event.key)) event.preventDefault();
 };
@@ -24,6 +24,7 @@ const blockInvalidKeys = (event) => {
 function CrearPlanModal({ onClose, onCreate }) {
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
+  const { submit, isSubmitting, submitError } = useSubmit(onCreate);
 
   const handleChange = (field) => (event) => {
     setForm((currentForm) => ({ ...currentForm, [field]: event.target.value }));
@@ -74,7 +75,7 @@ function CrearPlanModal({ onClose, onCreate }) {
   const handleSubmit = (event) => {
     event.preventDefault();
     if (!validate()) return;
-    onCreate({
+    submit({
       nombre: form.nombre.trim(),
       codigo: form.codigo.trim(),
       añoInicio: Number(form.añoInicio),
@@ -222,9 +223,13 @@ function CrearPlanModal({ onClose, onCreate }) {
             </div>
           </div>
 
+          {submitError && <p className="field-error" role="alert">{submitError}</p>}
+
           <div className="modal-footer">
-            <button type="button" className="modal-cancel-button" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="modal-submit-button">Crear plan</button>
+            <button type="button" className="modal-cancel-button" onClick={onClose} disabled={isSubmitting}>Cancelar</button>
+            <button type="submit" className="modal-submit-button" disabled={isSubmitting}>
+              {isSubmitting ? 'Creando...' : 'Crear plan'}
+            </button>
           </div>
         </form>
       </div>

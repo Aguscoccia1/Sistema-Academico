@@ -4,4 +4,34 @@
 GET {{AcademicSystem_Api_HostAddress}}/api/health
 Accept: application/json
 
+### Count unique students with at least one enrollment
+GET {{AcademicSystem_Api_HostAddress}}/api/inscripciones/cantidad
+Accept: application/json
+
+### Randomly and evenly assign blank sections for a subject
+POST {{AcademicSystem_Api_HostAddress}}/api/comisiones/asignacion-aleatoria-masiva
+Content-Type: application/json
+
+{
+  "materiaId": 1
+}
+
+###
+
+### Get schedules for subject 1, commission A
+GET {{AcademicSystem_Api_HostAddress}}/api/horarios-materias?materiaId=1&seccion=A
+Accept: application/json
+
+### Create a schedule for subject 1, commission A (Secretary role required)
+POST {{AcademicSystem_Api_HostAddress}}/api/horarios-materias
+Content-Type: application/json
+
+{
+  "subjectId": 1,
+  "section": "A",
+  "day": "Monday",
+  "startTime": "14:00:00",
+  "endTime": "16:00:00"
+}
+
 ###

@@ -1,0 +1,181 @@
+.contenedor {
+    width: 90%;
+    margin: 0 auto;
+    background-color: #ffffff;
+    padding: 50px;
+    border-radius: 10px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #d6e3d6;
+}
+.logo{
+    border-radius: 999px;
+    background-color: #e4eee1;
+    width: 46px;
+    height: 46px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.contenedor h1 {
+    font-family: Plus Jakarta Sans;
+    font-size: 20px;
+    color: #183b38;
+    font-weight: 1000;
+}
+.cab{
+    display: flex;
+}
+.contenido {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+.contenido form {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+    flex-wrap: nowrap;
+}
+h2{
+    font-family: Plus Jakarta Sans;
+    font-size: 15px;
+    color: #183b38;
+}
+.ladoIzq {
+    width: 45%;
+}
+
+.ladoDer {
+    width: 47%;
+}
+label{
+    font-size: 12px;
+    font-weight: 500;
+    font-family: DM Sans;
+    color: #183b38;
+
+}
+.date{
+    background-color: #ffffff;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #d6e3d6;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: DM Sans;
+    width: 100%;
+    color: #183b38;
+}
+.student-edit-actions{
+    text-align: center;
+}
+.student-edit-form1{
+    height: 265px;
+    overflow-y: auto;
+}
+.schedule-error{
+    display: block;
+    margin: 8px 0 0;
+    color: #183b38;
+    font-family: DM Sans;
+    font-size: 12px;
+}
+.date[aria-label^="Comisión y horario"]{
+    min-height: 42px;
+    height: auto;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+.schedule-list{
+    margin: 8px 0 0;
+    padding-left: 20px;
+    color: #183b38;
+    font-family: DM Sans;
+    font-size: 12px;
+}
+.schedule-list li + li{
+    margin-top: 4px;
+}
+.save{
+    background-color: #3f746b;
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-family: DM Sans;
+    font-size: 13px;
+    color: #ffffff;
+}
+.save:hover{
+    background-color: #1F4C48;
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-family: DM Sans;
+    font-size: 13px;
+    color: #ffffff;
+    transform: translate(0, -5%);
+
+}
+.cancel{
+    border-width: 1px;
+    border-style: solid;
+    border-color: #C9DCCA;
+    background-color: #ffffff;
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-family: DM Sans;
+    font-size: 13px;
+    color: #3F746B;
+
+}
+.cancel:hover{
+    border-width: 1px;
+    border-style: solid;
+    border-color: #67968A;
+    background-color: #E4EEE1;
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-family: DM Sans;
+    font-size: 13px;
+    color: #1F4C48;
+    transform: translate(0, -5%);
+
+}
+.space{
+    width: 20px;
+    height: auto;
+    display: inline-block;
+}
+
+.date1{
+    background-color: #ffffff;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #d6e3d6;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: DM Sans;
+    width: 100%;
+    color: #183b38;
+}
+.contV{
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    width: 100%;
+}
+.contB{
+    padding: 10px;
+    border-radius: 8px;
+    width: 100%;
+}
