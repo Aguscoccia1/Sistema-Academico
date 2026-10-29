@@ -12,12 +12,14 @@ Registro de todo lo que entró a `development`: qué trajo cada equipo, cómo se
    - combina las ramas de todos los equipos para encontrar conflictos antes de que lleguen a `development`.
 3. Lo que funciona se integra. Si algo falla, se le informa al equipo para que lo corrija en su rama: el E1 no corrige el código de otros equipos.
 
-## Estado al 28/10/2026
+## Estado al 29/10/2026
+
+Los cuatro equipos ya tienen su trabajo integrado en `development`.
 
 | Equipo | Qué está integrado | Qué falta |
 |---|---|---|
 | **E1** — Acceso e Integración | Login, cierre y vencimiento de sesión (con renovación automática), roles y permisos, menú por rol, API y pantalla de gestión de usuarios. | Recuperación de contraseña (no hay servidor SMTP). |
-| **E2** — Secretaría | Nada todavía. | Corregir lo señalado más abajo y abrir el Pull Request. |
+| **E2** — Secretaría | Inscripción a 1.º año, ver y modificar estudiantes, comisiones con asignación automática, gestión de cupos, docentes con asignación de materias y horarios por comisión, con las pantallas conectadas a la API. | Hacer el resumen de inscripciones con menos pedidos a la API. |
 | **E3** — Gestión Académica | API y pantallas de planes de estudio y materias, pantalla de correlatividades. | Guardar las correlatividades en la base, bajas y cursos. |
 | **E4** — Inscripciones | Materias disponibles, validación de correlativas e inscripción con control de duplicados (API); pantallas conectadas a la API. | Que la lista de materias informe la comisión y que "Mis inscripciones" lea la base. |
 
@@ -37,7 +39,8 @@ Registro de todo lo que entró a `development`: qué trajo cada equipo, cómo se
 | 14/10 | Primeros reportes de seguimiento. Integración del E1 (PR #2 dentro del #6). |
 | 15/10 | Integración del E3 (PR #4). Demo funcional. |
 | 19/10 | Integración del E4 (PR #5). Carpeta `src/services`. Se sacan los datos simulados. |
-| 28/10 | Integración del E1 (pantalla de usuarios y renovación de sesión), del E3 (PR #8) y del E4 (PR #5). |
+| 28/10 | Integración del E1 (pantalla de usuarios y renovación de sesión), del E3 (PR #8) y del E4 (PR #5). Revisión del E2 con guía de correcciones. |
+| 29/10 | El E2 aplica las correcciones y se integra. Los cuatro equipos quedan en `development`. |
 
 ## Integraciones
 
@@ -85,7 +88,33 @@ Registro de todo lo que entró a `development`: qué trajo cada equipo, cómo se
   - API: 25 de 25 pruebas (login, renovación de sesión, usuarios, planes, materias, materias disponibles, correlativas, inscripción y duplicados, con los dos roles);
   - navegador: login, pantalla de usuarios, renovación de sesión con el token vencido, planes y la lista de materias del estudiante, sin errores en la consola;
   - lo que falló: la inscripción desde la pantalla del E4, por el problema de la comisión que está en los pendientes.
-- **No entró:** el E2, por los problemas que se detallan abajo.
+- **No entró:** el E2. Tenía `Server=ALAN` en la configuración, había reescrito el `httpClient` (eso pisaba la renovación de sesión), tenía controllers sin control de rol, models editados a mano, datos de prueba en el script y archivos de datos simulados. Se le entregó una guía de correcciones paso a paso.
+
+### 29/10 — Secretaría del E2 (fork de Alan, rama `e2`)
+
+- **Qué entró:**
+  - inscripción de estudiantes a 1.º año y cantidad de inscriptos (`/api/inscripciones`);
+  - ver y modificar estudiantes, y reasignarles la comisión (`/api/estudiantes`);
+  - comisiones por materia y asignación automática de estudiantes a comisiones (`/api/comisiones`);
+  - docentes con asignación de materias y comisiones (`/api/teachers`);
+  - horarios por materia y comisión, con control de superposición (`/api/horarios-materias`) y la tabla nueva `SubjectSchedules`;
+  - las pantallas Inscripciones, Gestionar cupos, Visualizar y Modificar estudiante, Docentes, y Visualizar y Modificar docente, todas conectadas a la API.
+- **Correcciones que aplicó el equipo (las 10 de la guía):**
+  - volvió la conexión a `localhost\SQLEXPRESS`;
+  - dejó el `httpClient`, el header y `vite.config.js` como en `development`;
+  - agregó el control de rol en sus controllers;
+  - puso los nombres de archivo con mayúscula;
+  - sacó los datos de prueba del script;
+  - borró `Registration.cs` y los archivos de datos simulados;
+  - ordenó sus services, uno por controller;
+  - restauró la guía de Git;
+  - en `Program.cs` agregó solo sus líneas.
+- **Verificación:**
+  - frontend y backend compilan; el lint no suma errores;
+  - el script de la base se corre dos veces seguidas sin errores;
+  - API: 24 pruebas del E2 OK, con los dos roles y sin sesión, y la regresión de E1, E3 y E4 sigue en 25 de 25;
+  - navegador: 13 de 13. Las 7 pantallas del E2 andan sin errores en la consola, Usuarios y Planes siguen funcionando, el estudiante no entra a las pantallas del Secretario y la inscripción del estudiante sigue andando.
+- **Cómo entró:** no abrió Pull Request. Se integró mergeando su rama del fork, igual que la del E1.
 
 ## Decisiones tomadas
 
@@ -97,8 +126,9 @@ Registro de todo lo que entró a `development`: qué trajo cada equipo, cómo se
 | Seguridad | Todo endpoint pide sesión y cada controller declara su rol con `[Authorize(Roles = ...)]`. |
 | Frontend | Las llamadas a la API van en `src/services/`, un archivo por controller. No hay datos simulados en las pantallas. |
 | Recuperación de contraseña | Se posterga: no hay servidor SMTP. Mientras tanto, el secretario puede asignar una contraseña nueva editando al usuario. |
+| Horarios de materias | Los consulta cualquier usuario con sesión (el estudiante también los necesita). Solo el Secretario los carga. |
 
-## Pendientes por equipo (al 28/10/2026)
+## Pendientes por equipo (al 29/10/2026)
 
 ### E1
 
@@ -106,18 +136,11 @@ Registro de todo lo que entró a `development`: qué trajo cada equipo, cómo se
 - Actualizar el paquete `System.Security.Cryptography.Pkcs` 9.0.11 (12 avisos de vulnerabilidad al compilar).
 - Promover `development` a `testing` y después a `production`: `production` sigue en la versión del 28/09.
 
-### E2 — no integrado
+### E2
 
-Su rama tiene mucho trabajo (pantallas de estudiantes, docentes y cupos; backend de comisiones, inscripciones, estudiantes, docentes y horarios), pero hoy no se puede integrar:
-
-1. `appsettings.json` y el script de la base apuntan a `Server=ALAN`. Al resto de los equipos no les conectaría.
-2. Reescribieron `src/services/httpClient.js` para usar un proxy de Vite. Eso pisa la renovación de sesión del E1. El `httpClient` no se toca: si necesitan algo, se pide al E1.
-3. `ComisionesController`, `RegistrationController` y `StudentController` no tienen `[Authorize(Roles = RoleNames.AcademicSecretary)]`.
-4. Editaron a mano `Models/Subject.cs`, `Models/SubjectSchedule.cs` y `AcademicSystemContext.cs`, y cambiaron el script de la base. Los cambios de la base se acuerdan en la Mesa Técnica, y los models se regeneran con el comando del README.
-5. `Models/Registration.cs` está vacío: hay que borrarlo.
-6. Quedan archivos de datos simulados sin usar (`studentApi.js`, `materiasMock.js`) que importan un archivo que ya no existe.
-7. En `documentos/flujo-git.md` borraron el ejemplo de conflicto de la sección "Resolver conflictos". Lo que parecía un conflicto era el ejemplo de la guía: hay que restaurarlo.
-8. Abrir el Pull Request hacia `development`. Al traer `development` les van a chocar `README.md`, `Program.cs`, `secretarioRoutes.jsx` y `httpClient.js`.
+- El resumen de inscripciones (`useEnrollments`) hace un pedido a la API por cada estudiante: con muchos alumnos va a ser lento. Conviene un endpoint que devuelva el resumen armado.
+- `GET /api/teachers` lista solo los docentes que ya tienen materias asignadas. La pantalla de Docentes arma la lista desde los usuarios, así que no falta nadie, pero conviene que el endpoint devuelva todos.
+- Próximas entregas: que trabajen desde su fork los otros integrantes, porque todos los commits son de Alan, y abrir Pull Request en lugar de pasar solo la rama.
 
 ### E3
 
@@ -134,16 +157,17 @@ Su rama tiene mucho trabajo (pantallas de estudiantes, docentes y cupos; backend
 
 ### Mesa Técnica
 
-- Hay dos controllers de estudiantes: el del E1 (`/api/students`) y el del E2 (`/api/estudiantes`). Hay que decidir cuál queda.
-- Los cambios del E2 en el script de la base (horarios de materias) se tienen que acordar antes de integrarlos.
+- Hay dos controllers de estudiantes: el del E1 (`StudentsController`, `/api/students`) y el del E2 (`StudentController`, `/api/estudiantes`). Hay que decidir cuál queda para cada cosa.
+- Aprobar formalmente la tabla `SubjectSchedules` (horarios por materia y comisión), que entró con el E2.
 
-## Números del proyecto (al 28/10/2026)
+## Números del proyecto (al 29/10/2026)
 
-En `development` hay 86 commits sin contar los merges:
+En `development` hay 104 commits sin contar los merges:
 
 | Integrante | Equipo | Commits |
 |---|---|---|
-| Tomás González | E1 | 16 |
+| Alan Ordóñez | E2 | 17 |
+| Tomás González | E1 | 17 |
 | Lorenzo Caro | E3 | 13 |
 | Joaquín Olmedo | E1 | 12 |
 | Agustín Coccia | E4 | 9 |
@@ -155,4 +179,4 @@ En `development` hay 86 commits sin contar los merges:
 | Franco Petta | E1 | 4 |
 | Jeremías Herrera | E4 | 2 |
 
-Los commits de Alan Ordóñez (E2) todavía no están en `development`, porque su rama no se integró.
+En GitHub solo aparecen commits de 12 de los 19 integrantes. El trabajo de quienes no subieron nada desde su fork no se ve acá.

@@ -10,12 +10,12 @@ El sistema tiene dos perfiles: **Secretario** y **Estudiante**.
 
 ## Dónde estamos
 
-Actualizado al 28/10/2026. Esto es lo que ya está integrado en `development`:
+Actualizado al 29/10/2026. Los cuatro equipos ya tienen su trabajo integrado en `development`:
 
 | Equipo | Qué ya está integrado | Qué sigue |
 |---|---|---|
 | **E1** — Acceso e Integración | Login, cierre y vencimiento de sesión con renovación automática, roles y permisos, menú por rol, y la API y la pantalla de usuarios. | Recuperación de contraseña. |
-| **E2** — Secretaría | Todavía nada: su trabajo está en el fork y no abrió el Pull Request. | Corregir lo que dice la bitácora y abrir el Pull Request. |
+| **E2** — Secretaría | Inscripción a 1.º año, ver y modificar estudiantes, comisiones y cupos, docentes con sus materias y horarios por comisión, con las pantallas conectadas a la API. | Hacer el resumen de inscripciones con menos pedidos a la API. |
 | **E3** — Gestión Académica | API y pantallas de planes de estudio y materias, y la pantalla de correlatividades. | Guardar las correlatividades en la base, bajas y cursos. |
 | **E4** — Inscripciones | Materias disponibles, validación de correlativas e inscripción, con las pantallas conectadas a la API. | Mostrar la comisión para poder inscribirse desde la pantalla y leer "Mis inscripciones" de la base. |
 
