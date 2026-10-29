@@ -181,3 +181,40 @@ label{
     font-weight: 600;
     color: #183b38;
 }
+
+
+.materias-docente {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.materia-docente {
+  padding: 10px 0;
+}
+
+.materia-docente__nombre {
+  font-size: 12px;
+    font-weight: 500;
+    font-family: DM Sans;
+    color: #183b38;
+}
+
+.materia-docente__comisiones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.materia-docente__comision {
+ background-color: #ffffff;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #d6e3d6;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: DM Sans;
+    width: 100%;
+    color: #183b38;
+}

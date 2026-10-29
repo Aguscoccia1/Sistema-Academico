@@ -37,6 +37,13 @@ const Docentes = lazy(() =>
   import('./pages/Docentes/ManageTeachers')
 );
 
+const ModificarDocente = lazy(() =>
+  import('./pages/Docentes/ModificarDocente')
+);
+
+const VisualizarDocente = lazy(() =>
+  import('./pages/Docentes/VisualizarDocente')
+);
 
 const AppLayout = lazy(() =>
   import('../../core/layouts/AppLayout')
@@ -175,6 +182,24 @@ export const secretarioRoutes = (rolSimulado) => (
       element={
         withSuspense(
           Docentes
+        )
+      }
+    />
+
+    <Route
+      path="docentes/:id/modificar"
+      element={
+        withSuspense(
+          ModificarDocente
+        )
+      }
+    />
+
+    <Route
+      path="docentes/:id/visualizar"
+      element={
+        withSuspense(
+          VisualizarDocente
         )
       }
     />

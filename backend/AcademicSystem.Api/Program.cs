@@ -18,10 +18,12 @@ var connectionString = builder.Configuration.GetConnectionString("AcademicSystem
 builder.Services.AddDbContext<AcademicSystemContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddScoped<IUserRepository, UserRepository>(); 
 builder.Services.AddScoped<IComisionesRepository, ComisionesRepository>();
+builder.Services.AddScoped<ITeacherSubjectRepository, TeacherSubjectRepository>();
 
 // Business: each team registers its services here, one line per service.
 builder.Services.AddScoped<IHealthService, HealthService>();
 builder.Services.AddScoped<IComisionesService, ComisionesService>();
+builder.Services.AddScoped<ITeacherSubjectService, TeacherSubjectService>();
 builder.Services.AddScoped<IInscripcionesService, InscripcionesService>();
 builder.Services.AddScoped<ISubjectScheduleService, SubjectScheduleService>();
 builder.Services.AddScoped<IStudentService, StudentService>();
