@@ -226,8 +226,8 @@ Se crean solos al levantar el backend en desarrollo:
 
 | Rol | Correo | Contraseña |
 |---|---|---|
-| Secretario | maria@uni.edu | admin |
-| Estudiante | loko@uni.edu | 1234 |
+| Secretario | fernando@uni.edu | admin |
+| Estudiante | esteban@uni.edu | 1234 |
 
 ### Si tu SQL Server tiene otro nombre
 

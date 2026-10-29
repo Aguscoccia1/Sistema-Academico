@@ -1,0 +1,216 @@
+.usuarios-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.usuarios-filtros input,
+.usuarios-filtros select {
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 14px;
+}
+.usuarios-filtros input {
+  width: 320px;
+  max-width: 100%;
+}
+
+.usuarios-caja {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+.usuarios-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  color: var(--color-text);
+}
+.usuarios-tabla th {
+  padding: 12px 16px;
+  text-align: left;
+  background: #eef3ec;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.usuarios-tabla td {
+  padding: 13px 16px;
+  border-top: 1px solid var(--color-border);
+}
+.usuarios-fila-baja td {
+  color: var(--color-muted);
+}
+.usuarios-vacio {
+  text-align: center;
+  color: var(--color-muted);
+}
+.usuarios-contador {
+  margin: 10px 2px 0;
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.usuarios-estado {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.usuarios-estado--activo {
+  background: #e0eee2;
+  color: #31725c;
+}
+.usuarios-estado--baja {
+  background: #edf1eb;
+  color: #6c7c75;
+}
+
+.usuarios-acciones {
+  display: flex;
+  gap: 14px;
+}
+.usuarios-accion {
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  color: var(--color-primary-strong);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.usuarios-accion--peligro {
+  color: #8a2b2b;
+}
+
+.usuarios-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  overflow-y: auto;
+  background: rgba(24, 59, 56, 0.45);
+}
+.usuarios-modal {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 720px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  padding: 28px;
+  border-radius: 16px;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+.usuarios-modal--chico {
+  max-width: 480px;
+}
+.usuarios-modal h2 {
+  margin: 0 0 6px;
+  font-size: 22px;
+}
+.usuarios-sub {
+  margin: 0 0 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-muted);
+}
+.usuarios-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px 20px;
+}
+.usuarios-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.usuarios-campo label {
+  font-size: 13px;
+  font-weight: 600;
+}
+.usuarios-campo input,
+.usuarios-campo select {
+  height: 44px;
+  box-sizing: border-box;
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 14px;
+}
+.usuarios-ayuda {
+  font-size: 12px;
+  color: var(--color-muted);
+}
+.usuarios-error {
+  font-size: 12px;
+  color: #b42318;
+}
+.usuarios-alerta {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border: 1px solid #f5c2c2;
+  border-radius: var(--radius-md);
+  background: #fff1f1;
+  color: #b42318;
+  font-size: 14px;
+}
+.usuarios-activo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.usuarios-botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+.usuarios-primario,
+.usuarios-secundario,
+.usuarios-peligro {
+  height: 44px;
+  padding: 0 22px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.usuarios-primario {
+  border: 0;
+  background: var(--color-primary-strong);
+  color: #fff;
+}
+.usuarios-secundario {
+  border: 1px solid var(--color-primary-strong);
+  background: var(--color-surface);
+  color: var(--color-primary-strong);
+}
+.usuarios-peligro {
+  border: 0;
+  background: #8a2b2b;
+  color: #fff;
+}
+.usuarios-primario:disabled,
+.usuarios-secundario:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+@media (max-width: 640px) {
+  .usuarios-grid {
+    grid-template-columns: 1fr;
+  }
+}

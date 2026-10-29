@@ -6,7 +6,7 @@ const MENU_POR_ROL = {
     { label: 'Inscripciones', path: '/secretario/inscripciones', icon: 'ClipboardList', habilitado: true },
     { label: 'Docentes', path: '/secretario/docentes', icon: 'UserRound', habilitado: false },
     { label: 'Materias', path: '/secretario/materias', icon: 'BookOpen', habilitado: false },
-    { label: 'Usuarios', path: '/secretario/usuarios', icon: 'Users', habilitado: false },
+    { label: 'Usuarios', path: '/secretario/usuarios', icon: 'Users', habilitado: true },
     { label: 'Auditoría', path: '/secretario/auditoria', icon: 'ShieldCheck', habilitado: false },
   ],
   estudiante: [
