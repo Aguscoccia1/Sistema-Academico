@@ -197,7 +197,7 @@ Cada uno tiene su propia copia de la base. Se crea con el script del repositorio
 1. Abrí Management Studio y conectate a tu servidor con **Windows Authentication**.
 2. Abrí el archivo `database/AcademicSystem.sql` y apretá **F5**.
 
-Se crea la base `AcademicSystem` con sus 23 tablas. Si el script cambia, lo volvés a correr: no borra nada ni duplica datos.
+Se crea la base `AcademicSystem` con sus 22 tablas. Si el script cambia, lo volvés a correr: no borra nada ni duplica datos.
 
 ### 2. Crear la clave del login (una sola vez)
 

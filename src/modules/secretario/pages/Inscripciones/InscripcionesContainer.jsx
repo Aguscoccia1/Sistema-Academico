@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import YearCard from './components/YearCard';
 import { useNavigate } from 'react-router-dom';
