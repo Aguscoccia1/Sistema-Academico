@@ -166,4 +166,6 @@ public class SubjectController : ControllerBase
             return StatusCode(500, "Ocurrió un error inesperado. Intentá de nuevo más tarde.");
         }
     }
+
+    
 }

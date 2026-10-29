@@ -1,11 +1,13 @@
 using AcademicSystem.Business.Services;
 using AcademicSystem.Entities.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AcademicSystem.Api.Controllers;
 
 [ApiController]
 [Route("api/prerequisites")]
+[Authorize(Roles = RoleNames.Student)]
 public class PrerequisiteValidationController : ControllerBase
 {
     private readonly IPrerequisiteValidationService _validationService;
@@ -21,20 +23,27 @@ public class PrerequisiteValidationController : ControllerBase
 
     [HttpPost("validate")]
     [ProducesResponseType(typeof(PrerequisiteValidationResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Validate(
         [FromBody] PrerequisiteValidationRequestDto request,
         CancellationToken cancellationToken = default)
     {
-        // TODO: cuando E1 entregue la autenticación, obtener StudentId del usuario autenticado y no del body.
+        if (!int.TryParse(User.FindFirst("sub")?.Value, out int userId))
+        {
+            return Unauthorized("No se pudo identificar al usuario autenticado.");
+        }
+
         try
         {
-            var result = await _validationService.ValidateAsync(request, cancellationToken);
+            var result = await _validationService.ValidateAsync(userId, request, cancellationToken);
 
             if (result is null)
             {
-                return NotFound("No se encontró el alumno, el plan de estudios o la materia indicados.");
+                return NotFound("No existe el perfil de estudiante autenticado, el plan de estudios o la materia indicada.");
             }
 
             return Ok(result);

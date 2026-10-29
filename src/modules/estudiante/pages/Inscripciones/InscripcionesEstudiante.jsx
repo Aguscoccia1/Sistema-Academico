@@ -1,13 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarDays, ChevronRight, FileText, Lock, CheckCircle2, ListChecks } from 'lucide-react';
 import MateriaInscripcionRow from './components/MateriaInscripcionRow';
 import ModalConfirmarInscripcion from './components/ModalConfirmarInscripcion';
 import ModalDetalleMateria from './components/ModalDetalleMateria';
 import { useInscripciones, PERIODO_TEXTO } from './context/InscripcionesContext';
-
-const MES_ACTUAL_SIMULADO = 'Marzo';
-const PERIODO_DE_INSCRIPCION = 'Marzo';
 
 const FILTROS = [
   { id: 'todas', label: 'Todas' },
@@ -43,11 +40,15 @@ const ORDINALES = { 1: '1ro', 2: '2do', 3: '3ro', 4: '4to', 5: '5to' };
 const formatearAnio = (anio) => ORDINALES[anio] ?? `${anio}°`;
 
 function InscripcionesEstudiante() {
-  const { materiasPreparadas, inscribir } = useInscripciones();
+  const { materiasPreparadas, inscribir, errorCarga } = useInscripciones();
   const [aviso, setAviso] = useState('');
   const [filtro, setFiltro] = useState('todas');
   const [modal, setModal] = useState(null); // { tipo: 'confirmar' | 'detalle', materiaId }
-  const periodoAbierto = MES_ACTUAL_SIMULADO === PERIODO_DE_INSCRIPCION;
+  const periodoAbierto = true;
+
+  useEffect(() => {
+    if (errorCarga) setAviso(errorCarga);
+  }, [errorCarga]);
 
   // Las materias inscriptas (estado 'R') se ven en "Mis Inscripciones", no acá
   const materiasDisponibles = materiasPreparadas.filter((materia) => materia.estado !== 'R');
@@ -71,10 +72,14 @@ function InscripcionesEstudiante() {
   const abrirConfirmacion = (materiaId) => setModal({ tipo: 'confirmar', materiaId });
   const abrirDetalle = (materiaId) => setModal({ tipo: 'detalle', materiaId });
 
-  const handleConfirmarInscripcion = () => {
+  const handleConfirmarInscripcion = async () => {
     if (!materiaModal) return;
-    inscribir(materiaModal.id);
-    setAviso(`Te inscribiste a ${materiaModal.nombre}. La podés ver en Mis Inscripciones.`);
+    try {
+      await inscribir(materiaModal.id);
+      setAviso(`Te inscribiste a ${materiaModal.nombre}. La podés ver en Mis Inscripciones.`);
+    } catch (error) {
+      setAviso(error.message || 'No se pudo realizar la inscripción.');
+    }
     cerrarModal();
   };
 

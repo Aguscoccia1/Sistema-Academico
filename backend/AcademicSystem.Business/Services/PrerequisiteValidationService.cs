@@ -14,30 +14,38 @@ public class PrerequisiteValidationService : IPrerequisiteValidationService
     }
 
     public async Task<PrerequisiteValidationResponseDto?> ValidateAsync(
+        int userId,
         PrerequisiteValidationRequestDto request,
         CancellationToken cancellationToken = default)
     {
-        bool studentExists = await _context.Students
-            .AnyAsync(student => student.Id == request.StudentId, cancellationToken);
+        int? studentId = await _context.Students
+            .AsNoTracking()
+            .Where(student => student.UserId == userId)
+            .Select(student => (int?)student.Id)
+            .SingleOrDefaultAsync(cancellationToken);
         bool studyPlanExists = await _context.StudyPlans
+            .AsNoTracking()
             .AnyAsync(plan => plan.Id == request.StudyPlanId, cancellationToken);
         bool subjectExists = await _context.Subjects
+            .AsNoTracking()
             .AnyAsync(subject => subject.Id == request.SubjectId, cancellationToken);
 
-        if (!studentExists || !studyPlanExists || !subjectExists)
+        if (studentId is null || !studyPlanExists || !subjectExists)
         {
             return null;
         }
 
-        bool subjectBelongsToPlan = await _context.StudyPlanSubjects.AnyAsync(item =>
-            item.StudyPlanId == request.StudyPlanId && item.SubjectId == request.SubjectId,
-            cancellationToken);
+        bool subjectBelongsToPlan = await _context.StudyPlanSubjects
+            .AsNoTracking()
+            .AnyAsync(item =>
+                item.StudyPlanId == request.StudyPlanId && item.SubjectId == request.SubjectId,
+                cancellationToken);
 
         if (!subjectBelongsToPlan)
         {
             return new PrerequisiteValidationResponseDto
             {
-                StudentId = request.StudentId,
+                StudentId = studentId.Value,
                 StudyPlanId = request.StudyPlanId,
                 SubjectId = request.SubjectId,
                 CanEnroll = false,
@@ -46,6 +54,7 @@ public class PrerequisiteValidationService : IPrerequisiteValidationService
         }
 
         var prerequisiteList = await _context.Prerequisites
+            .AsNoTracking()
             .Where(item => item.StudyPlanId == request.StudyPlanId && item.SubjectId == request.SubjectId)
             .Select(item => new
             {
@@ -59,7 +68,8 @@ public class PrerequisiteValidationService : IPrerequisiteValidationService
             .ToList();
 
         var approvedPrerequisiteSubjectIds = await _context.StudentSubjects
-            .Where(item => item.StudentId == request.StudentId
+            .AsNoTracking()
+            .Where(item => item.StudentId == studentId.Value
                 && prerequisiteSubjectIds.Contains(item.SubjectId)
                 && item.CourseRecord != null
                 && item.CourseRecord.FinalStatus == "Aprobado")
@@ -88,15 +98,15 @@ public class PrerequisiteValidationService : IPrerequisiteValidationService
 
         return new PrerequisiteValidationResponseDto
         {
-            StudentId = request.StudentId,
+            StudentId = studentId.Value,
             StudyPlanId = request.StudyPlanId,
             SubjectId = request.SubjectId,
             CanEnroll = canEnroll,
             FulfilledPrerequisites = fulfilledPrerequisites,
             MissingPrerequisites = missingPrerequisites,
             Message = canEnroll
-                ? "El alumno cumple todas las correlativas de la materia."
-                : "El alumno no cumple todas las correlativas requeridas."
+                ? "El estudiante cumple todas las correlativas de la materia."
+                : "El estudiante no cumple todas las correlativas requeridas."
         };
     }
 }

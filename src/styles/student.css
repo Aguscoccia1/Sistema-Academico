@@ -249,6 +249,11 @@
 	color: var(--ds-primary);
 }
 
+.badge--aprobada {
+	background: var(--ds-secondary);
+	color: #fff;
+}
+
 .badge--bloqueado {
 	background: var(--ds-warning);
 	color: #fff;

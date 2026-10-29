@@ -123,9 +123,9 @@ Los contratos se definen primero con la Mesa Técnica. Cada controller del backe
 | `StudentsController` | `/api/students` | `estudiante/studentsService.js` |
 | `AcademicSecretariesController` | `/api/academic-secretaries` | `secretario/academicSecretariesService.js` |
 | `RolesController` | `/api/roles` | `rolesService.js` |
-| `EnrollmentController` | `/api/enrollments` | `enrollmentService.js` |
+| `EnrollmentController` | `/api/enrollments` | `estudiante/enrollmentService.js` |
 | `HealthController` | `/api/health` | `healthService.js` |
-| `PrerequisiteValidationController` | `/api/prerequisites` | `prerequisiteValidationService.js` |
+| `PrerequisiteValidationController` | `/api/prerequisites` | `estudiante/prerequisiteValidationService.js` |
 
 Se recomienda documentar DTOs, códigos HTTP, errores normalizados, validaciones y autenticación antes de implementar cada endpoint nuevo.
 
