@@ -134,7 +134,7 @@ Con la API corriendo (`dotnet run --project AcademicSystem.Api` desde `backend/`
 
 ```powershell
 # Login como secretario
-$login = Invoke-RestMethod -Method Post -Uri http://localhost:5000/api/auth/login -ContentType "application/json" -Body '{"email":"maria@uni.edu","password":"admin"}'
+$login = Invoke-RestMethod -Method Post -Uri http://localhost:5000/api/auth/login -ContentType "application/json" -Body '{"email":"fernando@uni.edu","password":"admin"}'
 $headers = @{ Authorization = "Bearer $($login.token)" }
 Invoke-RestMethod -Uri http://localhost:5000/api/tu-ruta -Headers $headers
 ```
@@ -143,8 +143,8 @@ Probá siempre estos tres casos:
 
 | Caso | Cómo | Resultado esperado |
 |---|---|---|
-| Rol correcto | Token de `maria@uni.edu` (secretario) | 200 con los datos |
-| Rol equivocado | Login con `loko@uni.edu` / `1234` (estudiante) y llamar a un endpoint de secretario | 403 |
+| Rol correcto | Token de `fernando@uni.edu` (secretario) | 200 con los datos |
+| Rol equivocado | Login con `esteban@uni.edu` / `1234` (estudiante) y llamar a un endpoint de secretario | 403 |
 | Sin sesión | Llamar sin el header `Authorization` | 401 |
 
 PowerShell trata el 401 y el 403 como error y muestra el código en el mensaje.

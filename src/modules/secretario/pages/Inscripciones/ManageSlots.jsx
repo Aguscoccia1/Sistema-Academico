@@ -5,12 +5,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Edit, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-import {
-  asignarComisionesAleatoriamente,
-  obtenerEstudiantes,
-  consultarCantidadInscriptos,
-  consultarInscripcionesEstudiante,
-} from '../../../../services/secretario/studentAdministrationService';
+import { comisionesService } from '../../../../services/comisionesService';
+import { registrationService } from '../../../../services/registrationService';
 
 const ManageSlots = () => {
   const navigate = useNavigate();
@@ -32,14 +28,14 @@ const ManageSlots = () => {
       setError('');
 
       const [estudiantes, total] = await Promise.all([
-        obtenerEstudiantes(),
-        consultarCantidadInscriptos(),
+        registrationService.obtenerEstudiantes(),
+        registrationService.consultarCantidadInscriptos(),
       ]);
 
       const estudiantesConInscripciones = await Promise.all(
         estudiantes.map(async (estudiante) => {
           const inscripciones =
-            await consultarInscripcionesEstudiante(estudiante.id);
+            await registrationService.consultarInscripcionesEstudiante(estudiante.id);
 
           const comisiones = [
             ...new Set(
@@ -80,7 +76,7 @@ const ManageSlots = () => {
       setError('');
       setMensaje('');
 
-      const resultado = await asignarComisionesAleatoriamente();
+      const resultado = await comisionesService.asignarComisionesAleatoriamente();
       await cargarEstudiantes();
       setMensaje(resultado.mensaje);
       setError(resultado.errores.length > 0

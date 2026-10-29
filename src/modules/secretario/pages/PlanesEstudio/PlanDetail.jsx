@@ -2,9 +2,16 @@ import { useState } from 'react';
 import { ChevronRight, FileText, Pencil, Plus, Trash2 } from 'lucide-react';
 import CargarMaterias from './LoadSubjects';
 import EditSubjectModal from './EditSubjectModal';
+import ConfirmCorrelativesModal from './ConfirmCorrelativesModal';
+import { plansApi } from '../../components/plans/plansApi';
+import { useAsyncResource } from '../../../../hooks/useAsyncResource';
 
 const tabs = ['Resumen', 'Materias', 'Materias por año', 'Correlatividades'];
 const YEARS = ['1°', '2°', '3°'];
+const CORRELATIVE_YEARS = ['2°', '3°'];
+
+const yearLabel = (year) => year.replace('°', '.° Año');
+const sortByOrder = (a, b) => Number(a.orden) - Number(b.orden);
 
 function Field({ label, value }) {
   return (
@@ -18,23 +25,91 @@ function Field({ label, value }) {
 function PlanDetalle({ plan, onBack }) {
   const [activeTab, setActiveTab] = useState('Resumen');
   const [isLoadingSubjects, setIsLoadingSubjects] = useState(false);
-  const [materias, setMaterias] = useState([]);
+  const { data: materias, setData: setMaterias, isLoading: isLoadingList, error: listError, reload: reloadSubjects } = useAsyncResource(
+    () => plansApi.obtenerMaterias(plan.id),
+    [plan.id],
+  );
   const [selectedYear, setSelectedYear] = useState('1°');
   const [editingSubject, setEditingSubject] = useState(null);
 
-  const handleSaveSubjects = (newSubjects) => {
-    setMaterias((current) => [...current, ...newSubjects]);
+  // Correlatividades: { [idMateria]: [idsCorrelativas] }
+  const [correlatives, setCorrelatives] = useState({});
+  const [draftCorrelatives, setDraftCorrelatives] = useState({});
+  const [correlativeYear, setCorrelativeYear] = useState('2°');
+  const [selectedSubjectId, setSelectedSubjectId] = useState(null);
+  const [correlativeNotice, setCorrelativeNotice] = useState('');
+  const [isConfirmingCorrelatives, setIsConfirmingCorrelatives] = useState(false);
+
+
+  const handleSaveSubjects = async (newSubjects) => {
+    try {
+      await plansApi.agregarMaterias(plan.id, newSubjects);
+    } finally {
+      await reloadSubjects(); 
+    }
     setIsLoadingSubjects(false);
   };
 
-  const handleUpdateSubject = (updatedSubject) => {
-    setMaterias((current) => current.map((materia) => (materia.id === updatedSubject.id ? updatedSubject : materia)));
+  const handleUpdateSubject = async (updatedSubject) => {
+    await plansApi.actualizarMateria(updatedSubject);
+    await reloadSubjects();
     setEditingSubject(null);
   };
 
   const handleDeleteSubject = (subject) => {
     if (!window.confirm(`¿Eliminar la materia "${subject.materia}"?`)) return;
     setMaterias((current) => current.filter((materia) => materia.id !== subject.id));
+
+    const cleanUp = (source) => {
+      const result = {};
+      Object.entries(source).forEach(([id, list]) => {
+        if (String(id) === String(subject.id)) return;
+        result[id] = list.filter((correlativeId) => correlativeId !== subject.id);
+      });
+      return result;
+    };
+    setCorrelatives(cleanUp);
+    setDraftCorrelatives(cleanUp);
+    if (selectedSubjectId === subject.id) setSelectedSubjectId(null);
+  };
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    if (tab === 'Correlatividades') {
+      setDraftCorrelatives(correlatives);
+      setCorrelativeNotice('');
+    }
+  };
+
+  const toggleCorrelative = (correlativeId) => {
+    setDraftCorrelatives((current) => {
+      const currentList = current[selectedSubjectId] ?? [];
+      const nextList = currentList.includes(correlativeId)
+        ? currentList.filter((id) => id !== correlativeId)
+        : [...currentList, correlativeId];
+      return { ...current, [selectedSubjectId]: nextList };
+    });
+  };
+
+  const requestSaveCorrelatives = () => {
+    if (!selectedSubjectId) {
+      setCorrelativeNotice('Seleccioná una materia para guardar sus correlatividades.');
+      return;
+    }
+    setCorrelativeNotice('');
+    setIsConfirmingCorrelatives(true);
+  };
+
+  const confirmSaveCorrelatives = () => {
+    setCorrelatives(draftCorrelatives);
+    setIsConfirmingCorrelatives(false);
+    setCorrelativeNotice('Las correlatividades se guardaron correctamente.');
+  };
+
+  const cancelCorrelatives = () => {
+    setDraftCorrelatives(correlatives);
+    setSelectedSubjectId(null);
+    setCorrelativeNotice('');
   };
 
   if (isLoadingSubjects) {
@@ -47,6 +122,105 @@ function PlanDetalle({ plan, onBack }) {
       />
     );
   }
+
+  const renderCorrelatives = () => {
+    const countByYear = (year) => materias.filter((materia) => materia.anio === year).length;
+    const subjectsOfYear = materias.filter((materia) => materia.anio === correlativeYear).sort(sortByOrder);
+    const selectedSubject = materias.find((materia) => materia.id === selectedSubjectId) ?? null;
+    const selectedList = draftCorrelatives[selectedSubjectId] ?? [];
+
+    const previousYears = YEARS.slice(0, YEARS.indexOf(correlativeYear));
+
+    return (
+      <div className="plan-materias">
+        <h2>Correlatividades</h2>
+
+        <div className="year-tabs correlative-year-tabs">
+          {CORRELATIVE_YEARS.map((year) => {
+            const count = countByYear(year);
+            return (
+              <button
+                key={year}
+                type="button"
+                className={`year-tab ${correlativeYear === year ? 'active' : ''}`}
+                onClick={() => {
+                  setCorrelativeYear(year);
+                  setSelectedSubjectId(null);
+                }}
+              >
+                <strong>{yearLabel(year)}</strong>
+                <span>{count} {count === 1 ? 'materia' : 'materias'}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <h3 className="correlative-title">Materias de {correlativeYear.replace('°', '.° año')}</h3>
+        <p className="correlative-subtitle">Seleccioná una materia y definí sus correlativas.</p>
+
+        {subjectsOfYear.length === 0 ? (
+          <p className="year-subjects-empty">No hay materias cargadas para este año.</p>
+        ) : (
+          <div className="correlative-subjects">
+            {subjectsOfYear.map((materia) => (
+              <button
+                key={materia.id}
+                type="button"
+                className={`correlative-subject ${selectedSubjectId === materia.id ? 'selected' : ''}`}
+                onClick={() => setSelectedSubjectId(materia.id)}
+              >
+                <span className="correlative-number">{materia.orden}</span>
+                <span className="correlative-name">{materia.materia}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {selectedSubject && (
+          <>
+            <h3 className="correlative-title">Correlativas disponibles</h3>
+            <p className="correlative-subtitle">
+              Selecciona las materias que son correlativas de {selectedSubject.orden} · {selectedSubject.materia}.
+            </p>
+
+            {previousYears.map((year) => {
+              const available = materias.filter((materia) => materia.anio === year).sort(sortByOrder);
+              return (
+                <div key={year} className="correlative-group">
+                  <span className="correlative-group-title">{yearLabel(year)}</span>
+                  {available.length === 0 ? (
+                    <p className="year-subjects-empty">No hay materias cargadas para este año.</p>
+                  ) : (
+                    <div className="correlative-options">
+                      {available.map((materia) => (
+                        <button
+                          key={materia.id}
+                          type="button"
+                          className={`correlative-option ${selectedList.includes(materia.id) ? 'checked' : ''}`}
+                          aria-pressed={selectedList.includes(materia.id)}
+                          onClick={() => toggleCorrelative(materia.id)}
+                        >
+                          <span className="correlative-number">{materia.orden}</span>
+                          <span className="correlative-name">{materia.materia}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </>
+        )}
+
+        {correlativeNotice && <p className="correlative-notice" role="status">{correlativeNotice}</p>}
+
+        <div className="correlative-footer">
+          <button type="button" className="plan-detalle-button" onClick={cancelCorrelatives}>Cancelar cambios</button>
+          <button type="button" className="create-plan-button" onClick={requestSaveCorrelatives}>Guardar cambios</button>
+        </div>
+      </div>
+    );
+  };
 
   const renderContent = () => {
     if (activeTab === 'Resumen') {
@@ -82,7 +256,11 @@ function PlanDetalle({ plan, onBack }) {
             )}
           </div>
 
-          {materias.length === 0 ? (
+          {listError && <p className="field-error" role="alert">{listError}</p>}
+
+          {isLoadingList ? (
+            <p>Cargando materias...</p>
+          ) : materias.length === 0 ? (
             <div className="plan-materias-empty">
               <div className="plan-materias-icon"><FileText size={32} /></div>
               <h3>Todavía no hay materias cargadas</h3>
@@ -103,27 +281,25 @@ function PlanDetalle({ plan, onBack }) {
                 <span>Hs. reloj</span>
                 <span>Acciones</span>
               </div>
-              {[...materias]
-                .sort((a, b) => Number(a.orden) - Number(b.orden))
-                .map((materia) => (
-                  <div className="plan-materias-list-row" key={materia.id}>
-                    <span>{materia.orden}</span>
-                    <span>{materia.formato}</span>
-                    <span>{materia.materia}</span>
-                    <span>{materia.anio}</span>
-                    <span>{materia.regimen}</span>
-                    <span>{materia.horasCatedra}</span>
-                    <span>{materia.horasReloj}</span>
-                    <span className="plan-materias-actions">
-                      <button type="button" className="subject-edit-button" aria-label={`Editar ${materia.materia}`} onClick={() => setEditingSubject(materia)}>
-                        <Pencil size={16} />
-                      </button>
-                      <button type="button" className="subject-delete-button" aria-label={`Eliminar ${materia.materia}`} onClick={() => handleDeleteSubject(materia)}>
-                        <Trash2 size={16} />
-                      </button>
-                    </span>
-                  </div>
-                ))}
+              {[...materias].sort(sortByOrder).map((materia) => (
+                <div className="plan-materias-list-row" key={materia.id}>
+                  <span>{materia.orden}</span>
+                  <span>{materia.formato}</span>
+                  <span>{materia.materia}</span>
+                  <span>{materia.anio}</span>
+                  <span>{materia.regimen}</span>
+                  <span>{materia.horasCatedra}</span>
+                  <span>{materia.horasReloj}</span>
+                  <span className="plan-materias-actions">
+                    <button type="button" className="subject-edit-button" aria-label={`Editar ${materia.materia}`} onClick={() => setEditingSubject(materia)}>
+                      <Pencil size={16} />
+                    </button>
+                    <button type="button" className="subject-delete-button" aria-label={`Eliminar ${materia.materia}`} onClick={() => handleDeleteSubject(materia)}>
+                      <Trash2 size={16} />
+                    </button>
+                  </span>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -132,9 +308,7 @@ function PlanDetalle({ plan, onBack }) {
 
     if (activeTab === 'Materias por año') {
       const countByYear = (year) => materias.filter((materia) => materia.anio === year).length;
-      const subjectsOfYear = materias
-        .filter((materia) => materia.anio === selectedYear)
-        .sort((a, b) => Number(a.orden) - Number(b.orden));
+      const subjectsOfYear = materias.filter((materia) => materia.anio === selectedYear).sort(sortByOrder);
 
       return (
         <div className="plan-materias">
@@ -151,7 +325,7 @@ function PlanDetalle({ plan, onBack }) {
                   className={`year-tab ${selectedYear === year ? 'active' : ''}`}
                   onClick={() => setSelectedYear(year)}
                 >
-                  <strong>{year.replace('°', '.° Año')}</strong>
+                  <strong>{yearLabel(year)}</strong>
                   <span>{count} {count === 1 ? 'materia' : 'materias'}</span>
                 </button>
               );
@@ -182,11 +356,7 @@ function PlanDetalle({ plan, onBack }) {
       );
     }
 
-    return (
-      <div className="plan-detalle-card">
-        <p className="plans-empty">La sección "{activeTab}" todavía no está disponible.</p>
-      </div>
-    );
+    return renderCorrelatives();
   };
 
   return (
@@ -220,7 +390,7 @@ function PlanDetalle({ plan, onBack }) {
             role="tab"
             aria-selected={activeTab === tab}
             className={activeTab === tab ? 'active' : ''}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => handleTabChange(tab)}
           >
             {tab}
           </button>
@@ -234,6 +404,18 @@ function PlanDetalle({ plan, onBack }) {
           subject={editingSubject}
           onClose={() => setEditingSubject(null)}
           onSave={handleUpdateSubject}
+        />
+      )}
+
+      {isConfirmingCorrelatives && (
+        <ConfirmCorrelativesModal
+          subject={materias.find((materia) => materia.id === selectedSubjectId)}
+          correlatives={(draftCorrelatives[selectedSubjectId] ?? [])
+            .map((id) => materias.find((materia) => materia.id === id))
+            .filter(Boolean)
+            .sort(sortByOrder)}
+          onClose={() => setIsConfirmingCorrelatives(false)}
+          onConfirm={confirmSaveCorrelatives}
         />
       )}
     </section>

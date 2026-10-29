@@ -11,16 +11,6 @@ function AppLayout({ rolSimulado = 'secretario' }) {
 
   const section = location.pathname.includes('inicio') || location.pathname === '/' ? 'Inicio' : location.pathname.includes('planes') ? 'Planes de Estudio' : location.pathname.includes('manage-slots') ? 'Gestionar cupos' : location.pathname.includes('docentes') && location.pathname.endsWith('/modificar') ? 'Modificar docente' : location.pathname.includes('docentes') && location.pathname.endsWith('/visualizar') ? 'Visualizar docente' : location.pathname.includes('modificar') ? 'Modificar estudiante' : location.pathname.includes('visualizar') ? 'Visualizar estudiante' : location.pathname.includes('inscripciones') ? 'Inscripciones' : location.pathname.includes('docentes') ? 'Docentes' : 'Estudiantes';
 
-  const hideNotifications =
-    location.pathname === '/secretario/manage-slots' ||
-    (
-      location.pathname.startsWith('/secretario/estudiantes/') &&
-      (
-        location.pathname.endsWith('/modificar') ||
-        location.pathname.endsWith('/visualizar')
-      )
-    );
-
   const closeSidebar = () => setIsSidebarOpen(false);
 
   return (
@@ -45,7 +35,6 @@ function AppLayout({ rolSimulado = 'secretario' }) {
           activeSection={section}
           rolSimulado={rolSimulado}
           showNotifications={showNotifications}
-          showNotificationButton={!hideNotifications}
           onToggleNotifications={() =>
             setShowNotifications((current) => !current)
           }

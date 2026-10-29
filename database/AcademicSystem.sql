@@ -7,7 +7,7 @@
 
    How to run it:
      - SQL Server Management Studio: open this file and press F5.
-     - Command line:  sqlcmd -S ALAN -E -C -f 65001 -i AcademicSystem.sql
+     - Command line:  sqlcmd -S localhost\SQLEXPRESS -E -C -f 65001 -i AcademicSystem.sql
 
    It is safe to run more than once: it only creates what is missing.
 
@@ -241,49 +241,6 @@ CREATE TABLE dbo.SubjectSchedules (
     CONSTRAINT FK_SubjectSchedules_Subjects
         FOREIGN KEY (SubjectId) REFERENCES dbo.Subjects (Id)
 );
-GO
-
-IF EXISTS (
-    SELECT 1
-    FROM dbo.Subjects
-    WHERE Name IN (N'Programación I', N'Programacion I')
-)
-BEGIN
-    DECLARE @ProgramacionIId INT = (
-        SELECT TOP (1) Id
-        FROM dbo.Subjects
-        WHERE Name IN (N'Programación I', N'Programacion I')
-        ORDER BY Id
-    );
-
-    IF NOT EXISTS (
-        SELECT 1
-        FROM dbo.SubjectSchedules
-        WHERE SubjectId = @ProgramacionIId
-          AND Section = N'A'
-          AND Day = N'Monday'
-          AND StartTime = '14:00'
-          AND EndTime = '16:00'
-    )
-    BEGIN
-        INSERT INTO dbo.SubjectSchedules (SubjectId, Section, Day, StartTime, EndTime)
-        VALUES (@ProgramacionIId, N'A', N'Monday', '14:00', '16:00');
-    END;
-
-    IF NOT EXISTS (
-        SELECT 1
-        FROM dbo.SubjectSchedules
-        WHERE SubjectId = @ProgramacionIId
-          AND Section = N'A'
-          AND Day = N'Wednesday'
-          AND StartTime = '16:10'
-          AND EndTime = '17:00'
-    )
-    BEGIN
-        INSERT INTO dbo.SubjectSchedules (SubjectId, Section, Day, StartTime, EndTime)
-        VALUES (@ProgramacionIId, N'A', N'Wednesday', '16:10', '17:00');
-    END;
-END;
 GO
 
 IF OBJECT_ID(N'dbo.Exams', N'U') IS NULL

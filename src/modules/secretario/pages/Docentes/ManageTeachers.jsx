@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Edit, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-import { obtenerDocentes } from '../../../../services/secretario/teacherAdministrationService';
+import { teachersService } from '../../../../services/docente/teachersService';
 
 const ManageTeachers = () => {
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ const ManageTeachers = () => {
       try {
         setIsLoading(true);
         setError('');
-        setTeachers(await obtenerDocentes());
+        setTeachers(await teachersService.obtenerDocentes());
       } catch (err) {
         console.error(err);
         setError(

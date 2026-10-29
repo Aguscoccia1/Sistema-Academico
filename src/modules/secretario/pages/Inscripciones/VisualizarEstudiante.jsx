@@ -6,10 +6,8 @@ import FileText from '../../../../assets/FileText.svg';
 
 
 
-import {
-    consultarEstudiante,
-    consultarInscripcionesEstudiante,
-} from '../../../../services/secretario/studentAdministrationService';
+import { registrationService } from '../../../../services/registrationService';
+import { studentAdministrationService } from '../../../../services/estudiante/studentAdministrationService';
 import { subjectService } from '../../../../services/subjectService';
 import SubjectScheduleList from '../../components/students/SubjectScheduleList';
 
@@ -29,8 +27,8 @@ const VisualizarEstudiante = () => {
                 setError('');
 
                 const [datos, inscripciones, materias] = await Promise.all([
-                    consultarEstudiante(id),
-                    consultarInscripcionesEstudiante(id),
+                    studentAdministrationService.consultarEstudiante(id),
+                    registrationService.consultarInscripcionesEstudiante(id),
                     subjectService.obtenerTodos(),
                 ]);
 

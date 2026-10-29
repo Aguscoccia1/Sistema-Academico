@@ -1,11 +1,13 @@
 
 using AcademicSystem.Business.Services;
 using AcademicSystem.Entities.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AcademicSystem.Api.Controllers;
 
 [ApiController]
+[Authorize(Roles = RoleNames.AcademicSecretary)]
 [Route("api/estudiantes")]
 public class StudentController(IStudentService estudiantesService) : ControllerBase
 {

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import '../../../../styles/visualizarEst.css';
 import FileText from '../../../../assets/FileText.svg';
-import { consultarMateriasDocente } from '../../../../services/secretario/teacherAdministrationService';
+import { teachersService } from '../../../../services/docente/teachersService';
 import { usersService } from '../../../../services/usersService';
 import SubjectScheduleList from '../../components/students/SubjectScheduleList';
 
@@ -24,7 +24,7 @@ const VisualizarDocente = () => {
         setError('');
 
         const [teacherData, userData] = await Promise.all([
-          consultarMateriasDocente(id),
+          teachersService.consultarMateriasDocente(id),
           usersService.obtenerPorId(id),
         ]);
 

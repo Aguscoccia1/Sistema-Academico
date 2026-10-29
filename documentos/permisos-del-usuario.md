@@ -69,11 +69,11 @@ GET /api/auth/permissions
 Con la API corriendo (`dotnet run --project AcademicSystem.Api` desde `backend/`), en PowerShell:
 
 ```powershell
-$login = Invoke-RestMethod -Method Post -Uri http://localhost:5000/api/auth/login -ContentType "application/json" -Body '{"email":"maria@uni.edu","password":"admin"}'
+$login = Invoke-RestMethod -Method Post -Uri http://localhost:5000/api/auth/login -ContentType "application/json" -Body '{"email":"fernando@uni.edu","password":"admin"}'
 Invoke-RestMethod -Uri http://localhost:5000/api/auth/permissions -Headers @{ Authorization = "Bearer $($login.token)" }
 ```
 
-Para el estudiante, reemplazá el body del login por `{"email":"loko@uni.edu","password":"1234"}`.
+Para el estudiante, reemplazá el body del login por `{"email":"esteban@uni.edu","password":"1234"}`.
 
 ## Resultados de la prueba
 

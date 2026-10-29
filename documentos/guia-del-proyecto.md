@@ -333,8 +333,8 @@ En Development se intentan crear estos usuarios de demostración si no existen:
 
 | Perfil | Correo | Contraseña |
 |---|---|---|
-| Secretario | `maria@uni.edu` | `admin` |
-| Estudiante | `loko@uni.edu` | `1234` |
+| Secretario | `fernando@uni.edu` | `admin` |
+| Estudiante | `esteban@uni.edu` | `1234` |
 
 Son credenciales exclusivamente locales/de desarrollo. El seeder no configura usuarios de producción.
 

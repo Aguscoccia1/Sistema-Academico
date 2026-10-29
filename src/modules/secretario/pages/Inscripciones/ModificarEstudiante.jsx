@@ -2,12 +2,9 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
-    consultarEstudiante,
-    modificarEstudiante,
-    consultarInscripcionesEstudiante,
-    reasignarComision,
-    inscribirEstudiante,
-} from '../../../../services/secretario/studentAdministrationService';
+    studentAdministrationService,
+} from '../../../../services/estudiante/studentAdministrationService';
+import { registrationService } from '../../../../services/registrationService';
 import { subjectService } from '../../../../services/subjectService';
 
 import "../../../../styles/modificarEst.css";
@@ -35,8 +32,8 @@ const ModificarEstudiante = () => {
                 setError('');
 
                 const [datos, inscripciones, materias] = await Promise.all([
-                    consultarEstudiante(id),
-                    consultarInscripcionesEstudiante(id),
+                    studentAdministrationService.consultarEstudiante(id),
+                    registrationService.consultarInscripcionesEstudiante(id),
                     subjectService.obtenerTodos(),
                 ]);
 
@@ -153,7 +150,7 @@ const ModificarEstudiante = () => {
             const apellido = partesNombre.slice(1).join(' ');
 
             // Primero actualizamos los datos personales.
-            await modificarEstudiante(editingStudent.id, {
+            await studentAdministrationService.modificarEstudiante(editingStudent.id, {
                 nombre,
                 apellido,
                 dni: editingStudent.dni.trim(),
@@ -165,13 +162,13 @@ const ModificarEstudiante = () => {
                 }
 
                 if (!materia.inscripcion) {
-                    await inscribirEstudiante(
+                    await registrationService.inscribirEstudiante(
                         editingStudent.id,
                         materia.id,
                         materia.seccionSeleccionada
                     );
                 } else if (materia.seccionSeleccionada !== materia.inscripcion.seccion) {
-                    await reasignarComision(
+                    await studentAdministrationService.reasignarComision(
                         editingStudent.id,
                         materia.id,
                         materia.seccionSeleccionada
@@ -184,8 +181,8 @@ const ModificarEstudiante = () => {
             // Volvemos a consultar los datos persistidos.
             const [datosActualizados, inscripcionesActualizadas] =
                 await Promise.all([
-                    consultarEstudiante(editingStudent.id),
-                    consultarInscripcionesEstudiante(editingStudent.id),
+                    studentAdministrationService.consultarEstudiante(editingStudent.id),
+                    registrationService.consultarInscripcionesEstudiante(editingStudent.id),
                 ]);
 
             const materiasActualizadas = editingStudent.materiasDisponibles.map((materia) => {

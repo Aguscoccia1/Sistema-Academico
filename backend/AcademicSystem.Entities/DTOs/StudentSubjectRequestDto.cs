@@ -4,7 +4,7 @@ namespace AcademicSystem.Entities.DTOs;
 
 public class StudentSubjectRequestDto
 {
-    private int studentId;
+    private int studyPlanId;
     private int subjectId;
     private string section = "";
 
@@ -12,7 +12,7 @@ public class StudentSubjectRequestDto
     
 
     [Range(1, int.MaxValue)]
-    public int StudentId { get { return studentId; } set { studentId = value; } }
+    public int StudyPlanId { get { return studyPlanId; } set { studyPlanId = value; } }
 
     [Range(1, int.MaxValue)]
     public int SubjectId { get { return subjectId; } set { subjectId = value; } }

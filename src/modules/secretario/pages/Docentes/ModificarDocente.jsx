@@ -4,10 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import '../../../../styles/modificarEst.css';
 import FileText from '../../../../assets/FileText.svg';
 import { subjectService } from '../../../../services/subjectService';
-import {
-  consultarMateriasDocente,
-  guardarMateriasDocente,
-} from '../../../../services/secretario/teacherAdministrationService';
+import { teachersService } from '../../../../services/docente/teachersService';
 import { usersService } from '../../../../services/usersService';
 
 const COMISIONES = ['A', 'B'];
@@ -36,7 +33,7 @@ const ModificarDocente = () => {
         setError('');
 
         const [teacherData, userData, allSubjects] = await Promise.all([
-          consultarMateriasDocente(id),
+          teachersService.consultarMateriasDocente(id),
           usersService.obtenerPorId(id),
           subjectService.obtenerTodos(),
         ]);
@@ -130,7 +127,7 @@ const ModificarDocente = () => {
       });
       profileUpdated = true;
 
-      const result = await guardarMateriasDocente(id, assignments);
+      const result = await teachersService.guardarMateriasDocente(id, assignments);
       setTeacher((current) => ({
         ...current,
         firstName: nameParts[0],

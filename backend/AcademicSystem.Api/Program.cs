@@ -17,23 +17,15 @@ var connectionString = builder.Configuration.GetConnectionString("AcademicSystem
 
 builder.Services.AddDbContext<AcademicSystemContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddScoped<IUserRepository, UserRepository>(); 
-builder.Services.AddScoped<IComisionesRepository, ComisionesRepository>();
-builder.Services.AddScoped<ITeacherSubjectRepository, TeacherSubjectRepository>();
 
 // Business: each team registers its services here, one line per service.
 builder.Services.AddScoped<IHealthService, HealthService>();
-builder.Services.AddScoped<IComisionesService, ComisionesService>();
-builder.Services.AddScoped<ITeacherSubjectService, TeacherSubjectService>();
-builder.Services.AddScoped<IInscripcionesService, InscripcionesService>();
-builder.Services.AddScoped<ISubjectScheduleService, SubjectScheduleService>();
-builder.Services.AddScoped<IStudentService, StudentService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IAuthService, AuthService>(); 
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>(); 
+builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
-builder.Services.AddScoped<IStudyPlanService, StudyPlanService>();
-builder.Services.AddScoped<ISubjectService, SubjectService>();
-
+// validacion del JWT. La clave vive en user-secrets, nunca en el repo.
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("Falta 'Jwt:Key'. Configurala con user-secrets.");
 
@@ -51,11 +43,12 @@ builder.Services
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
             ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero,
+            ClockSkew = TimeSpan.Zero, // sin margen: un token vencido da 401 en el momento
             NameClaimType = "sub",
             RoleClaimType = "role"
         };
     });
+
 
 builder.Services.AddAuthorization(options =>
 {
@@ -63,6 +56,21 @@ builder.Services.AddAuthorization(options =>
         .RequireAuthenticatedUser()
         .Build();
 });
+
+builder.Services.AddScoped<IStudyPlanService, StudyPlanService>();
+
+builder.Services.AddScoped<ISubjectService, SubjectService>();
+
+// E4: inscripciones y validacion de correlatividades.
+builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
+builder.Services.AddScoped<IPrerequisiteValidationService, PrerequisiteValidationService>();
+builder.Services.AddScoped<IComisionesRepository, ComisionesRepository>();
+builder.Services.AddScoped<ITeacherSubjectRepository, TeacherSubjectRepository>();
+builder.Services.AddScoped<IComisionesService, ComisionesService>();
+builder.Services.AddScoped<ITeacherSubjectService, TeacherSubjectService>();
+builder.Services.AddScoped<IInscripcionesService, InscripcionesService>();
+builder.Services.AddScoped<ISubjectScheduleService, SubjectScheduleService>();
+builder.Services.AddScoped<IStudentService, StudentService>();
 
 // Lets the React frontend (Vite, http://localhost:5173) call this API.
 const string FrontendCorsPolicy = "Frontend";

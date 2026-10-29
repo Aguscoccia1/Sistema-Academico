@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useAsyncResource } from '../../../../hooks/useAsyncResource';
-import { request } from '../../../../services/httpClient';
+import { registrationService } from '../../../../services/registrationService';
 import { studyPlanService } from '../../../../services/studyPlanService';
 
 export function useEnrollments(planId) {
@@ -12,12 +12,12 @@ export function useEnrollments(planId) {
     const detailedPlans = await Promise.all(
       selectedPlans.map((plan) => studyPlanService.obtenerPorId(plan.id)),
     );
-    const students = await request('/api/inscripciones/estudiantes');
+    const students = await registrationService.obtenerEstudiantes();
     const enrollmentsByStudent = await Promise.all(
       students.map(async (student) => ({
         student,
-        enrollments: await request(
-          `/api/inscripciones/estudiante/${student.id}`,
+        enrollments: await registrationService.consultarInscripcionesEstudiante(
+          student.id
         ),
       })),
     );
