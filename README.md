@@ -10,14 +10,16 @@ El sistema tiene dos perfiles: **Secretario** y **Estudiante**.
 
 ## Dónde estamos
 
-Actualizado al 19/10/2026. Esto es lo que ya está integrado en `development`:
+Actualizado al 28/10/2026. Esto es lo que ya está integrado en `development`:
 
 | Equipo | Qué ya está integrado | Qué sigue |
 |---|---|---|
-| **E1** — Acceso e Integración | Login con correo y contraseña, cierre y vencimiento de sesión, roles y permisos, menú por rol y la API de usuarios. | Pantalla de gestión de usuarios y recuperación de contraseña. |
-| **E2** — Secretaría | Todavía nada: su trabajo está en el fork y no abrió el Pull Request. | Abrir el Pull Request hacia `development`. |
-| **E3** — Gestión Académica | API y pantallas de planes de estudio y materias, solo para el Secretario. | Correlatividades, guardar las materias desde el detalle del plan y las bajas. |
-| **E4** — Inscripciones | Pantallas de inscripción y "Mis inscripciones", todavía vacías, y los endpoints de materias disponibles y validación de correlativas. | Registrar sus servicios en `Program.cs`, conectar las pantallas a la API y guardar la inscripción. |
+| **E1** — Acceso e Integración | Login, cierre y vencimiento de sesión con renovación automática, roles y permisos, menú por rol, y la API y la pantalla de usuarios. | Recuperación de contraseña. |
+| **E2** — Secretaría | Todavía nada: su trabajo está en el fork y no abrió el Pull Request. | Corregir lo que dice la bitácora y abrir el Pull Request. |
+| **E3** — Gestión Académica | API y pantallas de planes de estudio y materias, y la pantalla de correlatividades. | Guardar las correlatividades en la base, bajas y cursos. |
+| **E4** — Inscripciones | Materias disponibles, validación de correlativas e inscripción, con las pantallas conectadas a la API. | Mostrar la comisión para poder inscribirse desde la pantalla y leer "Mis inscripciones" de la base. |
+
+El detalle de cada integración, cómo se probó y los pendientes de cada equipo están en la [bitácora de integración](documentos/bitacora-de-integracion.md).
 
 Ya no hay datos simulados: lo que todavía no está conectado a la API aparece vacío. Las llamadas a la API van en `src/services/`, con un archivo por cada controller del backend: [cómo usarla](#cómo-llamar-a-la-api-desde-el-frontend).
 
@@ -395,6 +397,7 @@ En el backend, cada equipo agrega sus endpoints en `backend/AcademicSystem.Api/C
 
 - [flujo-git.md](documentos/flujo-git.md) — guía completa del trabajo diario, con conflictos y casos raros.
 - [integracion-y-releases.md](documentos/integracion-y-releases.md) — cómo integra y promueve el E1.
+- [bitacora-de-integracion.md](documentos/bitacora-de-integracion.md) — qué entró en cada integración, cómo se probó y qué falta.
 - [configuracion-github.md](documentos/configuracion-github.md) — configuración del repositorio en GitHub.
 
 **Del login y los permisos (las arma el E1)**
