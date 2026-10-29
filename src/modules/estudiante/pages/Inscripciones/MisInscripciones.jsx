@@ -5,8 +5,8 @@ import MisInscripcionesRow from './components/MisInscripcionesRow';
 
 function MisInscripciones() {
   const navigate = useNavigate();
-  const { materiasPreparadas } = useInscripciones();
-  const inscriptas = materiasPreparadas.filter((materia) => materia.estado === 'R');
+  const { misInscripciones } = useInscripciones();
+  const inscriptas = misInscripciones;
 
   return (
     <section className="estudiante-dashboard">
@@ -59,7 +59,7 @@ function MisInscripciones() {
             </thead>
             <tbody>
               {inscriptas.map((materia) => (
-                <MisInscripcionesRow key={materia.id} materia={materia} />
+                <MisInscripcionesRow key={materia.enrollmentId} materia={materia} />
               ))}
             </tbody>
           </table>

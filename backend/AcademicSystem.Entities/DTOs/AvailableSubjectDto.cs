@@ -6,7 +6,8 @@ public sealed record AvailableSubjectDto(
     int Id,
     int Code,
     string Name,
-    int CourseYear);
+    int CourseYear,
+    byte? Term);
 
 /// <summary>Available subjects and an optional message when the list is empty.</summary>
 public sealed record AvailableSubjectsResponseDto(

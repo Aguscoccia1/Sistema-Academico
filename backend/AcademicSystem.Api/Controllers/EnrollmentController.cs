@@ -12,17 +12,39 @@ public class EnrollmentController(IEnrollmentService enrollmentService, ILogger<
 {
     
     [HttpGet("available-subjects")]
+    [ProducesResponseType(typeof(AvailableSubjectsResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<AvailableSubjectsResponseDto>> GetAvailable(CancellationToken cancellationToken)
     {
+        if (!int.TryParse(User.FindFirst("sub")?.Value, out int userId))
+        {
+            return Unauthorized(new { message = "No se pudo identificar al usuario autenticado." });
+        }
+
         try
         {
-            var result = await enrollmentService.GetAvailableAsync(cancellationToken);
+            var result = await enrollmentService.GetAvailableAsync(userId, cancellationToken);
+
+            if (result is null)
+            {
+                return NotFound(new { message = "No se encontró el perfil de estudiante del usuario autenticado." });
+            }
+
             return Ok(result);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error al consultar las materias disponibles.");
-            return StatusCode(500, "Error al consultar las materias disponibles.");
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new { message = "Error interno del servidor al consultar las materias disponibles." });
         }
     }
 

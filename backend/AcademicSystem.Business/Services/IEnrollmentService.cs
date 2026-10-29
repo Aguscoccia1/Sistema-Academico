@@ -4,7 +4,9 @@ namespace AcademicSystem.Business.Services;
 
 public interface IEnrollmentService
 {
-    Task<AvailableSubjectsResponseDto> GetAvailableAsync(CancellationToken cancellationToken = default);
+    Task<AvailableSubjectsResponseDto?> GetAvailableAsync(
+        int userId,
+        CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<StudentEnrollmentDto>?> GetStudentEnrollmentsAsync(
         int userId,
