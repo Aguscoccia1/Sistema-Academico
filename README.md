@@ -252,6 +252,33 @@ VITE_API_BASE_URL=http://localhost:5000
 
 Después reiniciá `npm run dev`. Ese archivo no se sube al repositorio.
 
+### Horarios de materias por comisión
+
+Las comisiones se identifican por `SubjectId` + `Section`. Los horarios se guardan por materia y sección en `SubjectSchedules`.
+
+Para consultar un horario:
+
+```http
+GET http://localhost:5000/api/horarios-materias?materiaId=1&seccion=A
+```
+
+Para configurar un horario, un usuario con rol Secretario puede enviar:
+
+```http
+POST http://localhost:5000/api/horarios-materias
+Content-Type: application/json
+
+{
+  "subjectId": 1,
+  "section": "A",
+  "day": "Monday",
+  "startTime": "14:00:00",
+  "endTime": "16:00:00"
+}
+```
+
+El día debe estar en inglés (`Monday` a `Sunday`). El backend rechaza rangos inválidos y horarios duplicados o superpuestos para la misma materia, sección y día. Si todavía no hay una comisión para la materia, el `POST` crea la combinación materia-sección al guardar el horario; entonces aparecerá en el selector. Para crear la tabla en una base existente, ejecutá de nuevo `database/AcademicSystem.sql` desde Management Studio; el script conserva los datos existentes.
+
 ### Cómo llamar a la API desde el frontend
 
 Todas las llamadas a la API pasan por `src/services/`. Hay un archivo por cada controller del backend. Los que pertenecen a un solo model van en su carpeta: `estudiante/` y `secretario/`.
@@ -265,6 +292,11 @@ Todas las llamadas a la API pasan por `src/services/`. Hay un archivo por cada c
 | `rolesService.js` | `RolesController` | Roles |
 | `studyPlanService.js` | `StudyPlanController` | Planes de estudio |
 | `subjectService.js` | `SubjectController` | Materias |
+| `comisionesService.js` | `ComisionesController` | Comisiones |
+| `registrationService.js` | `RegistrationController` | Inscripciones |
+| `estudiante/studentAdministrationService.js` | `StudentController` | Administración de estudiantes |
+| `docente/teachersService.js` | `TeachersController` | Docentes |
+| `subjectScheduleService.js` | `HorariosMateriasController` | Horarios por materia y comisión |
 | `estudiante/enrollmentService.js` | `EnrollmentController` | Materias disponibles para inscribirse |
 | `estudiante/prerequisiteValidationService.js` | `PrerequisiteValidationController` | Validar correlativas |
 | `estudiante/studentsService.js` | `StudentsController` | Estudiantes |

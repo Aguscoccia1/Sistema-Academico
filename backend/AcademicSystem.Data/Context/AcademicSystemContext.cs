@@ -46,6 +46,8 @@ public partial class AcademicSystemContext : DbContext
 
     public virtual DbSet<Subject> Subjects { get; set; }
 
+    public virtual DbSet<SubjectSchedule> SubjectSchedules { get; set; }
+
     public virtual DbSet<SubjectProgram> SubjectPrograms { get; set; }
 
     public virtual DbSet<Teacher> Teachers { get; set; }
@@ -328,6 +330,24 @@ public partial class AcademicSystemContext : DbContext
             entity.Property(e => e.Course).HasMaxLength(50);
             entity.Property(e => e.Format).HasMaxLength(50);
             entity.Property(e => e.Name).HasMaxLength(150);
+        });
+
+        modelBuilder.Entity<SubjectSchedule>(entity =>
+        {
+            entity.HasIndex(
+                e => new { e.SubjectId, e.Section, e.Day, e.StartTime, e.EndTime },
+                "UQ_SubjectSchedules_SubjectSectionDayTime")
+                .IsUnique();
+
+            entity.Property(e => e.Day).HasMaxLength(10);
+            entity.Property(e => e.Section).HasMaxLength(20);
+            entity.Property(e => e.StartTime).HasPrecision(0);
+            entity.Property(e => e.EndTime).HasPrecision(0);
+
+            entity.HasOne(d => d.Subject).WithMany(p => p.SubjectSchedules)
+                .HasForeignKey(d => d.SubjectId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_SubjectSchedules_Subjects");
         });
 
         modelBuilder.Entity<SubjectProgram>(entity =>

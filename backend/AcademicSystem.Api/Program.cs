@@ -64,6 +64,13 @@ builder.Services.AddScoped<ISubjectService, SubjectService>();
 // E4: inscripciones y validacion de correlatividades.
 builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
 builder.Services.AddScoped<IPrerequisiteValidationService, PrerequisiteValidationService>();
+builder.Services.AddScoped<IComisionesRepository, ComisionesRepository>();
+builder.Services.AddScoped<ITeacherSubjectRepository, TeacherSubjectRepository>();
+builder.Services.AddScoped<IComisionesService, ComisionesService>();
+builder.Services.AddScoped<ITeacherSubjectService, TeacherSubjectService>();
+builder.Services.AddScoped<IInscripcionesService, InscripcionesService>();
+builder.Services.AddScoped<ISubjectScheduleService, SubjectScheduleService>();
+builder.Services.AddScoped<IStudentService, StudentService>();
 
 // Lets the React frontend (Vite, http://localhost:5173) call this API.
 const string FrontendCorsPolicy = "Frontend";
