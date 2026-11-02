@@ -47,7 +47,7 @@ public class EnrollmentController(IEnrollmentService enrollmentService, ILogger<
                 new { message = "Error interno del servidor al consultar las materias disponibles." });
         }
     }
-
+    
     [HttpGet("me")]
     [ProducesResponseType(typeof(IReadOnlyList<StudentEnrollmentDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(object), StatusCodes.Status401Unauthorized)]
