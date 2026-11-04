@@ -16,7 +16,9 @@ var connectionString = builder.Configuration.GetConnectionString("AcademicSystem
     ?? throw new InvalidOperationException("Missing connection string 'AcademicSystem' in appsettings.json.");
 
 builder.Services.AddDbContext<AcademicSystemContext>(options => options.UseSqlServer(connectionString));
-builder.Services.AddScoped<IUserRepository, UserRepository>(); 
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IStudyPlanRepository, StudyPlanRepository>();
+builder.Services.AddScoped<ISubjectRepository, SubjectRepository>(); 
 
 // Business: each team registers its services here, one line per service.
 builder.Services.AddScoped<IHealthService, HealthService>();

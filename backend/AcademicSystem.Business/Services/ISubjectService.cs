@@ -1,12 +1,11 @@
 using AcademicSystem.Entities.DTOs;
-using AcademicSystem.Entities.Models;
-
+ 
 namespace AcademicSystem.Business.Services;
-
+ 
 public interface ISubjectService
 {
-    List<SubjectResponseDto> GetAll();
-    Subject? GetById(int id);
-    Subject Create(Subject subject);
-    Subject? Update(int id, Subject changes);   
+    Task<List<SubjectResponseDto>> GetAllAsync(CancellationToken ct);
+    Task<SubjectResponseDto?> GetByIdAsync(int id, CancellationToken ct);
+    Task<SubjectResponseDto> CreateAsync(SubjectRequestDto request, CancellationToken ct);
+    Task<SubjectResponseDto?> UpdateAsync(int id, SubjectRequestDto request, CancellationToken ct);   // null si la materia no existe
 }
