@@ -26,4 +26,12 @@ export const studyPlanService = {
       method: 'POST',
       body: JSON.stringify(materiaDelPlan),
     }),
+
+  obtenerCorrelativas: (planId) => request(`/api/StudyPlan/${planId}/prerequisites`),
+
+  guardarCorrelativas: (planId, subjectId, prerequisiteSubjectIds) =>
+    request(`/api/StudyPlan/${planId}/subjects/${subjectId}/prerequisites`, {
+      method: 'PUT',
+      body: JSON.stringify({ prerequisiteSubjectIds }),
+    }),
 };

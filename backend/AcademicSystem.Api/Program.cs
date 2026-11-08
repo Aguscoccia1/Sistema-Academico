@@ -19,6 +19,7 @@ builder.Services.AddDbContext<AcademicSystemContext>(options => options.UseSqlSe
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IStudyPlanRepository, StudyPlanRepository>();
 builder.Services.AddScoped<ISubjectRepository, SubjectRepository>(); 
+builder.Services.AddScoped<IPrerequisiteRepository, PrerequisiteRepository>();
 
 // Business: each team registers its services here, one line per service.
 builder.Services.AddScoped<IHealthService, HealthService>();
@@ -60,6 +61,7 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddScoped<IStudyPlanService, StudyPlanService>();
+builder.Services.AddScoped<IPrerequisiteService, PrerequisiteService>();
 
 builder.Services.AddScoped<ISubjectService, SubjectService>();
 

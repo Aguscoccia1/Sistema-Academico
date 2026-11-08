@@ -61,6 +61,14 @@ const agregarMateria = async (planId, fila) => {
     term: REGIMENES[fila.regimen] ?? null,
   });
 };
+
+const agruparCorrelativas = (items) => {
+  const correlativas = {};
+  items.forEach(({ subjectId, prerequisiteSubjectId }) => {
+    correlativas[subjectId] = [...(correlativas[subjectId] ?? []), prerequisiteSubjectId];
+  });
+  return correlativas;
+};
  
 export const plansApi = {
   obtenerPlanes: async () => (await studyPlanService.obtenerTodos()).map(adaptarPlan),
@@ -88,4 +96,9 @@ export const plansApi = {
   },
  
   actualizarMateria: (materia) => subjectService.actualizar(materia.subjectId, prepararMateria(materia)),
+
+  obtenerCorrelativas: async (planId) => agruparCorrelativas(await studyPlanService.obtenerCorrelativas(planId)),
+
+  guardarCorrelativas: async (planId, subjectId, correlativasIds) =>
+    agruparCorrelativas(await studyPlanService.guardarCorrelativas(planId, subjectId, correlativasIds)),
 };
