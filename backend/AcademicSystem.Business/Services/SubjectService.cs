@@ -1,63 +1,81 @@
 using AcademicSystem.Entities.DTOs;
 using AcademicSystem.Entities.Models;
-using AcademicSystem.Data.Context;
+using AcademicSystem.Data.Repositories;
 
 namespace AcademicSystem.Business.Services;
 
 public class SubjectService : ISubjectService
 {
-    private readonly AcademicSystemContext _context;
-
-    public SubjectService(AcademicSystemContext context)
+    private readonly ISubjectRepository _subjectRepository;
+ 
+    public SubjectService(ISubjectRepository subjectRepository)
     {
-        _context = context;
+        _subjectRepository = subjectRepository;
     }
 
-    public List<SubjectResponseDto> GetAll()
+    public async Task<List<SubjectResponseDto>> GetAllAsync(CancellationToken ct)
     {
-        return _context.Subjects
-            .Select(s => new SubjectResponseDto
-            {
-                Id = s.Id,
-                Name = s.Name,
-                OrderNumber = s.OrderNumber,
-                Format = s.Format,
-                LectureHours = s.LectureHours,
-                TotalHours = s.TotalHours,
-                Course = s.Course
-            })
+        List<Subject> subjects = await _subjectRepository.GetAllAsync(ct);
+ 
+        return subjects
+            .Select(ToResponse)
             .ToList();
     }
-
-    public Subject? GetById(int id)
+ 
+    public async Task<SubjectResponseDto?> GetByIdAsync(int id, CancellationToken ct)
     {
-        return _context.Subjects.FirstOrDefault(s => s.Id == id);
+        Subject? subject = await _subjectRepository.GetByIdAsync(id, ct);
+ 
+        return subject == null ? null : ToResponse(subject);
     }
-
-    public Subject Create(Subject subject)
+ 
+    public async Task<SubjectResponseDto> CreateAsync(SubjectRequestDto request, CancellationToken ct)
     {
-        _context.Subjects.Add(subject);
-        _context.SaveChanges();
-        return subject;
+        Subject subject = new Subject();
+        CopyFields(request, subject);
+ 
+        _subjectRepository.Add(subject);
+        await _subjectRepository.SaveChangesAsync(ct);
+ 
+        return ToResponse(subject);
     }
-
-    public Subject? Update(int id, Subject changes)
+ 
+    public async Task<SubjectResponseDto?> UpdateAsync(int id, SubjectRequestDto request, CancellationToken ct)
     {
-        Subject? existing = _context.Subjects.FirstOrDefault(s => s.Id == id);
-
-        if (existing == null)
+        Subject? subject = await _subjectRepository.GetByIdAsync(id, ct);
+ 
+        if (subject == null)
         {
             return null;
         }
-
-        existing.Name = changes.Name;
-        existing.OrderNumber = changes.OrderNumber;
-        existing.Format = changes.Format;
-        existing.LectureHours = changes.LectureHours;
-        existing.TotalHours = changes.TotalHours;
-        existing.Course = changes.Course;
-
-        _context.SaveChanges();
-        return existing;
+ 
+        CopyFields(request, subject);
+        await _subjectRepository.SaveChangesAsync(ct);
+ 
+        return ToResponse(subject);
+    }
+ 
+    public static SubjectResponseDto ToResponse(Subject subject)
+    {
+        return new SubjectResponseDto
+        {
+            Id = subject.Id,
+            Name = subject.Name,
+            OrderNumber = subject.OrderNumber,
+            Format = subject.Format,
+            LectureHours = subject.LectureHours,
+            TotalHours = subject.TotalHours,
+            Course = subject.Course
+        };
+    }
+ 
+    private static void CopyFields(SubjectRequestDto source, Subject target)
+    {
+        target.Name = source.Name;
+        target.OrderNumber = source.OrderNumber;
+        target.Format = source.Format;
+        target.LectureHours = source.LectureHours;
+        target.TotalHours = source.TotalHours;
+        target.Course = source.Course;
     }
 }

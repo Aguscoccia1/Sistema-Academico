@@ -21,151 +21,104 @@ public class SubjectController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetAll()
+    public async Task<IActionResult> GetAll(CancellationToken ct)
     {
         try
         {
-            List<SubjectResponseDto> subjects = _subjectService.GetAll();
-
-            return Ok(subjects);
+            return Ok(await _subjectService.GetAllAsync(ct));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error inesperado");
+            _logger.LogError(ex, "Error al consultar las materias");
             return StatusCode(500, "Ocurrió un error inesperado. Intentá de nuevo más tarde.");
         }
     }
 
     [HttpGet("{id}")]
-    public IActionResult GetById(int id)
+    public async Task<IActionResult> GetById(int id, CancellationToken ct)
     {
         try
         {
-            Subject? subject = _subjectService.GetById(id);
-
+            SubjectResponseDto? subject = await _subjectService.GetByIdAsync(id, ct);
+ 
             if (subject == null)
             {
                 return NotFound("No se encontró la materia.");
             }
-
-            SubjectResponseDto response = new SubjectResponseDto
-            {
-                Id = subject.Id,
-                Name = subject.Name,
-                OrderNumber = subject.OrderNumber,
-                Format = subject.Format,
-                LectureHours = subject.LectureHours,
-                TotalHours = subject.TotalHours,
-                Course = subject.Course
-            };
-
-            return Ok(response);
+ 
+            return Ok(subject);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error inesperado");
+            _logger.LogError(ex, "Error al consultar la materia {Id}", id);
             return StatusCode(500, "Ocurrió un error inesperado. Intentá de nuevo más tarde.");
         }
     }
 
     [HttpPost]
-    public IActionResult Create([FromBody] SubjectRequestDto newSubject)
+    public async Task<IActionResult> Create([FromBody] SubjectRequestDto newSubject, CancellationToken ct)
     {
         try
         {
-            if (newSubject == null || string.IsNullOrWhiteSpace(newSubject.Name))
+            string? error = ValidateSubject(newSubject);
+ 
+            if (error != null)
             {
-                return BadRequest("Debe ingresar el nombre de la materia.");
+                return BadRequest(error);
             }
-
-            if (newSubject.LectureHours < 0 || newSubject.TotalHours < 0)
-            {
-                return BadRequest("Las horas no pueden ser negativas.");
-            }
-
-            Subject subject = new Subject
-            {
-                Name = newSubject.Name,
-                OrderNumber = newSubject.OrderNumber,
-                Format = newSubject.Format,
-                LectureHours = newSubject.LectureHours,
-                TotalHours = newSubject.TotalHours,
-                Course = newSubject.Course
-            };
-
-            Subject created = _subjectService.Create(subject);
-
-            SubjectResponseDto response = new SubjectResponseDto
-            {
-                Id = created.Id,
-                Name = created.Name,
-                OrderNumber = created.OrderNumber,
-                Format = created.Format,
-                LectureHours = created.LectureHours,
-                TotalHours = created.TotalHours,
-                Course = created.Course
-            };
-
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, response);
+ 
+            SubjectResponseDto savedSubject = await _subjectService.CreateAsync(newSubject, ct);
+ 
+            return CreatedAtAction(nameof(GetById), new { id = savedSubject.Id }, savedSubject);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error inesperado");
+            _logger.LogError(ex, "Error al crear la materia");
             return StatusCode(500, "Ocurrió un error inesperado. Intentá de nuevo más tarde.");
         }
     }
 
     [HttpPut("{id}")]
-    public IActionResult Update(int id, [FromBody] SubjectRequestDto updatedSubject)
+    public async Task<IActionResult> Update(int id, [FromBody] SubjectRequestDto updatedSubject, CancellationToken ct)
     {
         try
         {
-            if (updatedSubject == null || string.IsNullOrWhiteSpace(updatedSubject.Name))
+            string? error = ValidateSubject(updatedSubject);
+ 
+            if (error != null)
             {
-                return BadRequest("Debe ingresar el nombre de la materia.");
+                return BadRequest(error);
             }
-
-            if (updatedSubject.LectureHours < 0 || updatedSubject.TotalHours < 0)
-            {
-                return BadRequest("Las horas no pueden ser negativas.");
-            }
-
-            Subject changes = new Subject
-            {
-                Name = updatedSubject.Name,
-                OrderNumber = updatedSubject.OrderNumber,
-                Format = updatedSubject.Format,
-                LectureHours = updatedSubject.LectureHours,
-                TotalHours = updatedSubject.TotalHours,
-                Course = updatedSubject.Course
-            };
-
-            Subject? updated = _subjectService.Update(id, changes);
-
-            if (updated == null)
+ 
+            SubjectResponseDto? savedSubject = await _subjectService.UpdateAsync(id, updatedSubject, ct);
+ 
+            if (savedSubject == null)
             {
                 return NotFound("No se encontró la materia.");
             }
-
-            SubjectResponseDto response = new SubjectResponseDto
-            {
-                Id = updated.Id,
-                Name = updated.Name,
-                OrderNumber = updated.OrderNumber,
-                Format = updated.Format,
-                LectureHours = updated.LectureHours,
-                TotalHours = updated.TotalHours,
-                Course = updated.Course
-            };
-
-            return Ok(response);
+ 
+            return Ok(savedSubject);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error inesperado");
+            _logger.LogError(ex, "Error al actualizar la materia {Id}", id);
             return StatusCode(500, "Ocurrió un error inesperado. Intentá de nuevo más tarde.");
         }
     }
 
+    private static string? ValidateSubject(SubjectRequestDto request)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.Name))
+        {
+            return "Debe ingresar el nombre de la materia.";
+        }
+ 
+        if (request.LectureHours < 0 || request.TotalHours < 0)
+        {
+            return "Las horas no pueden ser negativas.";
+        }
+ 
+        return null;
+    }
     
 }
