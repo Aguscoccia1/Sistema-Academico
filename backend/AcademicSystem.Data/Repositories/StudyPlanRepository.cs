@@ -82,4 +82,39 @@ public class StudyPlanRepository : IStudyPlanRepository
     {
         await _context.SaveChangesAsync(ct);
     }
+
+    public async Task<bool> RemoveSubjectFromPlanAsync(
+    int studyPlanId,
+    int subjectId,
+    CancellationToken ct)
+{
+    StudyPlanSubject? planSubject = await _context.StudyPlanSubjects
+        .Include(item => item.AssessmentInstances)
+        .FirstOrDefaultAsync(
+            item => item.StudyPlanId == studyPlanId && item.SubjectId == subjectId,
+            ct);
+
+    if (planSubject == null)
+    {
+        return false;
+    }
+
+    if (planSubject.AssessmentInstances.Count > 0)
+    {
+        throw new InvalidOperationException(
+            "No se puede quitar la materia porque tiene evaluaciones asociadas.");
+    }
+
+    var prerequisites = await _context.Prerequisites
+        .Where(item =>
+            item.StudyPlanId == studyPlanId
+            && (item.SubjectId == subjectId || item.PrerequisiteSubjectId == subjectId))
+        .ToListAsync(ct);
+
+    _context.Prerequisites.RemoveRange(prerequisites);
+    _context.StudyPlanSubjects.Remove(planSubject);
+
+    await _context.SaveChangesAsync(ct);
+    return true;
+}
 }

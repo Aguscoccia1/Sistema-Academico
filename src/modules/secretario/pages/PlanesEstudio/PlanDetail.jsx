@@ -74,21 +74,32 @@ function PlanDetalle({ plan, onBack }) {
     setEditingSubject(null);
   };
 
-  const handleDeleteSubject = (subject) => {
-    if (!window.confirm(`¿Eliminar la materia "${subject.materia}"?`)) return;
-    setMaterias((current) => current.filter((materia) => materia.id !== subject.id));
+  const handleDeleteSubject = async (subject) => {
+    if (!window.confirm(`¿Eliminar la materia "${subject.materia}" de este plan?`)) return;
 
-    const cleanUp = (source) => {
-      const result = {};
-      Object.entries(source).forEach(([id, list]) => {
-        if (String(id) === String(subject.subjectId)) return;
-        result[id] = list.filter((correlativeId) => correlativeId !== subject.subjectId);
-      });
-      return result;
-    };
-    setCorrelatives(cleanUp);
-    setDraftCorrelatives(cleanUp);
-    if (selectedSubjectId === subject.subjectId) setSelectedSubjectId(null);
+    try {
+      await plansApi.quitarMateria(plan.id, subject.subjectId);
+
+      setMaterias((current) => current.filter((materia) => materia.id !== subject.id));
+
+      const cleanUp = (source) => {
+        const result = {};
+        Object.entries(source).forEach(([id, list]) => {
+          if (String(id) === String(subject.subjectId)) return;
+          result[id] = list.filter((correlativeId) => correlativeId !== subject.subjectId);
+        });
+        return result;
+      };
+
+      setCorrelatives(cleanUp);
+      setDraftCorrelatives(cleanUp);
+
+      if (selectedSubjectId === subject.subjectId) {
+        setSelectedSubjectId(null);
+      }
+    } catch (error) {
+      window.alert(`No se pudo eliminar la materia: ${error.message}`);
+    }
   };
 
   const handleTabChange = (tab) => {
@@ -109,24 +120,50 @@ function PlanDetalle({ plan, onBack }) {
     });
   };
 
+  const getChangedCorrelativeIds = () => {
+    const subjectIds = new Set([
+      ...Object.keys(correlatives),
+      ...Object.keys(draftCorrelatives),
+    ]);
+
+    return [...subjectIds].filter((subjectId) => {
+      const saved = [...(correlatives[subjectId] ?? [])].sort((a, b) => a - b);
+      const draft = [...(draftCorrelatives[subjectId] ?? [])].sort((a, b) => a - b);
+
+      return saved.length !== draft.length
+        || saved.some((id, index) => id !== draft[index]);
+    });
+  };
+
   const requestSaveCorrelatives = () => {
-    if (!selectedSubjectId) {
-      setCorrelativeNotice('Seleccioná una materia para guardar sus correlatividades.');
+    if (getChangedCorrelativeIds().length === 0) {
+      setCorrelativeNotice('No hay cambios para guardar.');
       return;
     }
+
     setCorrelativeNotice('');
     setIsConfirmingCorrelatives(true);
   };
 
   const confirmSaveCorrelatives = async () => {
+    const changedSubjectIds = getChangedCorrelativeIds();
+
     setIsSavingCorrelatives(true);
     try {
-      const saved = await plansApi.guardarCorrelativas(plan.id, selectedSubjectId, draftCorrelatives[selectedSubjectId] ?? []);
+      let saved = correlatives;
+
+      for (const subjectId of changedSubjectIds) {
+        saved = await plansApi.guardarCorrelativas(
+          plan.id,
+          Number(subjectId),
+          draftCorrelatives[subjectId] ?? [],
+        );
+      }
+
       setCorrelatives(saved);
       setDraftCorrelatives(saved);
       setCorrelativeNotice('Las correlatividades se guardaron correctamente.');
     } catch (error) {
-      // solo se avisa que se guardó si la API respondió bien
       setCorrelativeNotice(error.message);
     } finally {
       setIsSavingCorrelatives(false);

@@ -19,6 +19,11 @@ builder.Services.AddDbContext<AcademicSystemContext>(options => options.UseSqlSe
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IStudyPlanRepository, StudyPlanRepository>();
 builder.Services.AddScoped<ISubjectRepository, SubjectRepository>(); 
+builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
+builder.Services.AddScoped<IHealthRepository, HealthRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IStudentProfileRepository, StudentProfileRepository>();
+builder.Services.AddScoped<IAcademicSecretaryRepository, AcademicSecretaryRepository>();
 builder.Services.AddScoped<IPrerequisiteRepository, PrerequisiteRepository>();
 
 // Business: each team registers its services here, one line per service.
@@ -28,6 +33,9 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>(); 
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IStudentProfileService, StudentProfileService>();
+builder.Services.AddScoped<IAcademicSecretaryService, AcademicSecretaryService>();
 // validacion del JWT. La clave vive en user-secrets, nunca en el repo.
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("Falta 'Jwt:Key'. Configurala con user-secrets.");

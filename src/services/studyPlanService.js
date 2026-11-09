@@ -34,4 +34,9 @@ export const studyPlanService = {
       method: 'PUT',
       body: JSON.stringify({ prerequisiteSubjectIds }),
     }),
+
+  quitarMateria: (planId, subjectId) =>
+    request(`/api/StudyPlan/${planId}/subjects/${subjectId}`, {
+      method: 'DELETE',
+    }),
 };

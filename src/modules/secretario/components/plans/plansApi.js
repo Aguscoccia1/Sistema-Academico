@@ -101,4 +101,7 @@ export const plansApi = {
 
   guardarCorrelativas: async (planId, subjectId, correlativasIds) =>
     agruparCorrelativas(await studyPlanService.guardarCorrelativas(planId, subjectId, correlativasIds)),
+
+  quitarMateria: (planId, subjectId) =>
+    studyPlanService.quitarMateria(planId, subjectId),
 };

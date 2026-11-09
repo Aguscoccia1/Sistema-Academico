@@ -4,4 +4,7 @@ public sealed record StudentEnrollmentDto(
     int EnrollmentId,
     int SubjectId,
     string SubjectName,
-    string Section);
+    string Section,
+    int? CourseYear,
+    byte? Term,
+    string? FinalStatus);

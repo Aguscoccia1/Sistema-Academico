@@ -1,62 +1,40 @@
-using AcademicSystem.Data.Context;
+using AcademicSystem.Data.Repositories;
 using AcademicSystem.Entities.DTOs;
 using AcademicSystem.Entities.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace AcademicSystem.Business.Services;
 
-public class UserService(AcademicSystemContext context) : IUserService
+public class UserService(IUserRepository userRepository) : IUserService
 {
     private readonly PasswordHasher<User> passwordHasher = new();
 
-    public Task<List<UserResponseDto>> GetAllAsync(CancellationToken ct) =>
-        context.Users.AsNoTracking()
-            .OrderBy(u => u.LastName).ThenBy(u => u.FirstName)
-            .Select(u => new UserResponseDto(u.Id, u.FirstName, u.LastName, u.Cuil, u.BirthDate, u.Address,
-                u.RoleId, u.Role.Name, u.Email, u.Phone, u.EmergencyContactPhone, u.IsActive))
-            .ToListAsync(ct);
+    public Task<List<UserResponseDto>> GetAllAsync(CancellationToken ct) => userRepository.GetAllAsync(ct);
 
-    public Task<UserResponseDto?> GetByIdAsync(int id, CancellationToken ct) =>
-        context.Users.AsNoTracking()
-            .Where(u => u.Id == id)
-            .Select(u => new UserResponseDto(u.Id, u.FirstName, u.LastName, u.Cuil, u.BirthDate, u.Address,
-                u.RoleId, u.Role.Name, u.Email, u.Phone, u.EmergencyContactPhone, u.IsActive))
-            .SingleOrDefaultAsync(ct);
+    public Task<UserResponseDto?> GetByIdAsync(int id, CancellationToken ct) => userRepository.GetByIdAsync(id, ct);
 
-    public Task<bool> RoleExistsAsync(int roleId, CancellationToken ct) =>
-        context.Roles.AnyAsync(r => r.Id == roleId, ct);
+    public Task<bool> RoleExistsAsync(int roleId, CancellationToken ct) => userRepository.RoleExistsAsync(roleId, ct);
 
-    public Task<string?> GetRoleNameAsync(int roleId, CancellationToken ct) =>
-        context.Roles.Where(r => r.Id == roleId).Select(r => r.Name).SingleOrDefaultAsync(ct);
+    public Task<string?> GetRoleNameAsync(int roleId, CancellationToken ct) => userRepository.GetRoleNameAsync(roleId, ct);
 
     public Task<bool> CuilOrEmailExistsAsync(string cuil, string email, CancellationToken ct) =>
-        context.Users.AnyAsync(u => u.Cuil == cuil || u.Email == email, ct);
+        userRepository.CuilOrEmailExistsAsync(cuil, email, ct);
 
     public Task<bool> CuilOrEmailExistsAsync(string cuil, string email, int excludeId, CancellationToken ct) =>
-        context.Users.AnyAsync(u => u.Id != excludeId && (u.Cuil == cuil || u.Email == email), ct);
+        userRepository.CuilOrEmailExistsAsync(cuil, email, excludeId, ct);
 
-    public Task<bool> HasStudentProfileAsync(int userId, CancellationToken ct) =>
-        context.Students.AnyAsync(s => s.UserId == userId, ct);
+    public Task<bool> HasStudentProfileAsync(int userId, CancellationToken ct) => userRepository.HasStudentProfileAsync(userId, ct);
 
-    public Task<bool> HasSecretaryProfileAsync(int userId, CancellationToken ct) =>
-        context.AcademicSecretaries.AnyAsync(s => s.UserId == userId, ct);
+    public Task<bool> HasSecretaryProfileAsync(int userId, CancellationToken ct) => userRepository.HasSecretaryProfileAsync(userId, ct);
 
     public async Task<bool> IsLastActiveSecretaryAsync(int userId, CancellationToken ct)
     {
-        var user = await context.Users.Where(u => u.Id == userId)
-            .Select(u => new { u.IsActive, RoleName = u.Role.Name })
-            .SingleOrDefaultAsync(ct);
-
-        if (user is null || !user.IsActive || user.RoleName != RoleNames.AcademicSecretary)
+        if (!await userRepository.IsActiveWithRoleAsync(userId, RoleNames.AcademicSecretary, ct))
         {
             return false;
         }
 
-        var otherActive = await context.Users.AnyAsync(u => u.Id != userId && u.IsActive
-            && u.Role.Name == RoleNames.AcademicSecretary, ct);
-
-        return !otherActive;
+        return !await userRepository.OtherActiveWithRoleExistsAsync(userId, RoleNames.AcademicSecretary, ct);
     }
 
     public async Task<UserResponseDto> CreateAsync(UserRequestDto input, CancellationToken ct)
@@ -77,8 +55,8 @@ public class UserService(AcademicSystemContext context) : IUserService
 
         user.PasswordHash = passwordHasher.HashPassword(user, input.Password!);
 
-        context.Users.Add(user);
-        await context.SaveChangesAsync(ct);
+        userRepository.Add(user);
+        await userRepository.SaveChangesAsync(ct);
 
         string roleName = await GetRoleNameAsync(user.RoleId, ct) ?? "";
 
@@ -87,7 +65,7 @@ public class UserService(AcademicSystemContext context) : IUserService
 
     public async Task<UserResponseDto?> UpdateAsync(int id, UserRequestDto input, CancellationToken ct)
     {
-        User? user = await context.Users.SingleOrDefaultAsync(u => u.Id == id, ct);
+        User? user = await userRepository.FindAsync(id, ct);
 
         if (user is null)
         {
@@ -110,7 +88,7 @@ public class UserService(AcademicSystemContext context) : IUserService
             user.PasswordHash = passwordHasher.HashPassword(user, input.Password);
         }
 
-        await context.SaveChangesAsync(ct);
+        await userRepository.SaveChangesAsync(ct);
 
         string roleName = await GetRoleNameAsync(user.RoleId, ct) ?? "";
 
@@ -119,7 +97,7 @@ public class UserService(AcademicSystemContext context) : IUserService
 
     public async Task<bool> DeleteAsync(int id, CancellationToken ct)
     {
-        User? user = await context.Users.SingleOrDefaultAsync(u => u.Id == id, ct);
+        User? user = await userRepository.FindAsync(id, ct);
 
         if (user is null)
         {
@@ -127,7 +105,7 @@ public class UserService(AcademicSystemContext context) : IUserService
         }
 
         user.IsActive = false;
-        await context.SaveChangesAsync(ct);
+        await userRepository.SaveChangesAsync(ct);
 
         return true;
     }

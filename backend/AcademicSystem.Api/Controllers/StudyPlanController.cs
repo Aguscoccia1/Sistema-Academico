@@ -84,6 +84,39 @@ public class StudyPlanController : ControllerBase
         }
     }
 
+    [HttpDelete("{id:int}/subjects/{subjectId:int}")]
+    public async Task<IActionResult> RemoveSubject(
+        int id,
+        int subjectId,
+        CancellationToken ct)
+    {
+        try
+        {
+            bool removed = await _studyPlanService.RemoveSubjectFromPlanAsync(id, subjectId, ct);
+
+            if (!removed)
+            {
+                return NotFound("La materia no forma parte de este plan de estudio.");
+            }
+
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Error al quitar la materia {SubjectId} del plan de estudio {Id}",
+                subjectId,
+                id);
+
+            return StatusCode(500, "Ocurrió un error inesperado. Intentá de nuevo más tarde.");
+        }
+    }
+
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] StudyPlanRequestDto updatedStudyPlan, CancellationToken ct)
     {

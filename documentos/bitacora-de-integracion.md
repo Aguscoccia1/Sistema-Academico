@@ -7,21 +7,22 @@ Registro de todo lo que entró a `development`: qué trajo cada equipo, cómo se
 1. Cada equipo trabaja en su fork, en su rama (`e1`, `e2`, `e3` o `e4`), y abre un Pull Request hacia `development`.
 2. El E1 revisa cada PR antes de mergearlo:
    - compila el frontend (`npm run build` y `npm run lint`) y el backend (`dotnet build`);
+   - comprueba que el backend respete las capas: controller, service, repository y base;
    - prueba la API contra una base nueva creada con `database/AcademicSystem.sql`, con el usuario Secretario y con el Estudiante;
    - prueba las pantallas en el navegador;
    - combina las ramas de todos los equipos para encontrar conflictos antes de que lleguen a `development`.
 3. Lo que funciona se integra. Si algo falla, se le informa al equipo para que lo corrija en su rama: el E1 no corrige el código de otros equipos.
 
-## Estado al 29/10/2026
+## Estado al 08/11/2026
 
 Los cuatro equipos ya tienen su trabajo integrado en `development`.
 
 | Equipo | Qué está integrado | Qué falta |
 |---|---|---|
-| **E1** — Acceso e Integración | Login, cierre y vencimiento de sesión (con renovación automática), roles y permisos, menú por rol, API y pantalla de gestión de usuarios. | Recuperación de contraseña (no hay servidor SMTP). |
-| **E2** — Secretaría | Inscripción a 1.º año, ver y modificar estudiantes, comisiones con asignación automática, gestión de cupos, docentes con asignación de materias y horarios por comisión, con las pantallas conectadas a la API. | Hacer el resumen de inscripciones con menos pedidos a la API. |
+| **E1** — Acceso e Integración | Login, cierre y vencimiento de sesión (con renovación automática), roles y permisos, menú por rol, API y pantalla de gestión de usuarios. | Auditoría de accesos (S2-9), menú según los permisos de la API (S2-10) y recuperación de contraseña (S2-7, sin servidor SMTP). |
+| **E2** — Secretaría | Inscripción a 1.º año, ver y modificar estudiantes, comisiones con asignación automática, gestión de cupos, docentes con asignación de materias y horarios por comisión, con las pantallas conectadas a la API. | Pasar su backend a las cuatro capas y hacer el resumen de inscripciones con menos pedidos a la API. |
 | **E3** — Gestión Académica | API y pantallas de planes de estudio y materias, pantalla de correlatividades. | Guardar las correlatividades en la base, bajas y cursos. |
-| **E4** — Inscripciones | Materias disponibles, validación de correlativas e inscripción con control de duplicados (API); pantallas conectadas a la API. | Que la lista de materias informe la comisión y que "Mis inscripciones" lea la base. |
+| **E4** — Inscripciones | Materias disponibles, validación de correlativas, inscripción desde la pantalla y "Mis inscripciones" leyendo la base. | Pasar la validación de correlativas a repositorio y definir el período de inscripción. |
 
 ## Línea de tiempo
 
@@ -41,6 +42,7 @@ Los cuatro equipos ya tienen su trabajo integrado en `development`.
 | 19/10 | Integración del E4 (PR #5). Carpeta `src/services`. Se sacan los datos simulados. |
 | 28/10 | Integración del E1 (pantalla de usuarios y renovación de sesión), del E3 (PR #8) y del E4 (PR #5). Revisión del E2 con guía de correcciones. |
 | 29/10 | El E2 aplica las correcciones y se integra. Los cuatro equipos quedan en `development`. |
+| 08/11 | Integración del E3 y el E4 con sus pases a repositorios. El E1 pasa a las cuatro capas. Se define la regla controller, service, repository y base. |
 
 ## Integraciones
 
@@ -116,43 +118,69 @@ Los cuatro equipos ya tienen su trabajo integrado en `development`.
   - navegador: 13 de 13. Las 7 pantallas del E2 andan sin errores en la consola, Usuarios y Planes siguen funcionando, el estudiante no entra a las pantallas del Secretario y la inscripción del estudiante sigue andando.
 - **Cómo entró:** no abrió Pull Request. Se integró mergeando su rama del fork, igual que la del E1.
 
+### 08/11 — Repositorios del E3 y el E4, y capas del E1
+
+- **Regla nueva:** toda request recorre controller, service, repository y base. El README decía que el service usaba el contexto y el ejemplo `HealthService` iba directo a la base: se corrigieron los dos.
+- **E3 (rama `e3`, sin Pull Request):** `StudyPlan` y `Subject` pasaron a repositorios.
+- **E4 (rama `e4`, sin Pull Request):**
+  - `Enrollment` pasó a repositorio;
+  - el backend asigna la comisión al inscribir, así que inscribirse desde la pantalla guarda en la base;
+  - "Mis inscripciones" lee la base y se mantiene al recargar.
+- **E1:**
+  - `StudentsController`, `AcademicSecretariesController` y `RolesController` dejaron de usar la base: su lógica pasó a services y sus consultas a repositorios;
+  - `UserService` y `HealthService` pasaron a repositorios.
+- **Error corregido en el E1:** crear o editar un perfil de estudiante o de secretario siempre devolvía 400, porque esos controllers recibían el model de la base. Ahora reciben DTOs y responden con sus validaciones.
+- **Verificación:**
+  - frontend y backend compilan, y el lint quedó en 0 errores;
+  - comparación de la API del E1 antes y después con 76 pedidos: solo cambiaron los 27 de crear, editar y borrar perfiles, que antes daban 400; usuarios, roles, login y health respondieron igual;
+  - regresión de API: E1, E3 y E4 25 de 25; E2 24 de 26, y las dos restantes son comportamiento esperado (los horarios los consulta cualquier usuario con sesión y `GET /api/teachers` solo lista docentes con materias);
+  - navegador: 13 de 13 en las pantallas de los cuatro equipos, e inscripción de punta a punta desde la pantalla del estudiante.
+- **Conflicto resuelto:** `Program.cs`, donde E3 y E4 agregaban líneas en el mismo lugar.
+- **Dato para las demos:** una materia solo aparece disponible para el estudiante si tiene docente asignado con comisión. Primero hay que asignar los docentes.
+
 ## Decisiones tomadas
 
 | Tema | Decisión |
 |---|---|
 | Flujo de trabajo | Cada integrante usa su fork y abre un PR hacia `development`. Solo el E1 mergea. |
-| Backend | Capas Api, Business, Data (con el contexto en `Data/Context`) y Entities (`DTOs` y `Models`). Los models se generan desde la base y no se editan a mano. |
+| Backend | Capas Api, Business, Data (con el contexto en `Data/Context` y los repositorios en `Data/Repositories`) y Entities (`DTOs` y `Models`). Los models se generan desde la base y no se editan a mano. |
+| Flujo de una request | Controller, service, repository y base. Las reglas de negocio van en el service. Solo los repositorios usan el contexto. |
 | Conexión a la base | `appsettings.json` apunta a `localhost\SQLEXPRESS`. Cada uno guarda su conexión con `dotnet user-secrets`. |
 | Seguridad | Todo endpoint pide sesión y cada controller declara su rol con `[Authorize(Roles = ...)]`. |
 | Frontend | Las llamadas a la API van en `src/services/`, un archivo por controller. No hay datos simulados en las pantallas. |
 | Recuperación de contraseña | Se posterga: no hay servidor SMTP. Mientras tanto, el secretario puede asignar una contraseña nueva editando al usuario. |
 | Horarios de materias | Los consulta cualquier usuario con sesión (el estudiante también los necesita). Solo el Secretario los carga. |
 
-## Pendientes por equipo (al 29/10/2026)
+## Pendientes por equipo (al 08/11/2026)
 
 ### E1
 
-- Recuperación de contraseña, cuando haya SMTP.
-- Actualizar el paquete `System.Security.Cryptography.Pkcs` 9.0.11 (12 avisos de vulnerabilidad al compilar).
-- Promover `development` a `testing` y después a `production`: `production` sigue en la versión del 28/09.
+- Auditoría de accesos (S2-9): todavía no hay código.
+- Menú según los permisos de la API (S2-10): el menú sigue siendo una lista fija en `permisos.js`.
+- Recuperación de contraseña (S2-7), cuando haya SMTP.
+- Actualizar el paquete `System.Security.Cryptography.Pkcs` 9.0.11, que tiene vulnerabilidades conocidas.
+- Promover `development` a `testing` y a `production`: las dos siguen en la versión del 06/10, sin el trabajo de los equipos.
+- Subir la versión aprobada al GitLab del instituto para el deploy: `https://git.icgb.com.ar/2do2026/gestion-academica`.
 
 ### E2
 
-- El resumen de inscripciones (`useEnrollments`) hace un pedido a la API por cada estudiante: con muchos alumnos va a ser lento. Conviene un endpoint que devuelva el resumen armado.
-- `GET /api/teachers` lista solo los docentes que ya tienen materias asignadas. La pantalla de Docentes arma la lista desde los usuarios, así que no falta nadie, pero conviene que el endpoint devuelva todos.
-- Próximas entregas: que trabajen desde su fork los otros integrantes, porque todos los commits son de Alan, y abrir Pull Request en lugar de pasar solo la rama.
+- `TeachersController` usa la base directo.
+- `InscripcionesService`, `StudentService` y `SubjectScheduleService` usan la base directo: les falta repositorio.
+- En comisiones y docentes las reglas de negocio están en el repositorio y los services solo pasan el llamado: las reglas van en el service.
+- El resumen de inscripciones hace un pedido a la API por cada estudiante; conviene un endpoint que lo devuelva armado.
+- Todos los commits son de Alan: faltan los aportes del resto del equipo.
 
 ### E3
 
-- Las correlatividades solo se guardan en la pantalla: al recargar se pierden, aunque el aviso dice "se guardaron correctamente". Falta el endpoint para guardarlas en la tabla `Prerequisites`, que es la que usa el E4 para validar.
+- Las correlatividades solo se guardan en la pantalla: al recargar se pierden. Falta el endpoint para guardarlas en la tabla `Prerequisites`, que es la que usa el E4 para validar. Hoy nadie puede cargar correlativas.
 - `useSubmit` no vuelve `isSubmitting` a `false` cuando la operación sale bien.
 - Bajas de planes y materias, y cursos.
 
 ### E4
 
-- `GET /api/enrollments/available-subjects` no devuelve la comisión (`section`), y la pantalla la necesita para inscribir. Hoy, desde la pantalla, la inscripción no se puede hacer.
-- "Mis inscripciones" usa lo que quedó en la pantalla y no el endpoint `GET /api/enrollments/me`. Al recargar no muestra lo guardado.
-- `InscripcionesEstudiante.jsx` usa `PERIODO_DE_INSCRIPCION` sin definirla. Es el único error de lint del proyecto y rompería la pantalla si el período se marcara como cerrado.
+- `PrerequisiteValidationService` usa la base directo: le falta repositorio.
+- El período de inscripción está fijo: dice "Sin definir" y siempre figura abierto.
+- Ofrece también materias de 1.º año, y su alcance es 2.º y 3.º.
 - Pasaron `enrollmentService` y `prerequisiteValidationService` a `src/services/estudiante/`. La regla acordada es que esa carpeta tiene solo el service del model Student: hay que decidir si se acepta o vuelven a la raíz de `services/`.
 
 ### Mesa Técnica
@@ -160,22 +188,22 @@ Los cuatro equipos ya tienen su trabajo integrado en `development`.
 - Hay dos controllers de estudiantes: el del E1 (`StudentsController`, `/api/students`) y el del E2 (`StudentController`, `/api/estudiantes`). Hay que decidir cuál queda para cada cosa.
 - Aprobar formalmente la tabla `SubjectSchedules` (horarios por materia y comisión), que entró con el E2.
 
-## Números del proyecto (al 29/10/2026)
+## Números del proyecto (al 08/11/2026)
 
-En `development` hay 104 commits sin contar los merges:
+En `development` hay 113 commits sin contar los merges:
 
 | Integrante | Equipo | Commits |
 |---|---|---|
+| Tomás González | E1 | 20 |
 | Alan Ordóñez | E2 | 17 |
-| Tomás González | E1 | 17 |
 | Lorenzo Caro | E3 | 13 |
 | Joaquín Olmedo | E1 | 12 |
-| Agustín Coccia | E4 | 9 |
+| Agustín Coccia | E4 | 11 |
+| Federico Petta | E3 | 9 |
 | Damián Palacios | E1 | 7 |
 | Carlos Luque Heredia | E1 | 7 |
-| Federico Petta | E3 | 6 |
+| Facundo Pesa Giménez | E4 | 6 |
 | Esteban Soria | E4 | 5 |
-| Facundo Pesa Giménez | E4 | 5 |
 | Franco Petta | E1 | 4 |
 | Jeremías Herrera | E4 | 2 |
 
