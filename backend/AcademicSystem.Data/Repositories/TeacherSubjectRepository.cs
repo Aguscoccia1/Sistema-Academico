@@ -10,6 +10,21 @@ public sealed class TeacherSubjectRepository(AcademicSystemContext context)
 {
     private const string TeacherRoleName = "Teacher";
 
+    public Task<List<TeacherResponseDto>> GetAllTeachersAsync(
+        CancellationToken cancellationToken = default) =>
+        context.Teachers
+            .AsNoTracking()
+            .OrderBy(teacher => teacher.User.LastName)
+            .ThenBy(teacher => teacher.User.FirstName)
+            .Select(teacher => new TeacherResponseDto(
+                teacher.UserId,
+                teacher.User.FirstName,
+                teacher.User.LastName,
+                teacher.User.Cuil,
+                teacher.User.Email,
+                teacher.User.IsActive))
+            .ToListAsync(cancellationToken);
+
     public async Task<TeacherSubjectsResponseDto?> GetAssignmentsAsync(
         int userId,
         CancellationToken cancellationToken = default)
@@ -57,43 +72,19 @@ public sealed class TeacherSubjectRepository(AcademicSystemContext context)
             assignments);
     }
 
-    public async Task<UpdateTeacherSubjectsResultDto> ReplaceAssignmentsAsync(
-        int userId,
-        IReadOnlyList<UpdateTeacherSubjectDto> assignments,
-        CancellationToken cancellationToken = default)
-    {
-        if (assignments.Any(item =>
-                item.SubjectId <= 0 ||
-                item.Section is not ("A" or "B")))
-        {
-            return new UpdateTeacherSubjectsResultDto(
-                true, false, "Cada materia debe tener un ID válido y comisión A o B.");
-        }
-
-        var duplicates = assignments
-            .GroupBy(item => (item.SubjectId, item.Section))
-            .Any(group => group.Count() > 1);
-        if (duplicates)
-        {
-            return new UpdateTeacherSubjectsResultDto(
-                true, false, "No se puede repetir la misma materia y comisión.");
-        }
-
-        var subjectIds = assignments
-            .Select(item => item.SubjectId)
-            .Distinct()
-            .ToList();
-        var existingSubjectIds = await context.Subjects
+    public async Task<IReadOnlyList<int>> GetExistingSubjectIdsAsync(
+        IReadOnlyList<int> subjectIds,
+        CancellationToken cancellationToken = default) =>
+        await context.Subjects
             .Where(subject => subjectIds.Contains(subject.Id))
             .Select(subject => subject.Id)
             .ToListAsync(cancellationToken);
 
-        if (existingSubjectIds.Count != subjectIds.Count)
-        {
-            return new UpdateTeacherSubjectsResultDto(
-                true, false, "Una o más materias seleccionadas no existen.");
-        }
-
+    public async Task<bool> ReplaceAssignmentsAsync(
+        int userId,
+        IReadOnlyList<UpdateTeacherSubjectDto> assignments,
+        CancellationToken cancellationToken = default)
+    {
         await using var transaction = await context.Database.BeginTransactionAsync(
             System.Data.IsolationLevel.Serializable,
             cancellationToken);
@@ -103,8 +94,7 @@ public sealed class TeacherSubjectRepository(AcademicSystemContext context)
                 item => item.Id == userId && item.Role.Name == TeacherRoleName,
                 cancellationToken);
         if (!userExists)
-            return new UpdateTeacherSubjectsResultDto(
-                false, false, "No se encontró un usuario con rol Teacher.");
+            return false;
 
         var teacher = await context.Teachers
             .SingleOrDefaultAsync(item => item.UserId == userId, cancellationToken);
@@ -129,7 +119,6 @@ public sealed class TeacherSubjectRepository(AcademicSystemContext context)
         await context.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
-        return new UpdateTeacherSubjectsResultDto(
-            true, true, "Las materias del docente se guardaron correctamente.");
+        return true;
     }
 }

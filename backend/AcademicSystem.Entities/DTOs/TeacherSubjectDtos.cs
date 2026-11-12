@@ -1,5 +1,13 @@
 namespace AcademicSystem.Entities.DTOs;
 
+public sealed record TeacherResponseDto(
+    int Id,
+    string Nombre,
+    string Apellido,
+    string Dni,
+    string Correo,
+    bool IsActive);
+
 public sealed record TeacherSubjectAssignmentDto(
     int SubjectId,
     string SubjectName,

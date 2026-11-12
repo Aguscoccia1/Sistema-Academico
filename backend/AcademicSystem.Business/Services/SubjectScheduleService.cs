@@ -1,7 +1,6 @@
-using AcademicSystem.Data.Context;
+using AcademicSystem.Data.Repositories;
 using AcademicSystem.Entities.DTOs;
 using AcademicSystem.Entities.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace AcademicSystem.Business.Services;
 
@@ -39,35 +38,23 @@ public interface ISubjectScheduleService
         CancellationToken cancellationToken = default);
 }
 
-public sealed class SubjectScheduleService(AcademicSystemContext context) : ISubjectScheduleService
+public sealed class SubjectScheduleService(ISubjectScheduleRepository repository)
+    : ISubjectScheduleService
 {
     public async Task<ResultadoConsultaHorarios> ObtenerAsync(
         int subjectId,
         string section,
         CancellationToken cancellationToken = default)
     {
-        if (!await context.Subjects.AnyAsync(
-                subject => subject.Id == subjectId,
-                cancellationToken))
+        if (!await repository.SubjectExistsAsync(subjectId, cancellationToken))
         {
             return new ResultadoConsultaHorarios(
                 EstadoConsultaHorarios.MateriaInexistente,
                 []);
         }
 
-        var horarios = await context.SubjectSchedules
-            .AsNoTracking()
-            .Where(schedule =>
-                schedule.SubjectId == subjectId &&
-                schedule.Section == section)
-            .Select(schedule => new HorarioMateriaResponseDto(
-                schedule.Id,
-                schedule.SubjectId,
-                schedule.Section,
-                schedule.Day,
-                schedule.StartTime,
-                schedule.EndTime))
-            .ToListAsync(cancellationToken);
+        var horarios = await repository.GetAsync(
+            subjectId, section, cancellationToken);
 
         var ordenDias = new Dictionary<string, int>(StringComparer.Ordinal)
         {
@@ -92,9 +79,7 @@ public sealed class SubjectScheduleService(AcademicSystemContext context) : ISub
         CrearHorarioMateriaDto solicitud,
         CancellationToken cancellationToken = default)
     {
-        if (!await context.Subjects.AnyAsync(
-                subject => subject.Id == solicitud.SubjectId,
-                cancellationToken))
+        if (!await repository.SubjectExistsAsync(solicitud.SubjectId, cancellationToken))
         {
             return new ResultadoCreacionHorario(
                 EstadoCreacionHorario.MateriaInexistente,
@@ -103,13 +88,12 @@ public sealed class SubjectScheduleService(AcademicSystemContext context) : ISub
 
         var startTime = solicitud.StartTime!.Value;
         var endTime = solicitud.EndTime!.Value;
-        var horarioSuperpuesto = await context.SubjectSchedules.AnyAsync(
-            schedule =>
-                schedule.SubjectId == solicitud.SubjectId &&
-                schedule.Section == solicitud.Section &&
-                schedule.Day == solicitud.Day &&
-                schedule.StartTime < endTime &&
-                schedule.EndTime > startTime,
+        var horarioSuperpuesto = await repository.ExisteSuperpuestoAsync(
+            solicitud.SubjectId,
+            solicitud.Section,
+            solicitud.Day,
+            startTime,
+            endTime,
             cancellationToken);
 
         if (horarioSuperpuesto)
@@ -127,9 +111,9 @@ public sealed class SubjectScheduleService(AcademicSystemContext context) : ISub
             StartTime = startTime,
             EndTime = endTime
         };
-        context.SubjectSchedules.Add(horario);
+        repository.Add(horario);
 
-        await context.SaveChangesAsync(cancellationToken);
+        await repository.SaveChangesAsync(cancellationToken);
         return new ResultadoCreacionHorario(
             EstadoCreacionHorario.Creado,
             new HorarioMateriaResponseDto(

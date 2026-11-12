@@ -146,7 +146,7 @@ const ManageSlots = () => {
             >
               {asignando
                 ? 'Asignando...'
-                : 'Asignar comisiones aleatoriamente'}
+                : 'Inscribir faltantes en una sola comisión por alumno (A/B)'}
             </button>
           </div>
 

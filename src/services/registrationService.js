@@ -31,7 +31,7 @@ export const registrationService = {
         materiaId: Number(materiaId),
         seccion,
       }),
-    }),
+    }), 
 
   consultarMaterias: (anio = 1) =>
     request(`/api/inscripciones/materias?anio=${encodeURIComponent(anio)}`),

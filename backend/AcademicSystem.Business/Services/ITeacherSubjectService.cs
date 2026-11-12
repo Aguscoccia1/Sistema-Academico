@@ -4,6 +4,9 @@ namespace AcademicSystem.Business.Services;
 
 public interface ITeacherSubjectService
 {
+    Task<List<TeacherResponseDto>> GetAllTeachersAsync(
+        CancellationToken cancellationToken = default);
+
     Task<TeacherSubjectsResponseDto?> GetAssignmentsAsync(
         int userId,
         CancellationToken cancellationToken = default);

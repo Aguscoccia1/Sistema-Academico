@@ -30,8 +30,8 @@ public sealed record ComisionResponseDto(
 
 public sealed record AsignacionAleatoriaMasivaRequestDto
 {
-    [Range(1, int.MaxValue)]
-    public int MateriaId { get; init; }
+    [MinLength(1)]
+    public List<int> MateriaIds { get; init; } = [];
 }
 
 public sealed record DistribucionComisionDto(

@@ -51,8 +51,14 @@ public class ComisionesController(IComisionesService comisionesService) : Contro
         [FromBody] AsignacionAleatoriaMasivaRequestDto solicitud,
         CancellationToken cancellationToken)
     {
+        if (solicitud.MateriaIds.Count == 0 ||
+            solicitud.MateriaIds.Any(materiaId => materiaId <= 0))
+        {
+            return BadRequest("Debe incluir materias válidas para la asignación.");
+        }
+
         var resultado = await comisionesService.AsignarAleatoriamenteAsync(
-            solicitud.MateriaId, cancellationToken);
+            solicitud.MateriaIds, cancellationToken);
 
         if (resultado is null)
             return NotFound("No se encontró la materia.");

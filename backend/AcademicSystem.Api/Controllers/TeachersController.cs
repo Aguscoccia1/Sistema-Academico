@@ -1,39 +1,18 @@
 using AcademicSystem.Business.Services;
-using AcademicSystem.Data.Context;
 using AcademicSystem.Entities.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace AcademicSystem.Api.Controllers;
 
 [ApiController]
 [Route("api/teachers")]
 [Authorize(Roles = RoleNames.AcademicSecretary)]
-public sealed class TeachersController(
-    AcademicSystemContext context,
-    ITeacherSubjectService teacherSubjectService) : ControllerBase
+public sealed class TeachersController(ITeacherSubjectService teacherSubjectService) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
-    {
-        var teachers = await context.Teachers
-            .AsNoTracking()
-            .OrderBy(teacher => teacher.User.LastName)
-            .ThenBy(teacher => teacher.User.FirstName)
-            .Select(teacher => new
-            {
-                Id = teacher.UserId,
-                Nombre = teacher.User.FirstName,
-                Apellido = teacher.User.LastName,
-                Dni = teacher.User.Cuil,
-                Correo = teacher.User.Email,
-                teacher.User.IsActive
-            })
-            .ToListAsync(cancellationToken);
-
-        return Ok(teachers);
-    }
+    public async Task<IActionResult> GetAll(CancellationToken cancellationToken) =>
+        Ok(await teacherSubjectService.GetAllTeachersAsync(cancellationToken));
 
     [HttpGet("{userId:int}/subjects")]
     public async Task<ActionResult<TeacherSubjectsResponseDto>> GetAssignments(

@@ -1,12 +1,33 @@
 using System.Data;
 using AcademicSystem.Data.Context;
 using AcademicSystem.Entities.DTOs;
+using AcademicSystem.Entities.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace AcademicSystem.Data.Repositories;
 
 public sealed class ComisionesRepository(AcademicSystemContext context) : IComisionesRepository
 {
+    public async Task<bool> SeccionConfiguradaAsync(
+        int materiaId,
+        string seccion,
+        CancellationToken cancellationToken = default) =>
+        await context.TeacherSubjects.AnyAsync(
+            assignment =>
+                assignment.SubjectId == materiaId &&
+                assignment.Section == seccion,
+            cancellationToken) ||
+        await context.SubjectSchedules.AnyAsync(
+            schedule =>
+                schedule.SubjectId == materiaId &&
+                schedule.Section == seccion,
+            cancellationToken) ||
+        await context.StudentSubjects.AnyAsync(
+            enrollment =>
+                enrollment.SubjectId == materiaId &&
+                enrollment.Section == seccion,
+            cancellationToken);
+
     public async Task<IReadOnlyList<ComisionResponseDto>> ObtenerTodasAsync(
         int? materiaId,
         CancellationToken cancellationToken = default)
@@ -108,23 +129,32 @@ public sealed class ComisionesRepository(AcademicSystemContext context) : IComis
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<AsignacionAleatoriaMasivaResponseDto?> AsignarAleatoriamenteAsync(
+    public async Task<T> EjecutarConBloqueoAsync<T>(
         int materiaId,
-        CancellationToken cancellationToken = default)
+        Func<Task<T>> accion,
+        CancellationToken cancellationToken = default) =>
+        await EjecutarConBloqueoAsync(
+            $"comisiones-asignacion-materia-{materiaId}",
+            accion,
+            cancellationToken);
+
+    public Task<T> EjecutarAsignacionMasivaConBloqueoAsync<T>(
+        Func<Task<T>> accion,
+        CancellationToken cancellationToken = default) =>
+        EjecutarConBloqueoAsync(
+            "comisiones-asignacion-masiva",
+            accion,
+            cancellationToken);
+
+    private async Task<T> EjecutarConBloqueoAsync<T>(
+        string lockResource,
+        Func<Task<T>> accion,
+        CancellationToken cancellationToken)
     {
         await using var transaction = await context.Database.BeginTransactionAsync(
             IsolationLevel.Serializable,
             cancellationToken);
 
-        var materia = await context.Subjects
-            .Where(subject => subject.Id == materiaId)
-            .Select(subject => subject.Name)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (materia is null)
-            return null;
-
-        var lockResource = $"comisiones-asignacion-materia-{materiaId}";
         await context.Database.ExecuteSqlInterpolatedAsync(
             $"""
             DECLARE @lockResult int;
@@ -140,107 +170,55 @@ public sealed class ComisionesRepository(AcademicSystemContext context) : IComis
             """,
             cancellationToken);
 
-        var seccionesConfiguradas = await context.TeacherSubjects
+        var resultado = await accion();
+        await transaction.CommitAsync(cancellationToken);
+        return resultado;
+    }
+
+    public Task<string?> GetNombreMateriaAsync(
+        int materiaId,
+        CancellationToken cancellationToken = default) =>
+        context.Subjects
+            .Where(subject => subject.Id == materiaId)
+            .Select(subject => subject.Name)
+            .FirstOrDefaultAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<string>> GetSeccionesConfiguradasAsync(
+        int materiaId,
+        CancellationToken cancellationToken = default) =>
+        await context.SubjectSchedules
             .AsNoTracking()
-            .Where(assignment => assignment.SubjectId == materiaId)
-            .Select(assignment => assignment.Section)
-            .Concat(context.SubjectSchedules
-                .AsNoTracking()
-                .Where(schedule => schedule.SubjectId == materiaId)
-                .Select(schedule => schedule.Section))
+            .Where(schedule => schedule.SubjectId == materiaId)
+            .Select(schedule => schedule.Section)
             .ToListAsync(cancellationToken);
 
-        var inscripciones = await context.StudentSubjects
+    public Task<List<StudentSubject>> GetInscripcionesAsync(
+        int materiaId,
+        CancellationToken cancellationToken = default) =>
+        context.StudentSubjects
             .Where(enrollment => enrollment.SubjectId == materiaId)
             .ToListAsync(cancellationToken);
 
-        var secciones = seccionesConfiguradas
-            .Concat(inscripciones.Select(enrollment => enrollment.Section))
-            .Select(NormalizarSeccion)
-            .OfType<string>()
-            .Distinct(StringComparer.Ordinal)
-            .OrderBy(section => section)
-            .ToList();
+    public Task<List<StudentSubject>> GetAllEnrollmentsAsync(
+        CancellationToken cancellationToken = default) =>
+        context.StudentSubjects
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
 
-        if (secciones.Count == 0)
-        {
-            await transaction.CommitAsync(cancellationToken);
-            return new AsignacionAleatoriaMasivaResponseDto(
-                false,
-                "La materia no tiene comisiones A o B disponibles.",
-                0,
-                []);
-        }
+    public Task<List<int>> GetStudentIdsWithoutEnrollmentAsync(
+        int materiaId,
+        CancellationToken cancellationToken = default) =>
+        context.Students
+            .Where(student =>
+                !context.StudentSubjects.Any(enrollment =>
+                    enrollment.StudentId == student.Id &&
+                    enrollment.SubjectId == materiaId))
+            .Select(student => student.Id)
+            .ToListAsync(cancellationToken);
 
-        var cantidadPorSeccion = secciones.ToDictionary(
-            section => section,
-            _ => 0,
-            StringComparer.Ordinal);
-        foreach (var inscripcion in inscripciones)
-        {
-            var seccion = NormalizarSeccion(inscripcion.Section);
-            if (seccion is not null && cantidadPorSeccion.ContainsKey(seccion))
-                cantidadPorSeccion[seccion]++;
-        }
+    public void AddInscripciones(IEnumerable<StudentSubject> inscripciones) =>
+        context.StudentSubjects.AddRange(inscripciones);
 
-        var pendientes = inscripciones
-            .Where(enrollment => string.IsNullOrWhiteSpace(enrollment.Section))
-            .ToList();
-        Shuffle(pendientes);
-
-        var cantidadAsignadaPorSeccion = secciones.ToDictionary(
-            section => section,
-            _ => 0,
-            StringComparer.Ordinal);
-
-        foreach (var inscripcion in pendientes)
-        {
-            var menorCantidad = cantidadPorSeccion.Values.Min();
-            var seccionesMenosPobladas = secciones
-                .Where(section => cantidadPorSeccion[section] == menorCantidad)
-                .ToArray();
-            var seccion = seccionesMenosPobladas[
-                Random.Shared.Next(seccionesMenosPobladas.Length)];
-
-            inscripcion.Section = seccion;
-            cantidadPorSeccion[seccion]++;
-            cantidadAsignadaPorSeccion[seccion]++;
-        }
-
-        if (pendientes.Count > 0)
-            await context.SaveChangesAsync(cancellationToken);
-
-        await transaction.CommitAsync(cancellationToken);
-
-        var distribucionFinal = string.Join(
-            "; ",
-            secciones.Select(section => $"Comisión {section}: {cantidadPorSeccion[section]}"));
-        var mensaje = pendientes.Count == 0
-            ? $"No hay inscripciones pendientes. Distribución final: {distribucionFinal}."
-            : $"Se asignaron {pendientes.Count} inscripciones. Distribución final: {distribucionFinal}.";
-
-        return new AsignacionAleatoriaMasivaResponseDto(
-            true,
-            mensaje,
-            pendientes.Count,
-            cantidadAsignadaPorSeccion
-                .OrderBy(pair => pair.Key)
-                .Select(pair => new DistribucionComisionDto(pair.Key, pair.Value))
-                .ToList());
-    }
-
-    private static string? NormalizarSeccion(string? seccion)
-    {
-        var seccionNormalizada = seccion?.Trim().ToUpperInvariant();
-        return seccionNormalizada is "A" or "B" ? seccionNormalizada : null;
-    }
-
-    private static void Shuffle<T>(IList<T> items)
-    {
-        for (var index = items.Count - 1; index > 0; index--)
-        {
-            var randomIndex = Random.Shared.Next(index + 1);
-            (items[index], items[randomIndex]) = (items[randomIndex], items[index]);
-        }
-    }
+    public Task SaveChangesAsync(CancellationToken cancellationToken = default) =>
+        context.SaveChangesAsync(cancellationToken);
 }

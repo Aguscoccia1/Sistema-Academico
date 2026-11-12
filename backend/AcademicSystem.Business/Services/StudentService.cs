@@ -1,7 +1,6 @@
 
-using AcademicSystem.Data.Context;
+using AcademicSystem.Data.Repositories;
 using AcademicSystem.Entities.DTOs;
-using Microsoft.EntityFrameworkCore;
 
 namespace AcademicSystem.Business.Services;
 
@@ -23,41 +22,28 @@ public interface IStudentService
         CancellationToken cancellationToken = default);
 }
 
-public class StudentService(AcademicSystemContext context) : IStudentService
+public sealed class StudentService(
+    IStudentRepository studentRepository,
+    IComisionesRepository comisionesRepository) : IStudentService
 {
-    public async Task<EstudianteResponseDto?> ObtenerPorIdAsync(
+    public Task<EstudianteResponseDto?> ObtenerPorIdAsync(
         int id,
-        CancellationToken cancellationToken = default)
-    {
-        return await (
-            from student in context.Students
-            join user in context.Users on student.UserId equals user.Id
-            where student.Id == id
-            select new EstudianteResponseDto(
-                student.Id,
-                student.FirstName,
-                student.LastName,
-                student.Dni,
-                student.RecordNumber,
-                user.Email))
-            .FirstOrDefaultAsync(cancellationToken);
-    }
+        CancellationToken cancellationToken = default) =>
+        studentRepository.GetByIdAsync(id, cancellationToken);
 
     public async Task<EstadoModificacionEstudiante> ModificarAsync(
         int id,
         ModificarEstudianteDto datos,
         CancellationToken cancellationToken = default)
     {
-        var estudiante = await context.Students
-            .FirstOrDefaultAsync(student => student.Id == id, cancellationToken);
+        var estudiante = await studentRepository.FindAsync(id, cancellationToken);
 
         if (estudiante is null)
             return EstadoModificacionEstudiante.NoEncontrado;
 
         var dni = datos.Dni.Trim();
-        if (await context.Students.AnyAsync(
-                student => student.Dni == dni && student.Id != id,
-                cancellationToken))
+        if (await studentRepository.DniExistsForOtherAsync(
+                id, dni, cancellationToken))
         {
             return EstadoModificacionEstudiante.DniDuplicado;
         }
@@ -66,7 +52,7 @@ public class StudentService(AcademicSystemContext context) : IStudentService
         estudiante.LastName = datos.Apellido.Trim();
         estudiante.Dni = dni;
 
-        await context.SaveChangesAsync(cancellationToken);
+        await studentRepository.SaveChangesAsync(cancellationToken);
         return EstadoModificacionEstudiante.Actualizado;
     }
 
@@ -76,34 +62,16 @@ public class StudentService(AcademicSystemContext context) : IStudentService
         string seccion,
         CancellationToken cancellationToken = default)
     {
-        var inscripcion = await context.StudentSubjects
-            .FirstOrDefaultAsync(
-                enrollment =>
-                    enrollment.StudentId == estudianteId &&
-                    enrollment.SubjectId == materiaId,
-                cancellationToken);
+        var inscripcion = await studentRepository.FindEnrollmentAsync(
+            estudianteId, materiaId, cancellationToken);
 
         if (inscripcion is null)
             return EstadoReasignacionComision.InscripcionNoEncontrada;
 
         var seccionNormalizada = seccion.Trim();
         var comisionEstandar = seccionNormalizada is "A" or "B";
-        var comisionConfigurada =
-            await context.TeacherSubjects.AnyAsync(
-                assignment =>
-                    assignment.SubjectId == materiaId &&
-                    assignment.Section == seccionNormalizada,
-                cancellationToken) ||
-            await context.SubjectSchedules.AnyAsync(
-                schedule =>
-                    schedule.SubjectId == materiaId &&
-                    schedule.Section == seccionNormalizada,
-                cancellationToken) ||
-            await context.StudentSubjects.AnyAsync(
-                enrollment =>
-                    enrollment.SubjectId == materiaId &&
-                    enrollment.Section == seccionNormalizada,
-                cancellationToken);
+        var comisionConfigurada = await comisionesRepository.SeccionConfiguradaAsync(
+            materiaId, seccionNormalizada, cancellationToken);
 
         if (!comisionEstandar && !comisionConfigurada)
         {
@@ -114,7 +82,7 @@ public class StudentService(AcademicSystemContext context) : IStudentService
             return EstadoReasignacionComision.YaAsignada;
 
         inscripcion.Section = seccionNormalizada;
-        await context.SaveChangesAsync(cancellationToken);
+        await studentRepository.SaveChangesAsync(cancellationToken);
 
         return EstadoReasignacionComision.Reasignada;
     }
