@@ -107,7 +107,7 @@ function InscripcionesEstudiante() {
 
       {!periodoAbierto && (
         <div className="estudiante-periodo-cerrado" role="status">
-          El período de inscripciones ({PERIODO_DE_INSCRIPCION}) se encuentra cerrado.
+          El período de inscripciones ({PERIODO_TEXTO}) se encuentra cerrado.
         </div>
       )}
 

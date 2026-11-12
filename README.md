@@ -10,14 +10,14 @@ El sistema tiene dos perfiles: **Secretario** y **Estudiante**.
 
 ## Dónde estamos
 
-Actualizado al 28/10/2026. Esto es lo que ya está integrado en `development`:
+Actualizado al 08/11/2026. Los cuatro equipos ya tienen su trabajo integrado en `development`:
 
 | Equipo | Qué ya está integrado | Qué sigue |
 |---|---|---|
-| **E1** — Acceso e Integración | Login, cierre y vencimiento de sesión con renovación automática, roles y permisos, menú por rol, y la API y la pantalla de usuarios. | Recuperación de contraseña. |
-| **E2** — Secretaría | Todavía nada: su trabajo está en el fork y no abrió el Pull Request. | Corregir lo que dice la bitácora y abrir el Pull Request. |
+| **E1** — Acceso e Integración | Login, cierre y vencimiento de sesión con renovación automática, roles y permisos, menú por rol, y la API y la pantalla de usuarios. | Auditoría de accesos, menú según los permisos de la API y recuperación de contraseña. |
+| **E2** — Secretaría | Inscripción a 1.º año, ver y modificar estudiantes, comisiones y cupos, docentes con sus materias y horarios por comisión, con las pantallas conectadas a la API. | Pasar su backend a las cuatro capas. |
 | **E3** — Gestión Académica | API y pantallas de planes de estudio y materias, y la pantalla de correlatividades. | Guardar las correlatividades en la base, bajas y cursos. |
-| **E4** — Inscripciones | Materias disponibles, validación de correlativas e inscripción, con las pantallas conectadas a la API. | Mostrar la comisión para poder inscribirse desde la pantalla y leer "Mis inscripciones" de la base. |
+| **E4** — Inscripciones | Materias disponibles, validación de correlativas, inscripción desde la pantalla y "Mis inscripciones". | Pasar la validación de correlativas a repositorio y definir el período de inscripción. |
 
 El detalle de cada integración, cómo se probó y los pendientes de cada equipo están en la [bitácora de integración](documentos/bitacora-de-integracion.md).
 
@@ -321,13 +321,14 @@ const planes = await studyPlanService.obtenerTodos();
 backend/
 ├── AcademicSystem.Api/                 → endpoints (Controllers) y configuración
 ├── AcademicSystem.Business/Services/   → la lógica de cada funcionalidad
+├── AcademicSystem.Data/Repositories/   → el único lugar que consulta y guarda en la base
 ├── AcademicSystem.Data/Context/        → la conexión a la base (AcademicSystemContext)
 └── AcademicSystem.Entities/
     ├── DTOs/                           → lo que la API recibe y devuelve
     └── Models/                         → una clase por cada tabla de la base
 ```
 
-Cada funcionalidad recorre las cuatro capas en el mismo orden: el controller llama a un servicio, el servicio usa el contexto, y el contexto trabaja con los models. La API devuelve DTOs, nunca los models directamente. El ejemplo para copiar es el de `/api/health`: `HealthController`, `HealthService` y `HealthResponseDto`. Cada servicio nuevo se registra con una línea en `Program.cs`; si falta, el endpoint responde error 500.
+**Toda request recorre las cuatro capas en este orden: controller, service, repository y base.** El controller recibe el pedido y llama a un service. El service tiene las reglas de negocio y llama a un repository. El repository es el único que usa el contexto para consultar o guardar. Un controller nunca usa el contexto, y un service tampoco. La API devuelve DTOs, nunca los models directamente. El ejemplo para copiar es el de `/api/health`: `HealthController`, `HealthService`, `HealthRepository` y `HealthResponseDto`. Para un caso completo con altas y validaciones, mirá `StudentsController`, `StudentProfileService` y `StudentProfileRepository`. Cada service y cada repository nuevos se registran con una línea en `Program.cs`; si falta, el endpoint responde error 500.
 
 Todos los endpoints piden sesión iniciada. Además, cada controller dice qué rol lo puede usar, con `[Authorize(Roles = RoleNames.AcademicSecretary)]` o `[Authorize(Roles = RoleNames.Student)]`: [cómo proteger un endpoint](documentos/Proteger%20un%20endpoint.md).
 
@@ -366,7 +367,7 @@ src/
 
 Cada equipo crea en `src/services/` el service de cada controller que agregue.
 
-En el backend, cada equipo agrega sus endpoints en `backend/AcademicSystem.Api/Controllers/`, su lógica en `backend/AcademicSystem.Business/Services/` y sus DTOs en `backend/AcademicSystem.Entities/DTOs/`.
+En el backend, cada equipo agrega sus endpoints en `backend/AcademicSystem.Api/Controllers/`, su lógica en `backend/AcademicSystem.Business/Services/`, sus consultas a la base en `backend/AcademicSystem.Data/Repositories/` y sus DTOs en `backend/AcademicSystem.Entities/DTOs/`.
 
 ---
 

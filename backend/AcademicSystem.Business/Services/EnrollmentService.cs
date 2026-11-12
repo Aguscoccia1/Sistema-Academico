@@ -1,46 +1,25 @@
-﻿using AcademicSystem.Data.Context;
+using AcademicSystem.Data.Repositories;
 using AcademicSystem.Entities.DTOs;
-using AcademicSystem.Entities.Models;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
 
 namespace AcademicSystem.Business.Services;
 
 public sealed class EnrollmentService(
-    AcademicSystemContext context,
+    IEnrollmentRepository enrollmentRepository,
     IPrerequisiteValidationService prerequisiteValidationService) : IEnrollmentService
 {
     private const string ApprovedStatus = "Aprobado";
 
-    public async Task<AvailableSubjectsResponseDto> GetAvailableAsync(
+    public async Task<AvailableSubjectsResponseDto?> GetAvailableAsync(
+        int userId,
         CancellationToken cancellationToken = default)
     {
-        var rows = await context.StudyPlanSubjects
-            .AsNoTracking()
-            .Where(planSubject =>
-                planSubject.StudyPlan.IsActive &&
-                planSubject.Subject.TeacherSubjects.Any())
-            .Select(planSubject => new
-            {
-                planSubject.StudyPlanId,
-                planSubject.Subject.Id,
-                planSubject.Subject.Name,
-                planSubject.CourseYear
-            })
-            .Distinct()
-            .OrderBy(subject => subject.CourseYear)
-            .ThenBy(subject => subject.Name)
-            .ToListAsync(cancellationToken);
+        int? studentId = await enrollmentRepository.GetStudentIdByUserIdAsync(userId, cancellationToken);
+        if (studentId is null)
+        {
+            return null;
+        }
 
-        var subjects = rows
-            .Select(row => new AvailableSubjectDto(
-                row.StudyPlanId,
-                row.Id,
-                row.Id,
-                row.Name,
-                row.CourseYear))
-            .ToList();
-
+        var subjects = await enrollmentRepository.GetAvailableSubjectsAsync(cancellationToken);
         return new AvailableSubjectsResponseDto(
             subjects.Count == 0
                 ? "No hay materias disponibles para inscripción en el período vigente."
@@ -52,28 +31,13 @@ public sealed class EnrollmentService(
         int userId,
         CancellationToken cancellationToken = default)
     {
-        int? studentId = await context.Students
-            .AsNoTracking()
-            .Where(student => student.UserId == userId)
-            .Select(student => (int?)student.Id)
-            .SingleOrDefaultAsync(cancellationToken);
-
+        int? studentId = await enrollmentRepository.GetStudentIdByUserIdAsync(userId, cancellationToken);
         if (studentId is null)
         {
             return null;
         }
 
-        return await context.StudentSubjects
-            .AsNoTracking()
-            .Where(enrollment => enrollment.StudentId == studentId.Value)
-            .OrderBy(enrollment => enrollment.Subject.Name)
-            .ThenBy(enrollment => enrollment.Section)
-            .Select(enrollment => new StudentEnrollmentDto(
-                enrollment.Id,
-                enrollment.SubjectId,
-                enrollment.Subject.Name,
-                enrollment.Section))
-            .ToListAsync(cancellationToken);
+        return await enrollmentRepository.GetStudentEnrollmentsAsync(studentId.Value, cancellationToken);
     }
 
     public async Task<EnrollmentResult> EnrollAsync(
@@ -81,12 +45,7 @@ public sealed class EnrollmentService(
         StudentSubjectRequestDto request,
         CancellationToken cancellationToken = default)
     {
-        int? studentId = await context.Students
-            .AsNoTracking()
-            .Where(student => student.UserId == userId)
-            .Select(student => (int?)student.Id)
-            .SingleOrDefaultAsync(cancellationToken);
-
+        int? studentId = await enrollmentRepository.GetStudentIdByUserIdAsync(userId, cancellationToken);
         if (studentId is null)
         {
             return new EnrollmentResult(
@@ -94,20 +53,16 @@ public sealed class EnrollmentService(
                 Message: "No se encontró el perfil de estudiante del usuario autenticado.");
         }
 
-        var existingEnrollment = await context.StudentSubjects
-            .AsNoTracking()
-            .Where(item => item.StudentId == studentId.Value && item.SubjectId == request.SubjectId)
-            .Select(item => new
-            {
-                FinalStatus = item.CourseRecord == null ? null : item.CourseRecord.FinalStatus
-            })
-            .SingleOrDefaultAsync(cancellationToken);
+        var existingEnrollment = await enrollmentRepository.GetEnrollmentAsync(
+            studentId.Value,
+            request.SubjectId,
+            cancellationToken);
 
         if (existingEnrollment is not null)
         {
             return new EnrollmentResult(
                 EnrollmentResultStatus.Conflict,
-                Message: GetExistingEnrollmentMessage(existingEnrollment.FinalStatus));
+                Message: GetExistingEnrollmentMessage(existingEnrollment.CourseRecord?.FinalStatus));
         }
 
         var validation = await prerequisiteValidationService.ValidateAsync(
@@ -141,42 +96,27 @@ public sealed class EnrollmentService(
                 Validation: validation);
         }
 
-        bool sectionIsAvailable = await context.StudyPlanSubjects
-            .AsNoTracking()
-            .AnyAsync(item =>
-                item.StudyPlanId == request.StudyPlanId
-                && item.SubjectId == request.SubjectId
-                && item.StudyPlan.IsActive
-                && item.Subject.TeacherSubjects.Any(teacherSubject =>
-                    teacherSubject.Section == request.Section),
-                cancellationToken);
+        var creationResult = await enrollmentRepository.CreateEnrollmentAsync(
+            studentId.Value,
+            request.SubjectId,
+            cancellationToken);
 
-        if (!sectionIsAvailable)
-        {
-            return new EnrollmentResult(
-                EnrollmentResultStatus.InvalidRequest,
-                Message: "La materia o comisión seleccionada no está disponible para inscripción.");
-        }
-
-        var enrollment = new StudentSubject
-        {
-            StudentId = studentId.Value,
-            SubjectId = request.SubjectId,
-            Section = request.Section
-        };
-
-        context.StudentSubjects.Add(enrollment);
-
-        try
-        {
-            await context.SaveChangesAsync(cancellationToken);
-        }
-        catch (DbUpdateException exception) when (IsUniqueConstraintViolation(exception))
+        if (creationResult.Status == EnrollmentCreationStatus.AlreadyExists)
         {
             return new EnrollmentResult(
                 EnrollmentResultStatus.Conflict,
-                Message: "Ya existe una inscripción o un registro de cursada para esta materia.");
+                Message: GetExistingEnrollmentMessage(creationResult.ExistingFinalStatus));
         }
+
+        if (creationResult.Status == EnrollmentCreationStatus.NoAvailableSections)
+        {
+            return new EnrollmentResult(
+                EnrollmentResultStatus.InvalidRequest,
+                Message: "La materia no tiene comisiones A o B disponibles.");
+        }
+
+        var enrollment = creationResult.Enrollment
+            ?? throw new InvalidOperationException("El repositorio no devolvió la inscripción creada.");
 
         return new EnrollmentResult(
             EnrollmentResultStatus.Created,
@@ -202,11 +142,5 @@ public sealed class EnrollmentService(
         }
 
         return "Ya cursaste esta materia. Volver a cursarla no está disponible en el sistema actual; consultá con Secretaría.";
-    }
-
-    private static bool IsUniqueConstraintViolation(DbUpdateException exception)
-    {
-        return exception.GetBaseException() is SqlException sqlException
-            && (sqlException.Number == 2601 || sqlException.Number == 2627);
     }
 }
