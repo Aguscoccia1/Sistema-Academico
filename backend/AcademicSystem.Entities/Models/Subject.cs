@@ -27,11 +27,11 @@ public partial class Subject
 
     public virtual ICollection<StudentSubject> StudentSubjects { get; set; } = new List<StudentSubject>();
 
-    public virtual ICollection<SubjectSchedule> SubjectSchedules { get; set; } = new List<SubjectSchedule>();
-
     public virtual ICollection<StudyPlanSubject> StudyPlanSubjects { get; set; } = new List<StudyPlanSubject>();
 
     public virtual ICollection<SubjectProgram> SubjectPrograms { get; set; } = new List<SubjectProgram>();
+
+    public virtual ICollection<SubjectSchedule> SubjectSchedules { get; set; } = new List<SubjectSchedule>();
 
     public virtual ICollection<TeacherSubject> TeacherSubjects { get; set; } = new List<TeacherSubject>();
 }

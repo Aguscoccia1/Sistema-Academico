@@ -46,9 +46,9 @@ public partial class AcademicSystemContext : DbContext
 
     public virtual DbSet<Subject> Subjects { get; set; }
 
-    public virtual DbSet<SubjectSchedule> SubjectSchedules { get; set; }
-
     public virtual DbSet<SubjectProgram> SubjectPrograms { get; set; }
+
+    public virtual DbSet<SubjectSchedule> SubjectSchedules { get; set; }
 
     public virtual DbSet<Teacher> Teachers { get; set; }
 
@@ -332,24 +332,6 @@ public partial class AcademicSystemContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(150);
         });
 
-        modelBuilder.Entity<SubjectSchedule>(entity =>
-        {
-            entity.HasIndex(
-                e => new { e.SubjectId, e.Section, e.Day, e.StartTime, e.EndTime },
-                "UQ_SubjectSchedules_SubjectSectionDayTime")
-                .IsUnique();
-
-            entity.Property(e => e.Day).HasMaxLength(10);
-            entity.Property(e => e.Section).HasMaxLength(20);
-            entity.Property(e => e.StartTime).HasPrecision(0);
-            entity.Property(e => e.EndTime).HasPrecision(0);
-
-            entity.HasOne(d => d.Subject).WithMany(p => p.SubjectSchedules)
-                .HasForeignKey(d => d.SubjectId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_SubjectSchedules_Subjects");
-        });
-
         modelBuilder.Entity<SubjectProgram>(entity =>
         {
             entity.HasIndex(e => e.TeacherId, "IX_SubjectPrograms_TeacherId");
@@ -370,6 +352,21 @@ public partial class AcademicSystemContext : DbContext
                 .HasForeignKey(d => d.TeacherId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_SubjectPrograms_Teachers");
+        });
+
+        modelBuilder.Entity<SubjectSchedule>(entity =>
+        {
+            entity.HasIndex(e => new { e.SubjectId, e.Section, e.Day, e.StartTime, e.EndTime }, "UQ_SubjectSchedules_SubjectSectionDayTime").IsUnique();
+
+            entity.Property(e => e.Day).HasMaxLength(10);
+            entity.Property(e => e.EndTime).HasPrecision(0);
+            entity.Property(e => e.Section).HasMaxLength(20);
+            entity.Property(e => e.StartTime).HasPrecision(0);
+
+            entity.HasOne(d => d.Subject).WithMany(p => p.SubjectSchedules)
+                .HasForeignKey(d => d.SubjectId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_SubjectSchedules_Subjects");
         });
 
         modelBuilder.Entity<Teacher>(entity =>
@@ -416,12 +413,9 @@ public partial class AcademicSystemContext : DbContext
                 .IsFixedLength();
             entity.Property(e => e.Email).HasMaxLength(255);
             entity.Property(e => e.EmergencyContactPhone).HasMaxLength(20);
-            entity.Property(e => e.FailedLoginAttempts).HasDefaultValue(0);
-            entity.Property(e => e.FailedLoginWindowStartedAt).HasColumnType("datetimeoffset");
             entity.Property(e => e.FirstName).HasMaxLength(100);
             entity.Property(e => e.IsActive).HasDefaultValue(true, "DF_Users_IsActive");
             entity.Property(e => e.LastName).HasMaxLength(100);
-            entity.Property(e => e.LockedUntil).HasColumnType("datetimeoffset");
             entity.Property(e => e.PasswordHash).HasMaxLength(255);
             entity.Property(e => e.Phone).HasMaxLength(20);
 

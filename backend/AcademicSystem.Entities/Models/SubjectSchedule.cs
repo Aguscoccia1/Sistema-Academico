@@ -1,3 +1,6 @@
+﻿using System;
+using System.Collections.Generic;
+
 namespace AcademicSystem.Entities.Models;
 
 public partial class SubjectSchedule
