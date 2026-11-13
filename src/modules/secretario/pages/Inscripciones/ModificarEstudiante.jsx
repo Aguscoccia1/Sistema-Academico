@@ -280,6 +280,8 @@ const ModificarEstudiante = () => {
                                 Datos personales
                             </h2>
 
+                            <br />
+
                             <div>
                                 <label>
                                     Nombre completo
@@ -293,6 +295,8 @@ const ModificarEstudiante = () => {
                                     onChange={handleChange}
                                 />
                             </div>
+
+                            <br />
 
                             <div>
                                 <label>
@@ -308,6 +312,8 @@ const ModificarEstudiante = () => {
                                 />
                             </div>
 
+                            <br />
+
                             <div>
                                 <label>
                                     Correo
@@ -322,6 +328,7 @@ const ModificarEstudiante = () => {
                                 />
                             </div>
 
+                            <br />
 
                             <div>
                                 <label htmlFor="comision-general">Comisión</label>
@@ -395,11 +402,9 @@ const ModificarEstudiante = () => {
                     >
                         Guardar cambios
                     </button>
-
-                    <br />
-                    <br />
-
-                    {notice && (
+                </div>
+                <br />
+                {notice && (
                         <p className="crud-notice">
                             {notice}
                         </p>
@@ -410,8 +415,8 @@ const ModificarEstudiante = () => {
                             {error}
                         </p>
                     )}
-                </div>
             </form>
+            
         </div>
     );
 };

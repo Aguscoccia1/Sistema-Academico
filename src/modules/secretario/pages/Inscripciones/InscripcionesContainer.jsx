@@ -40,7 +40,7 @@ function InscripcionesContainer() {
         </span>
 
         <h1>
-          Inscripciones
+          Inscripciones de los Estudiantes
         </h1>
 
         <p>

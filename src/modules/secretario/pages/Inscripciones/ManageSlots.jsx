@@ -126,16 +126,10 @@ const ManageSlots = () => {
 
       {/* ENCABEZADO */}
       <div className="management-header">
-        <div>
-          <h1>Gestionar estudiantes de 1er año</h1>
-
-          <p>
-            Modificá o visualizá la información de los estudiantes.
-          </p>
-        </div>
+        <h1 className="management-title">Gestionar estudiantes de 1er año</h1>
 
         {/* FILTRO POR COMISIÓN */}
-        <div className="ladoDer1">
+        <div className="ladoDer1 management-controls">
 
           <div className="asignar-aleatorio-container asignacion-comisiones-controls">
             <button
@@ -146,7 +140,7 @@ const ManageSlots = () => {
             >
               {asignando
                 ? 'Asignando...'
-                : 'Inscribir faltantes en una sola comisión por alumno (A/B)'}
+                : 'Inscribir alumnos aleatoriamente'}
             </button>
           </div>
 
@@ -162,13 +156,26 @@ const ManageSlots = () => {
           </select>
 
         </div>
+
+        <p className="management-subtitle">
+          Modificá o visualizá la información de los estudiantes.
+        </p>
       </div>
-
-
-
 
       {/* TABLA Y BUSCADOR */}
       <div className="management-table-container">
+        {/* MENSAJES */}
+        {mensaje && (
+          <p className="crud-notice" role="status">
+            {mensaje}
+          </p>
+        )}
+
+        {error && (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        )}
 
         <div className="table-toolbar1">
           <input
@@ -178,8 +185,11 @@ const ManageSlots = () => {
             onChange={(event) => setSearch(event.target.value)}
             className="search-input1"
           />
+          <div className="total-estudiantes">
+            <h3>Total de alumnos inscriptos:</h3>
+            <p>{totalEstudiantes}</p>
+          </div>
         </div>
-
         <br />
 
         <table className="management-table">
@@ -246,29 +256,6 @@ const ManageSlots = () => {
             )}
           </tbody>
         </table>
-        <div className="total-estudiantes">
-
-          <div className="ladoDer1">
-            <h3>Total de alumnos inscriptos:</h3>
-            <p>{totalEstudiantes}</p>
-
-          </div>
-        </div>
-
-        <br />
-
-        {/* MENSAJES */}
-        {mensaje && (
-          <p className="crud-notice" role="status">
-            {mensaje}
-          </p>
-        )}
-
-        {error && (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        )}
       </div>
     </div>
   );

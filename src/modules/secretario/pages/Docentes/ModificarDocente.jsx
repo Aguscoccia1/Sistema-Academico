@@ -187,6 +187,7 @@ const ModificarDocente = () => {
           <div className="ladoIzq">
             <div className="student-edit-form">
               <h2>Datos del docente</h2>
+              <br />
               <div>
                 <label htmlFor="nombreCompleto">Nombre completo</label>
                 <input
@@ -199,6 +200,7 @@ const ModificarDocente = () => {
                   required
                 />
               </div>
+              <br />
               <div>
                 <label htmlFor="correoDocente">Correo</label>
                 <input
@@ -211,6 +213,7 @@ const ModificarDocente = () => {
                   required
                 />
               </div>
+              <br />
             </div>
           </div>
 
@@ -249,20 +252,6 @@ const ModificarDocente = () => {
 </div>
           </div>
         </div>
-        
-        <br />
-
-        {notice && (
-          <p className="crud-notice" role="status">
-            {notice}
-          </p>
-        )}
-        {error && (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        )}
-
         <br />
 
         <div className="student-edit-actions">
@@ -278,6 +267,18 @@ const ModificarDocente = () => {
             {isSaving ? 'Guardando...' : 'Guardar cambios'}
           </button>
         </div>
+        <br />
+    
+        {notice && (
+          <p className="crud-notice" role="status">
+            {notice}
+          </p>
+        )}
+        {error && (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        )}
       </form>
     </div>
   );

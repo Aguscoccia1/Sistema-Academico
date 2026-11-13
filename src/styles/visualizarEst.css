@@ -72,7 +72,7 @@ label{
     color: #183b38;
 }
 .student-edit-actions{
-    text-align: center;
+    text-align: right;
 }
 .student-edit-form1{
     height: 265px;
@@ -101,28 +101,7 @@ label{
 .schedule-list li + li{
     margin-top: 4px;
 }
-.save{
-    background-color: #3f746b;
-    border: none;
-    padding: 15px;
-    border-radius: 8px;
-    font-weight: bold;
-    font-family: DM Sans;
-    font-size: 13px;
-    color: #ffffff;
-}
-.save:hover{
-    background-color: #1F4C48;
-    border: none;
-    padding: 15px;
-    border-radius: 8px;
-    font-weight: bold;
-    font-family: DM Sans;
-    font-size: 13px;
-    color: #ffffff;
-    transform: translate(0, -5%);
 
-}
 .cancel{
     border-width: 1px;
     border-style: solid;

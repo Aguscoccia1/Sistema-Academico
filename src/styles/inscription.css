@@ -5,21 +5,19 @@
     border: 1px solid #DCE5DD;
     color: #9AA6A1;
     display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
     width: 100%;
     margin: 0 auto;
-
+}
+.management-table tr{
+    background-color: #EAF1E9;
 }
 
 .table-toolbar1:hover {
     background-color: #FFFFFF;
-    border-radius: 12px;
-    padding: 8px 15px;
     border: 1px solid #3F746B;
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    width: 100%;
-    margin: 0 auto;
 }
 
 .search-input1::placeholder {
@@ -35,12 +33,33 @@
     outline: none;
     border: none;
     color: #183B38;
+    flex: 1;
+    min-width: 0;
 }
 
 .management-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "title controls"
+        "subtitle subtitle";
+    align-items: center;
+    column-gap: 20px;
+    margin-bottom: 16px;
+}
+
+.management-title {
+    grid-area: title;
+    margin: 0;
+}
+
+.management-subtitle {
+    grid-area: subtitle;
+    margin: 8px 0 0;
+}
+
+.management-controls {
+    grid-area: controls;
 }
 
 .ladoDer1 {
@@ -62,6 +81,28 @@
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.total-estudiantes {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+    color: #183B38;
+}
+
+.total-estudiantes h3,
+.total-estudiantes p {
+    margin: 0;
+}
+
+.total-estudiantes h3 {
+    font-size: 14px;
+}
+
+.total-estudiantes p {
+    font-size: 14px;
 }
 
 .asignar-aleatorio {
@@ -129,6 +170,9 @@ th{
     background-color: #ffffff;
     text-align: center;
 }
+.management-table thead th {
+    background-color: #EAF1E9;
+}
 td {
     font-family: DM Sans;
     color: #183B38;
@@ -163,4 +207,32 @@ td {
     transform: translate(0, -5%);
     color: #1F4C48;
 
+}
+
+@media (max-width: 700px) {
+    .management-header {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            "title"
+            "subtitle"
+            "controls";
+        row-gap: 8px;
+    }
+
+    .management-controls {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .table-toolbar1 {
+        flex-wrap: wrap;
+    }
+
+    .search-input1 {
+        flex-basis: 100%;
+    }
+
+    .total-estudiantes {
+        margin-left: auto;
+    }
 }
