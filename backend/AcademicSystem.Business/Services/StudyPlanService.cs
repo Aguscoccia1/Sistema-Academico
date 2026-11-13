@@ -96,6 +96,11 @@ public class StudyPlanService : IStudyPlanService
     {
         return await _studyPlanRepository.ExistsSubjectInPlanAsync(studyPlanId, subjectId, ct);
     }
+
+    public Task<bool> RemoveSubjectFromPlanAsync(int studyPlanId, int subjectId, CancellationToken ct)
+    {
+        return _studyPlanRepository.RemoveSubjectFromPlanAsync(studyPlanId, subjectId, ct);
+    }
  
     private static void CopyFields(StudyPlanRequestDto source, StudyPlan target)
     {

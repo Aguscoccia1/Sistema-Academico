@@ -14,4 +14,5 @@ public interface IStudyPlanService
     Task<bool> ExistsByPlanCodeAsync(string planCode, int? excludeId, CancellationToken ct);
     Task<bool> SubjectExistsAsync(int subjectId, CancellationToken ct);
     Task<bool> SubjectInPlanAsync(int studyPlanId, int subjectId, CancellationToken ct);
+    Task<bool> RemoveSubjectFromPlanAsync(int studyPlanId, int subjectId, CancellationToken ct);
 }

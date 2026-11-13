@@ -20,10 +20,12 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IStudyPlanRepository, StudyPlanRepository>();
 builder.Services.AddScoped<ISubjectRepository, SubjectRepository>(); 
 builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
+builder.Services.AddScoped<IPrerequisiteValidationRepository, PrerequisiteValidationRepository>();
 builder.Services.AddScoped<IHealthRepository, HealthRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IStudentProfileRepository, StudentProfileRepository>();
 builder.Services.AddScoped<IAcademicSecretaryRepository, AcademicSecretaryRepository>();
+builder.Services.AddScoped<IPrerequisiteRepository, PrerequisiteRepository>();
 
 // Business: each team registers its services here, one line per service.
 builder.Services.AddScoped<IHealthService, HealthService>();
@@ -68,6 +70,7 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddScoped<IStudyPlanService, StudyPlanService>();
+builder.Services.AddScoped<IPrerequisiteService, PrerequisiteService>();
 
 builder.Services.AddScoped<ISubjectService, SubjectService>();
 
@@ -78,7 +81,6 @@ builder.Services.AddScoped<IComisionesRepository, ComisionesRepository>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IInscripcionesRepository, InscripcionesRepository>();
 builder.Services.AddScoped<ISubjectScheduleRepository, SubjectScheduleRepository>();
-builder.Services.AddScoped<IPrerequisiteValidationRepository, PrerequisiteValidationRepository>();
 builder.Services.AddScoped<ITeacherSubjectRepository, TeacherSubjectRepository>();
 builder.Services.AddScoped<IComisionesService, ComisionesService>();
 builder.Services.AddScoped<ITeacherSubjectService, TeacherSubjectService>();

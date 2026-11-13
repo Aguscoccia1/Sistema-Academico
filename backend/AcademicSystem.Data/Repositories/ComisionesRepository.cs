@@ -134,20 +134,25 @@ public sealed class ComisionesRepository(AcademicSystemContext context) : IComis
         Func<Task<T>> accion,
         CancellationToken cancellationToken = default) =>
         await EjecutarConBloqueoAsync(
-            $"comisiones-asignacion-materia-{materiaId}",
+            [$"comisiones-asignacion-materia-{materiaId}"],
             accion,
             cancellationToken);
 
     public Task<T> EjecutarAsignacionMasivaConBloqueoAsync<T>(
+        IReadOnlyCollection<int> materiaIds,
         Func<Task<T>> accion,
         CancellationToken cancellationToken = default) =>
         EjecutarConBloqueoAsync(
-            "comisiones-asignacion-masiva",
+            materiaIds
+                .Distinct()
+                .Order()
+                .Select(materiaId => $"comisiones-asignacion-materia-{materiaId}")
+                .ToArray(),
             accion,
             cancellationToken);
 
     private async Task<T> EjecutarConBloqueoAsync<T>(
-        string lockResource,
+        IReadOnlyCollection<string> lockResources,
         Func<Task<T>> accion,
         CancellationToken cancellationToken)
     {
@@ -155,20 +160,23 @@ public sealed class ComisionesRepository(AcademicSystemContext context) : IComis
             IsolationLevel.Serializable,
             cancellationToken);
 
-        await context.Database.ExecuteSqlInterpolatedAsync(
-            $"""
-            DECLARE @lockResult int;
-            EXEC @lockResult = sys.sp_getapplock
-                @Resource = {lockResource},
-                @LockMode = 'Exclusive',
-                @LockOwner = 'Transaction',
-                @LockTimeout = -1;
-            IF @lockResult < 0
-            BEGIN
-                ;THROW 51001, 'No se pudo obtener el bloqueo para asignar comisiones.', 1;
-            END;
-            """,
-            cancellationToken);
+        foreach (var lockResource in lockResources)
+        {
+            await context.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                DECLARE @lockResult int;
+                EXEC @lockResult = sys.sp_getapplock
+                    @Resource = {lockResource},
+                    @LockMode = 'Exclusive',
+                    @LockOwner = 'Transaction',
+                    @LockTimeout = -1;
+                IF @lockResult < 0
+                BEGIN
+                    ;THROW 51001, 'No se pudo obtener el bloqueo para asignar comisiones.', 1;
+                END;
+                """,
+                cancellationToken);
+        }
 
         var resultado = await accion();
         await transaction.CommitAsync(cancellationToken);
@@ -182,6 +190,32 @@ public sealed class ComisionesRepository(AcademicSystemContext context) : IComis
             .Where(subject => subject.Id == materiaId)
             .Select(subject => subject.Name)
             .FirstOrDefaultAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<int>> GetMateriasDePrimerAnioAsync(
+        IReadOnlyCollection<int> materiaIds,
+        CancellationToken cancellationToken = default)
+    {
+        var materiasEnPlan = context.StudyPlanSubjects
+            .AsNoTracking()
+            .Where(planSubject =>
+                planSubject.CourseYear == 1 &&
+                materiaIds.Contains(planSubject.SubjectId))
+            .Select(planSubject => planSubject.SubjectId);
+
+        var materiasMarcadasComoPrimerAnio = context.Subjects
+            .AsNoTracking()
+            .Where(subject =>
+                subject.Course == "Primer Año" &&
+                materiaIds.Contains(subject.Id) &&
+                !context.StudyPlanSubjects.Any(
+                    planSubject => planSubject.SubjectId == subject.Id))
+            .Select(subject => subject.Id);
+
+        return await materiasEnPlan
+            .Concat(materiasMarcadasComoPrimerAnio)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+    }
 
     public async Task<IReadOnlyList<string>> GetSeccionesConfiguradasAsync(
         int materiaId,
@@ -198,26 +232,6 @@ public sealed class ComisionesRepository(AcademicSystemContext context) : IComis
         context.StudentSubjects
             .Where(enrollment => enrollment.SubjectId == materiaId)
             .ToListAsync(cancellationToken);
-
-    public Task<List<StudentSubject>> GetAllEnrollmentsAsync(
-        CancellationToken cancellationToken = default) =>
-        context.StudentSubjects
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
-
-    public Task<List<int>> GetStudentIdsWithoutEnrollmentAsync(
-        int materiaId,
-        CancellationToken cancellationToken = default) =>
-        context.Students
-            .Where(student =>
-                !context.StudentSubjects.Any(enrollment =>
-                    enrollment.StudentId == student.Id &&
-                    enrollment.SubjectId == materiaId))
-            .Select(student => student.Id)
-            .ToListAsync(cancellationToken);
-
-    public void AddInscripciones(IEnumerable<StudentSubject> inscripciones) =>
-        context.StudentSubjects.AddRange(inscripciones);
 
     public Task SaveChangesAsync(CancellationToken cancellationToken = default) =>
         context.SaveChangesAsync(cancellationToken);

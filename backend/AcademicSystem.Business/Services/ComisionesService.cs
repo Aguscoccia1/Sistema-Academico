@@ -42,6 +42,7 @@ public sealed class ComisionesService(IComisionesRepository repository) : IComis
         IReadOnlyCollection<int> materiaIds,
         CancellationToken cancellationToken = default)
         => repository.EjecutarAsignacionMasivaConBloqueoAsync<AsignacionAleatoriaMasivaResponseDto?>(
+            materiaIds,
             () => AsignarAleatoriamenteDentroDelBloqueoAsync(
                 materiaIds, cancellationToken),
             cancellationToken);
@@ -51,33 +52,8 @@ public sealed class ComisionesService(IComisionesRepository repository) : IComis
             IReadOnlyCollection<int> materiaIds,
             CancellationToken cancellationToken)
     {
-        var materias = new List<(int Id, string Nombre)>();
-        foreach (var materiaId in materiaIds.Distinct().Order())
-        {
-            var nombre = await repository.GetNombreMateriaAsync(
-                materiaId, cancellationToken);
-            if (nombre is null)
-                return null;
-
-            var seccionesConfiguradas = await repository.GetSeccionesConfiguradasAsync(
-                materiaId, cancellationToken);
-            var secciones = seccionesConfiguradas
-                .Select(NormalizarSeccion)
-                .OfType<string>()
-                .ToHashSet(StringComparer.Ordinal);
-            if (!secciones.Contains("A") || !secciones.Contains("B"))
-            {
-                return new AsignacionAleatoriaMasivaResponseDto(
-                    false,
-                    $"La materia {nombre} necesita horarios configurados para las comisiones A y B. No se realizaron cambios.",
-                    0,
-                    []);
-            }
-
-            materias.Add((materiaId, nombre));
-        }
-
-        if (materias.Count == 0)
+        var idsUnicos = materiaIds.Distinct().Order().ToList();
+        if (idsUnicos.Count == 0)
         {
             return new AsignacionAleatoriaMasivaResponseDto(
                 false,
@@ -86,116 +62,114 @@ public sealed class ComisionesService(IComisionesRepository repository) : IComis
                 []);
         }
 
-        var inscripcionesExistentes = await repository.GetAllEnrollmentsAsync(
-            cancellationToken);
-        var seccionesPorEstudiante = inscripcionesExistentes
-            .Select(enrollment => new
-            {
-                enrollment.StudentId,
-                Seccion = NormalizarSeccion(enrollment.Section)
-            })
-            .Where(enrollment => enrollment.Seccion is not null)
-            .GroupBy(enrollment => enrollment.StudentId)
-            .ToDictionary(
-                group => group.Key,
-                group => group.Select(enrollment => enrollment.Seccion!)
-                    .ToHashSet(StringComparer.Ordinal));
-
-        var estudiantesConConflicto = seccionesPorEstudiante
-            .Where(pair => pair.Value.Count > 1)
-            .Select(pair => pair.Key)
-            .ToHashSet();
-        var cantidadPorSeccion = new Dictionary<string, int>(StringComparer.Ordinal)
+        var materias = new List<(int Id, string Nombre)>();
+        foreach (var materiaId in idsUnicos)
         {
-            ["A"] = 0,
-            ["B"] = 0
-        };
-        var seccionPorEstudiante = new Dictionary<int, string>();
+            var nombre = await repository.GetNombreMateriaAsync(
+                materiaId, cancellationToken);
+            if (nombre is null)
+                return null;
 
-        foreach (var (studentId, secciones) in seccionesPorEstudiante)
-        {
-            if (estudiantesConConflicto.Contains(studentId))
-                continue;
-
-            var seccion = secciones.Single();
-            seccionPorEstudiante[studentId] = seccion;
-            cantidadPorSeccion[seccion]++;
+            materias.Add((materiaId, nombre));
         }
 
-        var estudiantesSinInscripcionPorMateria = new Dictionary<int, List<int>>();
-        var estudiantesNuevosIds = new HashSet<int>();
-        foreach (var materia in materias)
-        {
-            var studentIds = await repository.GetStudentIdsWithoutEnrollmentAsync(
-                materia.Id, cancellationToken);
-            estudiantesSinInscripcionPorMateria[materia.Id] = studentIds;
-            foreach (var studentId in studentIds)
-            {
-                if (!seccionesPorEstudiante.ContainsKey(studentId) &&
-                    !estudiantesConConflicto.Contains(studentId))
-                {
-                    estudiantesNuevosIds.Add(studentId);
-                }
-            }
-        }
-
-        var estudiantesNuevos = estudiantesNuevosIds.ToList();
-        Shuffle(estudiantesNuevos);
-        foreach (var studentId in estudiantesNuevos)
-        {
-            var seccion = cantidadPorSeccion["A"] == cantidadPorSeccion["B"]
-                ? (Random.Shared.Next(2) == 0 ? "A" : "B")
-                : cantidadPorSeccion["A"] < cantidadPorSeccion["B"] ? "A" : "B";
-            seccionPorEstudiante[studentId] = seccion;
-            cantidadPorSeccion[seccion]++;
-        }
-
-        if (Math.Abs(cantidadPorSeccion["A"] - cantidadPorSeccion["B"]) > 1)
+        var materiasPrimerAnio = (await repository.GetMateriasDePrimerAnioAsync(
+            idsUnicos, cancellationToken)).ToHashSet();
+        if (idsUnicos.Any(materiaId => !materiasPrimerAnio.Contains(materiaId)))
         {
             return new AsignacionAleatoriaMasivaResponseDto(
                 false,
-                $"No se puede lograr una distribución equitativa sin mover inscripciones existentes (A: {cantidadPorSeccion["A"]}, B: {cantidadPorSeccion["B"]}). No se realizaron cambios.",
+                "La asignación automática solo está disponible para materias de primer año. No se realizaron cambios.",
                 0,
                 []);
         }
 
-        List<StudentSubject> nuevasInscripciones = [];
         foreach (var materia in materias)
         {
-            foreach (var studentId in estudiantesSinInscripcionPorMateria[materia.Id])
+            var seccionesConfiguradas = await repository.GetSeccionesConfiguradasAsync(
+                materia.Id, cancellationToken);
+            var secciones = seccionesConfiguradas
+                .Select(NormalizarSeccion)
+                .OfType<string>()
+                .ToHashSet(StringComparer.Ordinal);
+            if (!secciones.Contains("A") || !secciones.Contains("B"))
             {
-                if (estudiantesConConflicto.Contains(studentId))
-                    continue;
-
-                nuevasInscripciones.Add(new StudentSubject
-                {
-                    StudentId = studentId,
-                    SubjectId = materia.Id,
-                    Section = seccionPorEstudiante[studentId]
-                });
+                return new AsignacionAleatoriaMasivaResponseDto(
+                    false,
+                    $"La materia {materia.Nombre} necesita horarios configurados para las comisiones A y B. No se realizaron cambios.",
+                    0,
+                    []);
             }
         }
 
-        if (nuevasInscripciones.Count > 0)
+        var cantidadFinalPorSeccion = new Dictionary<string, int>(StringComparer.Ordinal)
         {
-            repository.AddInscripciones(nuevasInscripciones);
-            await repository.SaveChangesAsync(cancellationToken);
+            ["A"] = 0,
+            ["B"] = 0
+        };
+        var totalReasignado = 0;
+        var materiasConInscriptos = 0;
+
+        foreach (var materia in materias)
+        {
+            var inscripciones = await repository.GetInscripcionesAsync(
+                materia.Id, cancellationToken);
+            if (inscripciones.Count == 0)
+                continue;
+
+            materiasConInscriptos++;
+            var cantidadActualA = inscripciones.Count(enrollment =>
+                NormalizarSeccion(enrollment.Section) == "A");
+            var cantidadActualB = inscripciones.Count(enrollment =>
+                NormalizarSeccion(enrollment.Section) == "B");
+            var todasTienenComision = inscripciones.All(enrollment =>
+                NormalizarSeccion(enrollment.Section) is "A" or "B");
+
+            if (!todasTienenComision ||
+                Math.Abs(cantidadActualA - cantidadActualB) > 1)
+            {
+                Shuffle(inscripciones);
+                var cantidadA = inscripciones.Count / 2;
+                if (inscripciones.Count % 2 == 1 && Random.Shared.Next(2) == 0)
+                    cantidadA++;
+
+                for (var index = 0; index < inscripciones.Count; index++)
+                {
+                    var seccion = index < cantidadA ? "A" : "B";
+                    if (!string.Equals(
+                            inscripciones[index].Section,
+                            seccion,
+                            StringComparison.Ordinal))
+                    {
+                        totalReasignado++;
+                        inscripciones[index].Section = seccion;
+                    }
+                }
+
+                cantidadActualA = cantidadA;
+                cantidadActualB = inscripciones.Count - cantidadA;
+            }
+
+            cantidadFinalPorSeccion["A"] += cantidadActualA;
+            cantidadFinalPorSeccion["B"] += cantidadActualB;
         }
 
-        var distribucionFinal = $"Comisión A: {cantidadPorSeccion["A"]}; Comisión B: {cantidadPorSeccion["B"]}";
-        var mensaje = nuevasInscripciones.Count == 0
-            ? $"No había inscripciones nuevas para agregar. {distribucionFinal}."
-            : $"Se agregaron {nuevasInscripciones.Count} inscripciones en {materias.Count} materias. {distribucionFinal}.";
-        if (estudiantesConConflicto.Count > 0)
-        {
-            mensaje += $" Se omitieron {estudiantesConConflicto.Count} estudiantes que ya tenían inscripciones en ambas comisiones.";
-        }
+        if (totalReasignado > 0)
+            await repository.SaveChangesAsync(cancellationToken);
+
+        var distribucionFinal =
+            $"A: {cantidadFinalPorSeccion["A"]}; B: {cantidadFinalPorSeccion["B"]}";
+        var mensaje = materiasConInscriptos == 0
+            ? "No hay inscripciones existentes en las materias de primer año seleccionadas. No se crearon inscripciones."
+            : totalReasignado == 0
+                ? $"Las inscripciones existentes ya están distribuidas de forma equilibrada. {distribucionFinal}. No se crearon inscripciones."
+                : $"Se redistribuyeron {totalReasignado} inscripciones existentes en {materiasConInscriptos} materias de primer año. {distribucionFinal}. No se crearon inscripciones.";
 
         return new AsignacionAleatoriaMasivaResponseDto(
             true,
             mensaje,
-            nuevasInscripciones.Count,
-            cantidadPorSeccion
+            totalReasignado,
+            cantidadFinalPorSeccion
                 .OrderBy(pair => pair.Key, StringComparer.Ordinal)
                 .Select(pair => new DistribucionComisionDto(pair.Key, pair.Value))
                 .ToList());

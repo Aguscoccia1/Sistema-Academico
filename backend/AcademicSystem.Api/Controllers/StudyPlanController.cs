@@ -11,11 +11,13 @@ namespace AcademicSystem.Api.Controllers;
 public class StudyPlanController : ControllerBase
 {
     private readonly IStudyPlanService _studyPlanService;
+    private readonly IPrerequisiteService _prerequisiteService;
     private readonly ILogger<StudyPlanController> _logger;
 
-    public StudyPlanController(IStudyPlanService studyPlanService, ILogger<StudyPlanController> logger)
+    public StudyPlanController(IStudyPlanService studyPlanService, IPrerequisiteService prerequisiteService, ILogger<StudyPlanController> logger)
     {
         _studyPlanService = studyPlanService;
+        _prerequisiteService = prerequisiteService;
         _logger = logger;
     }
 
@@ -78,6 +80,39 @@ public class StudyPlanController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al crear el plan de estudio");
+            return StatusCode(500, "Ocurrió un error inesperado. Intentá de nuevo más tarde.");
+        }
+    }
+
+    [HttpDelete("{id:int}/subjects/{subjectId:int}")]
+    public async Task<IActionResult> RemoveSubject(
+        int id,
+        int subjectId,
+        CancellationToken ct)
+    {
+        try
+        {
+            bool removed = await _studyPlanService.RemoveSubjectFromPlanAsync(id, subjectId, ct);
+
+            if (!removed)
+            {
+                return NotFound("La materia no forma parte de este plan de estudio.");
+            }
+
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Error al quitar la materia {SubjectId} del plan de estudio {Id}",
+                subjectId,
+                id);
+
             return StatusCode(500, "Ocurrió un error inesperado. Intentá de nuevo más tarde.");
         }
     }
@@ -149,6 +184,51 @@ public class StudyPlanController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al agregar la materia al plan de estudio {Id}", id);
+            return StatusCode(500, "Ocurrió un error inesperado. Intentá de nuevo más tarde.");
+        }
+    }
+
+    [HttpGet("{id}/prerequisites")]
+    public async Task<IActionResult> GetPrerequisites(int id, CancellationToken ct)
+    {
+        try
+        {
+            List<PrerequisiteItemDto>? prerequisites = await _prerequisiteService.GetByPlanAsync(id, ct);
+ 
+            if (prerequisites == null)
+            {
+                return NotFound("No se encontró el plan de estudio.");
+            }
+ 
+            return Ok(prerequisites);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al consultar las correlatividades del plan de estudio {Id}", id);
+            return StatusCode(500, "Ocurrió un error inesperado. Intentá de nuevo más tarde.");
+        }
+    }
+
+    [HttpPut("{id}/subjects/{subjectId}/prerequisites")]
+    public async Task<IActionResult> ReplacePrerequisites(int id, int subjectId, [FromBody] ReplacePrerequisitesRequestDto request, CancellationToken ct)
+    {
+        try
+        {
+            List<PrerequisiteItemDto> prerequisites = await _prerequisiteService.ReplaceAsync(id, subjectId, request.PrerequisiteSubjectIds, ct);
+ 
+            return Ok(prerequisites);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al guardar las correlatividades de la materia {SubjectId} del plan de estudio {Id}", subjectId, id);
             return StatusCode(500, "Ocurrió un error inesperado. Intentá de nuevo más tarde.");
         }
     }

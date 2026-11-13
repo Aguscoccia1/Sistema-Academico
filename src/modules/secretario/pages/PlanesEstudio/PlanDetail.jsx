@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronRight, FileText, Pencil, Plus, Trash2 } from 'lucide-react';
 import CargarMaterias from './LoadSubjects';
 import EditSubjectModal from './EditSubjectModal';
@@ -32,13 +32,31 @@ function PlanDetalle({ plan, onBack }) {
   const [selectedYear, setSelectedYear] = useState('1°');
   const [editingSubject, setEditingSubject] = useState(null);
 
-  // Correlatividades: { [idMateria]: [idsCorrelativas] }
+  // Correlatividades: { [idMateria]: [idsCorrelativas] }, con el id de la materia (subjectId)
   const [correlatives, setCorrelatives] = useState({});
   const [draftCorrelatives, setDraftCorrelatives] = useState({});
   const [correlativeYear, setCorrelativeYear] = useState('2°');
   const [selectedSubjectId, setSelectedSubjectId] = useState(null);
   const [correlativeNotice, setCorrelativeNotice] = useState('');
   const [isConfirmingCorrelatives, setIsConfirmingCorrelatives] = useState(false);
+  const [isSavingCorrelatives, setIsSavingCorrelatives] = useState(false);
+
+  // las correlatividades se cargan de la base al abrir el plan
+  useEffect(() => {
+    let cancelled = false;
+
+    plansApi.obtenerCorrelativas(plan.id)
+      .then((loaded) => {
+        if (cancelled) return;
+        setCorrelatives(loaded);
+        setDraftCorrelatives(loaded);
+      })
+      .catch((error) => {
+        if (!cancelled) setCorrelativeNotice(`No se pudieron cargar las correlatividades: ${error.message}`);
+      });
+
+    return () => { cancelled = true; };
+  }, [plan.id]);
 
 
   const handleSaveSubjects = async (newSubjects) => {
@@ -56,21 +74,32 @@ function PlanDetalle({ plan, onBack }) {
     setEditingSubject(null);
   };
 
-  const handleDeleteSubject = (subject) => {
-    if (!window.confirm(`¿Eliminar la materia "${subject.materia}"?`)) return;
-    setMaterias((current) => current.filter((materia) => materia.id !== subject.id));
+  const handleDeleteSubject = async (subject) => {
+    if (!window.confirm(`¿Eliminar la materia "${subject.materia}" de este plan?`)) return;
 
-    const cleanUp = (source) => {
-      const result = {};
-      Object.entries(source).forEach(([id, list]) => {
-        if (String(id) === String(subject.id)) return;
-        result[id] = list.filter((correlativeId) => correlativeId !== subject.id);
-      });
-      return result;
-    };
-    setCorrelatives(cleanUp);
-    setDraftCorrelatives(cleanUp);
-    if (selectedSubjectId === subject.id) setSelectedSubjectId(null);
+    try {
+      await plansApi.quitarMateria(plan.id, subject.subjectId);
+
+      setMaterias((current) => current.filter((materia) => materia.id !== subject.id));
+
+      const cleanUp = (source) => {
+        const result = {};
+        Object.entries(source).forEach(([id, list]) => {
+          if (String(id) === String(subject.subjectId)) return;
+          result[id] = list.filter((correlativeId) => correlativeId !== subject.subjectId);
+        });
+        return result;
+      };
+
+      setCorrelatives(cleanUp);
+      setDraftCorrelatives(cleanUp);
+
+      if (selectedSubjectId === subject.subjectId) {
+        setSelectedSubjectId(null);
+      }
+    } catch (error) {
+      window.alert(`No se pudo eliminar la materia: ${error.message}`);
+    }
   };
 
   const handleTabChange = (tab) => {
@@ -91,19 +120,55 @@ function PlanDetalle({ plan, onBack }) {
     });
   };
 
+  const getChangedCorrelativeIds = () => {
+    const subjectIds = new Set([
+      ...Object.keys(correlatives),
+      ...Object.keys(draftCorrelatives),
+    ]);
+
+    return [...subjectIds].filter((subjectId) => {
+      const saved = [...(correlatives[subjectId] ?? [])].sort((a, b) => a - b);
+      const draft = [...(draftCorrelatives[subjectId] ?? [])].sort((a, b) => a - b);
+
+      return saved.length !== draft.length
+        || saved.some((id, index) => id !== draft[index]);
+    });
+  };
+
   const requestSaveCorrelatives = () => {
-    if (!selectedSubjectId) {
-      setCorrelativeNotice('Seleccioná una materia para guardar sus correlatividades.');
+    if (getChangedCorrelativeIds().length === 0) {
+      setCorrelativeNotice('No hay cambios para guardar.');
       return;
     }
+
     setCorrelativeNotice('');
     setIsConfirmingCorrelatives(true);
   };
 
-  const confirmSaveCorrelatives = () => {
-    setCorrelatives(draftCorrelatives);
-    setIsConfirmingCorrelatives(false);
-    setCorrelativeNotice('Las correlatividades se guardaron correctamente.');
+  const confirmSaveCorrelatives = async () => {
+    const changedSubjectIds = getChangedCorrelativeIds();
+
+    setIsSavingCorrelatives(true);
+    try {
+      let saved = correlatives;
+
+      for (const subjectId of changedSubjectIds) {
+        saved = await plansApi.guardarCorrelativas(
+          plan.id,
+          Number(subjectId),
+          draftCorrelatives[subjectId] ?? [],
+        );
+      }
+
+      setCorrelatives(saved);
+      setDraftCorrelatives(saved);
+      setCorrelativeNotice('Las correlatividades se guardaron correctamente.');
+    } catch (error) {
+      setCorrelativeNotice(error.message);
+    } finally {
+      setIsSavingCorrelatives(false);
+      setIsConfirmingCorrelatives(false);
+    }
   };
 
   const cancelCorrelatives = () => {
@@ -126,7 +191,7 @@ function PlanDetalle({ plan, onBack }) {
   const renderCorrelatives = () => {
     const countByYear = (year) => materias.filter((materia) => materia.anio === year).length;
     const subjectsOfYear = materias.filter((materia) => materia.anio === correlativeYear).sort(sortByOrder);
-    const selectedSubject = materias.find((materia) => materia.id === selectedSubjectId) ?? null;
+    const selectedSubject = materias.find((materia) => materia.subjectId === selectedSubjectId) ?? null;
     const selectedList = draftCorrelatives[selectedSubjectId] ?? [];
 
     const previousYears = YEARS.slice(0, YEARS.indexOf(correlativeYear));
@@ -166,8 +231,8 @@ function PlanDetalle({ plan, onBack }) {
               <button
                 key={materia.id}
                 type="button"
-                className={`correlative-subject ${selectedSubjectId === materia.id ? 'selected' : ''}`}
-                onClick={() => setSelectedSubjectId(materia.id)}
+                className={`correlative-subject ${selectedSubjectId === materia.subjectId ? 'selected' : ''}`}
+                onClick={() => setSelectedSubjectId(materia.subjectId)}
               >
                 <span className="correlative-number">{materia.orden}</span>
                 <span className="correlative-name">{materia.materia}</span>
@@ -196,9 +261,9 @@ function PlanDetalle({ plan, onBack }) {
                         <button
                           key={materia.id}
                           type="button"
-                          className={`correlative-option ${selectedList.includes(materia.id) ? 'checked' : ''}`}
-                          aria-pressed={selectedList.includes(materia.id)}
-                          onClick={() => toggleCorrelative(materia.id)}
+                          className={`correlative-option ${selectedList.includes(materia.subjectId) ? 'checked' : ''}`}
+                          aria-pressed={selectedList.includes(materia.subjectId)}
+                          onClick={() => toggleCorrelative(materia.subjectId)}
                         >
                           <span className="correlative-number">{materia.orden}</span>
                           <span className="correlative-name">{materia.materia}</span>
@@ -409,11 +474,12 @@ function PlanDetalle({ plan, onBack }) {
 
       {isConfirmingCorrelatives && (
         <ConfirmCorrelativesModal
-          subject={materias.find((materia) => materia.id === selectedSubjectId)}
+          subject={materias.find((materia) => materia.subjectId === selectedSubjectId)}
           correlatives={(draftCorrelatives[selectedSubjectId] ?? [])
-            .map((id) => materias.find((materia) => materia.id === id))
+            .map((id) => materias.find((materia) => materia.subjectId === id))
             .filter(Boolean)
             .sort(sortByOrder)}
+          isSaving={isSavingCorrelatives}
           onClose={() => setIsConfirmingCorrelatives(false)}
           onConfirm={confirmSaveCorrelatives}
         />

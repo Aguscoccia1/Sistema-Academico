@@ -40,11 +40,33 @@ public sealed class InscripcionesRepository(AcademicSystemContext context)
             .OrderBy(subject => subject.Nombre)
             .ToListAsync(cancellationToken);
 
-        return materias
+        var resultado = materias
             .Select(subject => new MateriaResponseDto(
                 subject.SubjectId,
                 subject.Nombre,
                 subject.CourseYear))
+            .ToList();
+
+        if (anio == 1)
+        {
+            var materiasMarcadasComoPrimerAnio = await context.Subjects
+                .AsNoTracking()
+                .Where(subject =>
+                    subject.Course == "Primer Año" &&
+                    !context.StudyPlanSubjects.Any(
+                        planSubject => planSubject.SubjectId == subject.Id))
+                .Select(subject => new MateriaResponseDto(
+                    subject.Id,
+                    subject.Name,
+                    1))
+                .ToListAsync(cancellationToken);
+
+            resultado.AddRange(materiasMarcadasComoPrimerAnio);
+        }
+
+        return resultado
+            .Distinct()
+            .OrderBy(subject => subject.Nombre)
             .ToList();
     }
 

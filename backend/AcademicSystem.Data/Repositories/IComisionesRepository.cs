@@ -26,7 +26,12 @@ public interface IComisionesRepository
         CancellationToken cancellationToken = default);
 
     Task<T> EjecutarAsignacionMasivaConBloqueoAsync<T>(
+        IReadOnlyCollection<int> materiaIds,
         Func<Task<T>> accion,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<int>> GetMateriasDePrimerAnioAsync(
+        IReadOnlyCollection<int> materiaIds,
         CancellationToken cancellationToken = default);
 
     Task<string?> GetNombreMateriaAsync(
@@ -40,15 +45,6 @@ public interface IComisionesRepository
     Task<List<StudentSubject>> GetInscripcionesAsync(
         int materiaId,
         CancellationToken cancellationToken = default);
-
-    Task<List<StudentSubject>> GetAllEnrollmentsAsync(
-        CancellationToken cancellationToken = default);
-
-    Task<List<int>> GetStudentIdsWithoutEnrollmentAsync(
-        int materiaId,
-        CancellationToken cancellationToken = default);
-
-    void AddInscripciones(IEnumerable<StudentSubject> inscripciones);
 
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }
