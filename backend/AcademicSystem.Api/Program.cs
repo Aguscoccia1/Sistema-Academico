@@ -25,6 +25,7 @@ builder.Services.AddScoped<IHealthRepository, HealthRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IStudentProfileRepository, StudentProfileRepository>();
 builder.Services.AddScoped<IAcademicSecretaryRepository, AcademicSecretaryRepository>();
+builder.Services.AddScoped<IPrerequisiteRepository, PrerequisiteRepository>();
 
 // Business: each team registers its services here, one line per service.
 builder.Services.AddScoped<IHealthService, HealthService>();
@@ -69,6 +70,7 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddScoped<IStudyPlanService, StudyPlanService>();
+builder.Services.AddScoped<IPrerequisiteService, PrerequisiteService>();
 
 builder.Services.AddScoped<ISubjectService, SubjectService>();
 
