@@ -20,7 +20,7 @@ Los cuatro equipos ya tienen su trabajo integrado en `development`.
 | Equipo | Qué está integrado | Qué falta |
 |---|---|---|
 | **E1** — Acceso e Integración | Login, cierre y vencimiento de sesión (con renovación automática), roles y permisos, menú por rol, API y pantalla de gestión de usuarios. | Auditoría de accesos (S2-9), menú según los permisos de la API (S2-10) y recuperación de contraseña (S2-7, sin servidor SMTP). |
-| **E2** — Secretaría | Inscripción a 1.º año, ver y modificar estudiantes, comisiones con asignación automática, gestión de cupos, docentes con asignación de materias y horarios por comisión, con las pantallas conectadas a la API. | Corregir la asignación automática de comisiones para poder integrar su pase a las cuatro capas, que ya está en su fork, y hacer el resumen de inscripciones con menos pedidos a la API. |
+| **E2** — Secretaría | Inscripción a 1.º año, ver y modificar estudiantes, comisiones con asignación automática, gestión de cupos, docentes con asignación de materias y horarios por comisión, con las pantallas conectadas a la API. | Hacer el resumen de inscripciones con menos pedidos a la API. |
 | **E3** — Gestión Académica | API y pantallas de planes de estudio y materias, correlatividades guardadas en la base con sus validaciones, y quitar materias de un plan. | Bajas de planes, cursos y el arreglo de `useSubmit`. |
 | **E4** — Inscripciones | Materias disponibles, validación de correlativas, inscripción desde la pantalla y "Mis inscripciones" leyendo la base. | Definir el período de inscripción y ofrecer solo materias de 2.º y 3.º año. |
 
@@ -44,6 +44,7 @@ Los cuatro equipos ya tienen su trabajo integrado en `development`.
 | 29/10 | El E2 aplica las correcciones y se integra. Los cuatro equipos quedan en `development`. |
 | 08/11 | Integración del E3 y el E4 con sus pases a repositorios. El E1 pasa a las cuatro capas. Se define la regla controller, service, repository y base. |
 | 13/11 | Se integran las correlatividades del E3 (PR #9) y el repositorio de validación del E4 (PR #10). El pase a capas del E2 queda en revisión. |
+| 13/11 | El E2 corrige la asignación automática y se integra su pase a capas (PR #11). Todo el backend cumple la regla de las cuatro capas. |
 
 ## Integraciones
 
@@ -156,7 +157,27 @@ Los cuatro equipos ya tienen su trabajo integrado en `development`.
   - la API del E1 respondió igual que antes en 78 pedidos, y el bloqueo de cuenta por intentos fallidos sigue funcionando;
   - regresión de API: E1, E3 y E4 25 de 25; E2 24 de 26, con las mismas dos diferencias esperadas del 08/11;
   - pantallas de los cuatro equipos: mismo resultado antes y después de integrar.
-- **E2 (rama `e2`, sin Pull Request): no se integró.** El pase a las cuatro capas está hecho y cumple la regla. Pero en el mismo cambio la asignación automática de comisiones pasó a inscribir a todos los estudiantes del sistema en cada materia con horarios en A y B, de cualquier año y sin validar correlativas. En la prueba, un estudiante quedó inscripto en una materia de 2.º año con la correlativa sin aprobar. Se integra cuando lo corrijan; el detalle está en los pendientes del E2.
+- **E2 (rama `e2`, sin Pull Request): no se integró.** El pase a las cuatro capas está hecho y cumple la regla. Pero en el mismo cambio la asignación automática de comisiones pasó a inscribir a todos los estudiantes del sistema en cada materia con horarios en A y B, de cualquier año y sin validar correlativas. En la prueba, un estudiante quedó inscripto en una materia de 2.º año con la correlativa sin aprobar. Lo corrigieron y se integró el mismo día, con el PR #11.
+
+### 13/11 — Capas del E2 (PR #11)
+
+- **E2 (PR #11):**
+  - `TeachersController`, `InscripcionesService`, `StudentService` y `SubjectScheduleService` dejaron de usar la base directo: sus consultas pasaron a repositorios;
+  - las reglas de comisiones y de asignación de docentes pasaron de los repositorios a los services;
+  - la asignación automática de comisiones trabaja solo con materias de 1.º año y no crea inscripciones: empareja entre A y B a los estudiantes ya inscriptos;
+  - cambios de diseño en las pantallas de inscripciones, estudiantes y docentes.
+- **Resultado:** ningún controller ni service usa la base directo. Todo el backend recorre controller, service, repository y base.
+- **Corrección pedida al E2 antes de integrar:** en la primera entrega, la asignación automática inscribía a todos los estudiantes del sistema en cada materia, de cualquier año y sin validar correlativas, y traía una copia de dos archivos del E4. Lo corrigieron en el mismo PR.
+- **Ajuste del E1 al integrar:** `appsettings.json` llegó con el servidor de la máquina de Alan (`Server=ALAN`). Se volvió a `localhost`, porque con ese valor el backend de los demás no conecta. Las conexiones personales van con user-secrets.
+- **Cambio en la API:** el pedido de la asignación automática pasó de `{ materiaId }` a `{ materiaIds: [...] }`, y exige horarios en las comisiones A y B.
+- **Base del PR:** se abrió contra `production` en vez de `development`. Se integró en `development`, como los demás.
+- **Verificación**, sobre bases nuevas:
+  - frontend y backend compilan, y el lint quedó en 0 errores;
+  - asignación automática: 18 de 18. Rechaza materias de 2.º año, no crea inscripciones, deja el reparto parejo y repetirla no cambia nada;
+  - correlativas, validación y quitar materias: 49 de 49; flujo de inscripción del estudiante: 8 de 8;
+  - la API del E1 respondió igual que antes en 78 pedidos, y el bloqueo de cuenta por intentos fallidos sigue funcionando;
+  - regresión de API: E1, E3 y E4 25 de 25; E2 24 de 26, con las mismas dos diferencias esperadas del 08/11;
+  - pantallas de los cuatro equipos: mismo resultado antes y después de integrar.
 
 ## Decisiones tomadas
 
@@ -185,12 +206,9 @@ Los cuatro equipos ya tienen su trabajo integrado en `development`.
 
 ### E2
 
-- El pase a las cuatro capas está en su fork (rama `e2`) y cumple la regla, pero no se integró por estos puntos:
-  - la asignación automática de comisiones ahora inscribe a todos los estudiantes del sistema en cada materia que recibe, de cualquier año y sin validar correlativas; antes solo repartía en comisiones a los ya inscriptos;
-  - agregaron su propia copia de `PrerequisiteValidationRepository`, que es del E4 y choca con la que ya está integrada;
-  - el pedido de la asignación automática cambió de `materiaId` a `materiaIds`;
-  - no abrieron el Pull Request.
 - El resumen de inscripciones hace un pedido a la API por cada estudiante; conviene un endpoint que lo devuelva armado.
+- Los Pull Requests van contra `development`: el #11 se abrió contra `production`.
+- Es la segunda vez que llega `Server=ALAN` en `appsettings.json`: la conexión personal va con user-secrets, como explica el README.
 - Todos los commits son de Alan: faltan los aportes del resto del equipo.
 
 ### E3
@@ -211,12 +229,12 @@ Los cuatro equipos ya tienen su trabajo integrado en `development`.
 
 ## Números del proyecto (al 13/11/2026)
 
-En `development` hay 116 commits sin contar los merges:
+En `development` hay 123 commits sin contar los merges:
 
 | Integrante | Equipo | Commits |
 |---|---|---|
-| Tomás González | E1 | 21 |
-| Alan Ordóñez | E2 | 17 |
+| Tomás González | E1 | 23 |
+| Alan Ordóñez | E2 | 22 |
 | Lorenzo Caro | E3 | 13 |
 | Joaquín Olmedo | E1 | 12 |
 | Agustín Coccia | E4 | 11 |
