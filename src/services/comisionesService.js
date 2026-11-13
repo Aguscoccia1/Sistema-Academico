@@ -1,4 +1,5 @@
 import { request } from './httpClient';
+import { registrationService } from './registrationService';
 import { obtenerHorariosMateria } from './subjectScheduleService';
 
 async function consultarComisiones(materiaId) {
@@ -13,11 +14,18 @@ export const comisionesService = {
   consultarComisiones,
 
   asignarComisionesAleatoriamente: async () => {
-    const comisiones = await consultarComisiones();
+    const [comisiones, materiasPrimerAnio] = await Promise.all([
+      consultarComisiones(),
+      registrationService.consultarMaterias(1),
+    ]);
+    const materiasPrimerAnioIds = new Set(
+      materiasPrimerAnio.map((materia) => Number(materia.id))
+    );
     const materiasCandidatas = [
       ...new Map(
         comisiones
           .filter((comision) =>
+            materiasPrimerAnioIds.has(Number(comision.materiaId)) &&
             ['A', 'B'].includes(comision.seccion?.trim().toUpperCase())
           )
           .map((comision) => [
@@ -59,7 +67,7 @@ export const comisionesService = {
 
     if (materias.length === 0) {
       return {
-          mensaje: 'No hay materias con horarios configurados para A y B.',
+          mensaje: 'No hay materias de primer año con horarios configurados para A y B.',
           errores,
       };
     }

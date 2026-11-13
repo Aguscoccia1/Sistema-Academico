@@ -140,7 +140,7 @@ const ManageSlots = () => {
             >
               {asignando
                 ? 'Asignando...'
-                : 'Inscribir alumnos aleatoriamente'}
+                : 'Redistribuir inscripciones'}
             </button>
           </div>
 
