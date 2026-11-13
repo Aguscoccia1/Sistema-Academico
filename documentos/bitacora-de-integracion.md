@@ -45,6 +45,7 @@ Los cuatro equipos ya tienen su trabajo integrado en `development`.
 | 08/11 | Integración del E3 y el E4 con sus pases a repositorios. El E1 pasa a las cuatro capas. Se define la regla controller, service, repository y base. |
 | 13/11 | Se integran las correlatividades del E3 (PR #9) y el repositorio de validación del E4 (PR #10). El pase a capas del E2 queda en revisión. |
 | 13/11 | El E2 corrige la asignación automática y se integra su pase a capas (PR #11). Todo el backend cumple la regla de las cuatro capas. |
+| 13/11 | Se promueve `development` a `testing`, con todas las pruebas corridas sobre la versión integrada. |
 
 ## Integraciones
 
@@ -179,6 +180,24 @@ Los cuatro equipos ya tienen su trabajo integrado en `development`.
   - regresión de API: E1, E3 y E4 25 de 25; E2 24 de 26, con las mismas dos diferencias esperadas del 08/11;
   - pantallas de los cuatro equipos: mismo resultado antes y después de integrar.
 
+### 13/11 — Promoción a `testing`
+
+- `testing` pasó de la versión del 06/10 a la versión con los cuatro equipos integrados.
+- **Antes de promover** se corrió todo sobre esa versión, con bases nuevas:
+  - ningún controller ni service usa la base directo;
+  - frontend y backend compilan, y el lint quedó en 0 errores;
+  - asignación automática de comisiones: 18 de 18;
+  - correlativas, validación y quitar materias: 49 de 49; flujo de inscripción del estudiante: 8 de 8;
+  - la API del E1 respondió igual en 78 pedidos, y el bloqueo de cuenta por intentos fallidos funciona;
+  - regresión de API: E1, E3 y E4 25 de 25; E2 24 de 26, con las dos diferencias esperadas;
+  - pantallas de los cuatro equipos: mismo resultado que antes de integrar.
+- **Ensayo de la demo**, con el sistema completo y datos de ejemplo: 27 de 27 pasos en el navegador, desde el alta de un usuario hasta la inscripción de un estudiante con correlativas.
+- **Observaciones del ensayo:**
+  - un estudiante creado en Usuarios no tiene perfil de estudiante y no aparece en Inscripciones; un docente creado en Usuarios no aparece en Docentes hasta tener materias asignadas. Falta unir el alta de usuarios del E1 con las pantallas del E2;
+  - la pantalla "Modificar estudiante" de 1.º año ofrece las materias de todos los años;
+  - la columna DNI de Docentes muestra el CUIL, y en Usuarios el rol docente figura como "Teacher";
+  - la inscripción del estudiante no muestra un mensaje de confirmación: la materia pasa a "Mis Inscripciones".
+
 ## Decisiones tomadas
 
 | Tema | Decisión |
@@ -201,7 +220,8 @@ Los cuatro equipos ya tienen su trabajo integrado en `development`.
 - Recuperación de contraseña (S2-7), cuando haya SMTP.
 - Las pantallas de recuperación de contraseña y de consulta de auditoría están en el fork `0lypus`, con datos simulados y sin Pull Request: se integran cuando tengan backend.
 - Actualizar el paquete `System.Security.Cryptography.Pkcs` 9.0.11, que tiene vulnerabilidades conocidas.
-- Promover `development` a `testing` y a `production`: las dos siguen en la versión del 06/10, sin el trabajo de los equipos.
+- Promover `testing` a `production` cuando se apruebe la versión del 13/11: `production` sigue en la del 06/10.
+- Unir el alta de usuarios con los perfiles: un estudiante o un docente creado en Usuarios todavía no aparece en las pantallas de Secretaría.
 - Subir la versión aprobada al GitLab del instituto para el deploy: `https://git.icgb.com.ar/2do2026/gestion-academica`.
 
 ### E2
@@ -229,11 +249,11 @@ Los cuatro equipos ya tienen su trabajo integrado en `development`.
 
 ## Números del proyecto (al 13/11/2026)
 
-En `development` hay 123 commits sin contar los merges:
+En `development` hay 124 commits sin contar los merges:
 
 | Integrante | Equipo | Commits |
 |---|---|---|
-| Tomás González | E1 | 23 |
+| Tomás González | E1 | 24 |
 | Alan Ordóñez | E2 | 22 |
 | Lorenzo Caro | E3 | 13 |
 | Joaquín Olmedo | E1 | 12 |
