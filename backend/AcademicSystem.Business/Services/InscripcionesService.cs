@@ -1,6 +1,7 @@
 using AcademicSystem.Data.Repositories;
 using AcademicSystem.Entities.DTOs;
 using AcademicSystem.Entities.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace AcademicSystem.Business.Services;
 
@@ -24,9 +25,7 @@ public interface IInscripcionesService
         CancellationToken cancellationToken = default);
 }
 
-public sealed class InscripcionesService(
-    IInscripcionesRepository inscripcionesRepository,
-    IComisionesRepository comisionesRepository) : IInscripcionesService
+public sealed class InscripcionesService(IInscripcionesRepository inscripcionesRepository, IComisionesRepository comisionesRepository) : IInscripcionesService
 {
     public Task<IReadOnlyList<EstudianteResponseDto>> ObtenerEstudiantesAsync(
         CancellationToken cancellationToken = default)

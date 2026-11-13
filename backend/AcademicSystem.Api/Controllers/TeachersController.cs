@@ -2,6 +2,7 @@ using AcademicSystem.Business.Services;
 using AcademicSystem.Entities.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace AcademicSystem.Api.Controllers;
 
