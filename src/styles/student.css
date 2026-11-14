@@ -180,7 +180,7 @@
 /* Celdas de la fila */
 .tabla-materias tbody td {
 	position: relative;
-	height: 41px;
+	height: 55px;
 	padding: 0 var(--ds-space-3);
 	border-bottom: var(--ds-border-width) solid var(--ds-border);
 	background: #fff;
